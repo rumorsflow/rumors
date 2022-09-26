@@ -1,0 +1,38 @@
+project_name: rumors
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  -
+    binary: rumors
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+release:
+  draft: true
+
+archives:
+  - format: zip
+    files:
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  skip: true
+
+announce:
+  skip: "true"
