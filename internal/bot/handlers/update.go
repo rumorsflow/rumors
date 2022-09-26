@@ -69,7 +69,7 @@ func (h *UpdateHandler) message(updateId int, message *tgbotapi.Message) error {
 		switch cmd {
 		case "start":
 			if message.Chat != nil {
-				return h.roomEnqueue(updateId, routes[cmd], *message.Chat)
+				return h.roomEnqueue(updateId, cmd, *message.Chat)
 			}
 		case "add", "rumors":
 			return h.enqueue(updateId, cmd, data)
