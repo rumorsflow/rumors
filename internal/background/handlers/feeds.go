@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/notifications"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/rs/zerolog"
 	"strings"
 )
 
 type FeedsHandler struct {
 	Notification notifications.Notification
-	Dao          *daos.Dao
+	FeedStorage  storage.FeedStorage
 	Client       *asynq.Client
 	Log          *zerolog.Logger
 }
@@ -31,9 +31,9 @@ func (h *FeedsHandler) ProcessTask(ctx context.Context, task *asynq.Task) error 
 		var name string
 
 		switch strings.ToLower(Args(message.CommandArguments())[0]) {
-		case "view", "show":
+		case "view", "show", "v", "s":
 			name = "feeds:view"
-		case "update", "edit":
+		case "update", "edit", "u", "e":
 			name = "feeds:update"
 		default:
 			name = "feeds:list"
@@ -59,7 +59,7 @@ func (h *FeedsHandler) list(ctx context.Context, message tgbotapi.Message) error
 		t = &f[0]
 	}
 
-	data, err := h.Dao.FindFeeds(ctx, daos.FilterFeeds{Host: t}, i, s)
+	data, err := h.FeedStorage.Find(ctx, storage.FilterFeeds{Host: t}, i, s)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -84,13 +84,13 @@ func (h *FeedsHandler) list(ctx context.Context, message tgbotapi.Message) error
 }
 
 func (h *FeedsHandler) view(ctx context.Context, message tgbotapi.Message) error {
-	id, _ := Id(message.CommandArguments())
-	if id == 0 {
+	id := message.CommandArguments()
+	if id == "" {
 		h.Notification.Error(nil, "ID is required")
 		return nil
 	}
 
-	feed, err := h.Dao.FindFeedById(ctx, id)
+	feed, err := h.FeedStorage.FindById(ctx, id)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -101,20 +101,20 @@ func (h *FeedsHandler) view(ctx context.Context, message tgbotapi.Message) error
 }
 
 func (h *FeedsHandler) update(ctx context.Context, message tgbotapi.Message) error {
-	id, _ := Id(message.CommandArguments())
-	if id == 0 {
+	id := message.CommandArguments()
+	if id == "" {
 		h.Notification.Error(nil, "ID is required")
 		return nil
 	}
 
-	feed, err := h.Dao.FindFeedById(ctx, id)
+	feed, err := h.FeedStorage.FindById(ctx, id)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
 	}
 
 	feed.Enabled = !feed.Enabled
-	if err = h.Dao.Update(ctx, feed); err != nil {
+	if err = h.FeedStorage.Save(ctx, feed); err != nil {
 		h.Notification.Err(nil, err)
 		return nil
 	}

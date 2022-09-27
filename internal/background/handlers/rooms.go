@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/notifications"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/rs/zerolog"
 	"strings"
 )
 
 type RoomsHandler struct {
 	Notification notifications.Notification
-	Dao          *daos.Dao
+	RoomStorage  storage.RoomStorage
 	Client       *asynq.Client
 	Log          *zerolog.Logger
 }
@@ -31,9 +31,9 @@ func (h *RoomsHandler) ProcessTask(ctx context.Context, task *asynq.Task) error 
 		var name string
 
 		switch strings.ToLower(Args(message.CommandArguments())[0]) {
-		case "view", "show":
+		case "view", "show", "v", "s":
 			name = "rooms:view"
-		case "update", "edit":
+		case "update", "edit", "u", "e", "b":
 			name = "rooms:update"
 		default:
 			name = "rooms:list"
@@ -59,7 +59,7 @@ func (h *RoomsHandler) list(ctx context.Context, message tgbotapi.Message) error
 		t = &f[0]
 	}
 
-	data, err := h.Dao.FindRooms(ctx, daos.FilterRooms{Title: t}, i, s)
+	data, err := h.RoomStorage.Find(ctx, storage.FilterRooms{Title: t}, i, s)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -90,7 +90,7 @@ func (h *RoomsHandler) view(ctx context.Context, message tgbotapi.Message) error
 		return nil
 	}
 
-	room, err := h.Dao.FindRoomById(ctx, id)
+	room, err := h.RoomStorage.FindByChatId(ctx, id)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -107,14 +107,14 @@ func (h *RoomsHandler) update(ctx context.Context, message tgbotapi.Message) err
 		return nil
 	}
 
-	room, err := h.Dao.FindRoomById(ctx, id)
+	room, err := h.RoomStorage.FindByChatId(ctx, id)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
 	}
 
 	room.Broadcast = !room.Broadcast
-	if err = h.Dao.Update(ctx, room); err != nil {
+	if err = h.RoomStorage.Save(ctx, room); err != nil {
 		h.Notification.Err(nil, err)
 		return nil
 	}

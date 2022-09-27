@@ -5,23 +5,17 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var _ Notification = (*tgbot)(nil)
-
 type tgbot struct {
-	log                   *zerolog.Logger
-	bot                   *tgbotapi.BotAPI
-	owner                 int64
-	parseMode             string
-	disableWebPagePreview bool
+	log   *zerolog.Logger
+	bot   *tgbotapi.BotAPI
+	owner int64
 }
 
-func NewTgBotNotification(owner int64, bot *tgbotapi.BotAPI, log *zerolog.Logger) *tgbot {
+func NewTgBotNotification(owner int64, bot *tgbotapi.BotAPI, log *zerolog.Logger) Notification {
 	return &tgbot{
-		log:                   log,
-		bot:                   bot,
-		owner:                 owner,
-		parseMode:             "html",
-		disableWebPagePreview: true,
+		log:   log,
+		bot:   bot,
+		owner: owner,
 	}
 }
 
@@ -43,14 +37,27 @@ func (n *tgbot) Err(to any, err error) {
 	n.Error(to, err.Error())
 }
 
-func (n *tgbot) Send(to any, text string) {
+func (n *tgbot) Send(to any, text string, options ...any) {
 	chatID := n.owner
 	if id, ok := to.(int64); ok && id != 0 {
 		chatID = id
 	}
+
+	disableWebPagePreview := true
+	parseMode := "html"
+
+	for _, opt := range options {
+		switch o := opt.(type) {
+		case bool:
+			disableWebPagePreview = o
+		case string:
+			parseMode = o
+		}
+	}
+
 	msg := tgbotapi.NewMessage(chatID, text)
-	msg.DisableWebPagePreview = n.disableWebPagePreview
-	msg.ParseMode = n.parseMode
+	msg.DisableWebPagePreview = disableWebPagePreview
+	msg.ParseMode = parseMode
 
 	n.raw(msg)
 }

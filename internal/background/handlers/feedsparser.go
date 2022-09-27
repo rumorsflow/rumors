@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/models"
 	"github.com/iagapie/rumors/internal/notifications"
-	"github.com/iagapie/rumors/pkg/litedb/types"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog"
 	"strings"
@@ -16,20 +16,21 @@ import (
 )
 
 type FeedsParserHandler struct {
-	Notification notifications.Notification
-	Dao          *daos.Dao
-	Client       *asynq.Client
-	Log          *zerolog.Logger
+	Notification    notifications.Notification
+	FeedStorage     storage.FeedStorage
+	FeedItemStorage storage.FeedItemStorage
+	Client          *asynq.Client
+	Log             *zerolog.Logger
 }
 
 func (h *FeedsParserHandler) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	var wg sync.WaitGroup
 
 	enabled := true
-	filter := daos.FilterFeeds{Enabled: &enabled}
+	filter := storage.FilterFeeds{Enabled: &enabled}
 	var index uint64 = 0
 	for ; ; index += 20 {
-		data, err := h.Dao.FindFeeds(ctx, filter, index, 20)
+		data, err := h.FeedStorage.Find(ctx, filter, index, 20)
 		if err != nil {
 			h.Notification.Err(nil, err)
 			return nil
@@ -83,40 +84,41 @@ func (h *FeedsParserHandler) parse(feed models.Feed) {
 			desc = item.Content
 		}
 
-		pubDate := types.NowDateTime()
+		pubDate := time.Now()
 		if item.PublishedParsed != nil {
-			pubDate, _ = types.ParseDateTime(*item.PublishedParsed)
+			pubDate = *item.PublishedParsed
 		} else if item.UpdatedParsed != nil {
-			pubDate, _ = types.ParseDateTime(*item.UpdatedParsed)
+			pubDate = *item.UpdatedParsed
 		}
 
-		authors := make([]any, 0)
+		authors := make([]string, 0)
 		for _, author := range item.Authors {
 			if author != nil {
 				authors = append(authors, strings.TrimSpace(author.Name))
 			}
 		}
 
-		categories := make([]any, len(item.Categories))
+		categories := make([]string, len(item.Categories))
 		for i, c := range item.Categories {
 			categories[i] = strings.TrimSpace(c)
 		}
 
 		fItem := models.FeedItem{
+			Id:         uuid.NewString(),
 			FeedId:     feed.Id,
 			Title:      item.Title,
 			Desc:       desc,
 			Link:       link,
 			Guid:       guid,
 			PubDate:    pubDate,
-			Created:    types.NowDateTime(),
+			CreatedAt:  time.Now().UTC(),
 			Authors:    authors,
 			Categories: categories,
 		}
 
-		if err = h.Dao.Insert(ctx, &fItem); err != nil {
+		if err = h.FeedItemStorage.Save(ctx, fItem); err != nil {
 			h.Log.Debug().Err(err).Interface("feed", feed).Interface("feed_item", fItem).Msg("")
-			return
+			continue
 		}
 
 		if data, err := json.Marshal(fItem); err == nil {

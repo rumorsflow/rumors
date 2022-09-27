@@ -9,10 +9,9 @@ import (
 	"github.com/iagapie/rumors/internal/bot"
 	botHandlers "github.com/iagapie/rumors/internal/bot/handlers"
 	"github.com/iagapie/rumors/internal/config"
-	"github.com/iagapie/rumors/internal/daos"
-	"github.com/iagapie/rumors/internal/migrations"
-	"github.com/iagapie/rumors/pkg/litedb"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/iagapie/rumors/pkg/logger"
+	"github.com/iagapie/rumors/pkg/mongodb"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,9 +35,7 @@ func init() {
 	flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
 	flagSet.String("server.address", ":8080", "server address")
 
-	flagSet.String("db.path", "./db", "db path")
-	flagSet.String("db.main", "main", "main db name")
-	flagSet.String("db.data", "data", "data db name")
+	flagSet.String("mongodb.uri", "", "mongo db uri")
 
 	flagSet.Int64("telegram.owner", 0, "telegram (BOT) owner id")
 	flagSet.String("telegram.token", "", "telegram bot token")
@@ -68,25 +65,26 @@ func serve(cmd *cobra.Command, _ []string) error {
 	backLog := log.With().Str("context", "back").Logger()
 	//httpLog := log.With().Str("context", "http").Logger()
 
-	log.Info().Msg("init sqlite main db")
-	db, err := litedb.New(cfg.DB.Path, cfg.DB.Main)
+	mongoDB, err := mongodb.GetDB(cmd.Context(), cfg.MongoDB.URI)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
-	log.Info().Msg("attach sqlite data db")
-	if err = db.Attach(cfg.DB.Path, cfg.DB.Data, "data"); err != nil {
-		return err
-	}
-	defer db.Detach("data")
-
-	log.Info().Msg("up migrations")
-	if err = migrations.Up(db); err != nil {
+	roomStorage, err := storage.NewRoomStorage(cmd.Context(), mongoDB)
+	if err != nil {
 		return err
 	}
 
-	dao := daos.New(db.DB)
+	feedStorage, err := storage.NewFeedStorage(cmd.Context(), mongoDB)
+	if err != nil {
+		return err
+	}
+
+	feedItemStorage, err := storage.NewFeedItemStorage(cmd.Context(), mongoDB)
+	if err != nil {
+		return err
+	}
+
 	backApp := background.NewApp(cfg.Asynq, &backLog)
 	//httpApp := http.NewApp(cfg.Debug, cfg.Server, &httpLog)
 	botApp, err := bot.NewApp(cfg.Debug, cfg.Telegram, &botLog)
@@ -96,14 +94,14 @@ func serve(cmd *cobra.Command, _ []string) error {
 
 	roomsHandler := &backHandlers.RoomsHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		RoomStorage:  roomStorage,
 		Client:       backApp.Client(),
 		Log:          &backLog,
 	}
 
 	feedsHandler := &backHandlers.FeedsHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		FeedStorage:  feedStorage,
 		Client:       backApp.Client(),
 		Log:          &backLog,
 	}
@@ -115,12 +113,12 @@ func serve(cmd *cobra.Command, _ []string) error {
 	roomsMux.Handle("rooms:update", roomsHandler)
 	roomsMux.Handle("rooms:add", &backHandlers.RoomsAddHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		RoomStorage:  roomStorage,
 		Log:          &backLog,
 	})
 	roomsMux.Handle("rooms:left", &backHandlers.RoomsLeftHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		RoomStorage:  roomStorage,
 		Log:          &backLog,
 	})
 
@@ -131,22 +129,24 @@ func serve(cmd *cobra.Command, _ []string) error {
 	feedsMux.Handle("feeds:update", feedsHandler)
 	feedsMux.Handle("feeds:add", &backHandlers.FeedsAddHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		FeedStorage:  feedStorage,
 		Log:          &backLog,
 		Owner:        cfg.Telegram.Owner,
 	})
 	feedsMux.Handle(cfg.Asynq.Scheduler.TaskName, &backHandlers.FeedsParserHandler{
-		Notification: botApp.Notification(),
-		Dao:          dao,
-		Client:       backApp.Client(),
-		Log:          &backLog,
+		Notification:    botApp.Notification(),
+		FeedStorage:     feedStorage,
+		FeedItemStorage: feedItemStorage,
+		Client:          backApp.Client(),
+		Log:             &backLog,
 	})
 
 	rumorsMux := asynq.NewServeMux()
 	rumorsMux.Handle("rumors:list", &backHandlers.RumorsHandler{
-		Notification: botApp.Notification(),
-		Dao:          dao,
-		Log:          &backLog,
+		Notification:    botApp.Notification(),
+		FeedStorage:     feedStorage,
+		FeedItemStorage: feedItemStorage,
+		Log:             &backLog,
 	})
 
 	backMux := asynq.NewServeMux()
@@ -155,7 +155,8 @@ func serve(cmd *cobra.Command, _ []string) error {
 	backMux.Handle("rumors:", rumorsMux)
 	backMux.Handle("aggregated:broadcast", &backHandlers.BroadcastHandler{
 		Notification: botApp.Notification(),
-		Dao:          dao,
+		FeedStorage:  feedStorage,
+		RoomStorage:  roomStorage,
 		Log:          &backLog,
 	})
 

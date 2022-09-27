@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/models"
 	"github.com/iagapie/rumors/internal/notifications"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/rs/zerolog"
 	"strings"
 )
 
 type RumorsHandler struct {
-	Notification notifications.Notification
-	Dao          *daos.Dao
-	Log          *zerolog.Logger
+	Notification    notifications.Notification
+	FeedStorage     storage.FeedStorage
+	FeedItemStorage storage.FeedItemStorage
+	Log             *zerolog.Logger
 }
 
 func (h *RumorsHandler) ProcessTask(ctx context.Context, task *asynq.Task) error {
@@ -33,12 +34,12 @@ func (h *RumorsHandler) ProcessTask(ctx context.Context, task *asynq.Task) error
 func (h *RumorsHandler) list(ctx context.Context, message tgbotapi.Message) error {
 	i, s, f := Pagination(message.CommandArguments())
 
-	feeds := make(map[int64]models.Feed)
+	feeds := make(map[string]models.Feed)
 
-	var feedIds []int64
+	var feedIds []string
 
 	if len(f) > 0 {
-		if data, err := h.Dao.FindFeeds(ctx, daos.FilterFeeds{Host: &f[0]}, 0, 50); err == nil {
+		if data, err := h.FeedStorage.Find(ctx, storage.FilterFeeds{Host: &f[0]}, 0, 50); err == nil {
 			for _, item := range data {
 				feedIds = append(feedIds, item.Id)
 				feeds[item.Id] = item
@@ -46,7 +47,7 @@ func (h *RumorsHandler) list(ctx context.Context, message tgbotapi.Message) erro
 		}
 	}
 
-	data, err := h.Dao.FindFeedItems(ctx, daos.FilterFeedItems{FeedIds: feedIds}, i, s)
+	data, err := h.FeedItemStorage.Find(ctx, storage.FilterFeedItems{FeedIds: feedIds}, i, s)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -61,8 +62,8 @@ func (h *RumorsHandler) list(ctx context.Context, message tgbotapi.Message) erro
 
 	for _, item := range data {
 		if _, ok := feeds[item.FeedId]; !ok {
-			if feed, err := h.Dao.FindFeedById(ctx, item.FeedId); err == nil {
-				feeds[feed.Id] = *feed
+			if feed, err := h.FeedStorage.FindById(ctx, item.FeedId); err == nil {
+				feeds[feed.Id] = feed
 			} else {
 				continue
 			}

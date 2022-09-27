@@ -2,17 +2,11 @@ package config
 
 type Config struct {
 	Debug    bool           `mapstructure:"debug"`
-	DB       DBConfig       `mapstructure:"db"`
 	Log      LogConfig      `mapstructure:"log"`
 	Asynq    AsynqConfig    `mapstructure:"asynq"`
 	Server   ServerConfig   `mapstructure:"server"`
+	MongoDB  MongoDBConfig  `mapstructure:"mongodb"`
 	Telegram TelegramConfig `mapstructure:"telegram"`
-}
-
-type DBConfig struct {
-	Path string `mapstructure:"path"`
-	Main string `mapstructure:"main"`
-	Data string `mapstructure:"data"`
 }
 
 type LogConfig struct {
@@ -46,6 +40,10 @@ type AsynqSchedulerConfig struct {
 type ServerConfig struct {
 	Network string `mapstructure:"network"`
 	Address string `mapstructure:"address"`
+}
+
+type MongoDBConfig struct {
+	URI string `mapstructure:"uri"`
 }
 
 type TelegramConfig struct {

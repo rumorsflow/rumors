@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/models"
 	"github.com/iagapie/rumors/internal/notifications"
-	"github.com/iagapie/rumors/pkg/litedb/types"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog"
 	"net/url"
@@ -19,7 +19,7 @@ import (
 
 type FeedsAddHandler struct {
 	Notification notifications.Notification
-	Dao          *daos.Dao
+	FeedStorage  storage.FeedStorage
 	Log          *zerolog.Logger
 	Owner        int64
 }
@@ -59,21 +59,22 @@ func (h *FeedsAddHandler) ProcessTask(ctx context.Context, task *asynq.Task) err
 		by = message.From.ID
 	}
 
-	if model, _ := h.Dao.FindFeedByLink(ctx, &feed.FeedLink); model != nil {
+	if _, err = h.FeedStorage.FindByLink(ctx, feed.FeedLink); err == nil {
 		h.Notification.Error(message.Chat.ID, fmt.Sprintf("The specified URL %s by %d already exists", link, by))
 		return nil
 	}
 
-	model := &models.Feed{
-		By:      by,
-		Host:    strings.ToLower(strings.ReplaceAll(u.Hostname(), "www.", "")),
-		Title:   feed.Title,
-		Link:    feed.FeedLink,
-		Enabled: by == h.Owner,
-		Created: types.NowDateTime(),
+	model := models.Feed{
+		Id:        uuid.NewString(),
+		By:        by,
+		Host:      strings.ToLower(strings.ReplaceAll(u.Hostname(), "www.", "")),
+		Title:     feed.Title,
+		Link:      feed.FeedLink,
+		Enabled:   by == h.Owner,
+		CreatedAt: time.Now().UTC(),
 	}
 
-	if err = h.Dao.Insert(ctx, model); err != nil {
+	if err = h.FeedStorage.Save(ctx, model); err != nil {
 		h.Notification.Err(nil, err)
 		return nil
 	}

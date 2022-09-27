@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/daos"
 	"github.com/iagapie/rumors/internal/models"
 	"github.com/iagapie/rumors/internal/notifications"
+	"github.com/iagapie/rumors/internal/storage"
 	"github.com/rs/zerolog"
 	"strings"
 	"sync"
@@ -15,7 +15,8 @@ import (
 
 type BroadcastHandler struct {
 	Notification notifications.Notification
-	Dao          *daos.Dao
+	FeedStorage  storage.FeedStorage
+	RoomStorage  storage.RoomStorage
 	Log          *zerolog.Logger
 }
 
@@ -30,7 +31,7 @@ func (h *BroadcastHandler) ProcessTask(ctx context.Context, task *asynq.Task) er
 		return nil
 	}
 
-	feed, err := h.Dao.FindFeedById(ctx, items[0].FeedId)
+	feed, err := h.FeedStorage.FindById(ctx, items[0].FeedId)
 	if err != nil {
 		h.Notification.Err(nil, err)
 		return nil
@@ -59,10 +60,10 @@ func (h *BroadcastHandler) ProcessTask(ctx context.Context, task *asynq.Task) er
 
 	broadcast := true
 	deleted := false
-	filter := daos.FilterRooms{Broadcast: &broadcast, Deleted: &deleted}
+	filter := storage.FilterRooms{Broadcast: &broadcast, Deleted: &deleted}
 	var index uint64 = 0
 	for ; ; index += 20 {
-		rooms, err := h.Dao.FindRooms(ctx, filter, index, 20)
+		rooms, err := h.RoomStorage.Find(ctx, filter, index, 20)
 		if err != nil {
 			h.Notification.Err(nil, err)
 			return nil
@@ -71,7 +72,7 @@ func (h *BroadcastHandler) ProcessTask(ctx context.Context, task *asynq.Task) er
 		for _, room := range rooms {
 			go func(room models.Room) {
 				defer wg.Done()
-				h.Notification.Send(room.Id, text)
+				h.Notification.Send(room.ChatId, text)
 			}(room)
 		}
 		if len(rooms) < 20 {

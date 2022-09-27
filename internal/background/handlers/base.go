@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"strconv"
+	"github.com/spf13/cast"
 	"strings"
 )
 
@@ -12,34 +12,29 @@ func Args(str string) []string {
 func Id(str string) (id int64, rest []string) {
 	a := Args(str)
 	if len(a) > 1 {
-		if v, err := strconv.ParseInt(a[1], 10, 64); err == nil {
-			id = v
-		}
+		id = cast.ToInt64(a[1])
 		rest = a[2:]
 	}
 	return
 }
 
 func Index(str string) uint64 {
-	if v, err := strconv.ParseUint(str, 10, 64); err == nil {
-		return v
-	}
-	return 0
+	return cast.ToUint64(str)
 }
 
 func Size(str string) uint32 {
-	if v, err := strconv.ParseUint(str, 10, 32); err == nil && v > 0 {
+	if v := cast.ToUint32(str); v > 0 {
 		if v > 50 {
 			return 50
 		}
-		return uint32(v)
+		return v
 	}
 	return 10
 }
 
 func Pagination(str string) (i uint64, s uint32, filters []string) {
 	a := Args(str)
-	if strings.ToLower(a[0]) == "list" {
+	if strings.ToLower(a[0]) == "list" || a[0] == "l" || a[0] == "L" {
 		a = append([]string{}, a[1:]...)
 	}
 	t := len(a)
