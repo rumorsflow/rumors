@@ -47,6 +47,7 @@ func (a *App) Notification() notifications.Notification {
 func (a *App) Start(handler Handler) {
 	a.log.Info().Msg("Start telegram bot")
 	a.start(handler)
+	a.notification.Send(nil, "<b>\U00002728 Bot started...</b>")
 }
 
 func (a *App) Shutdown() {
@@ -54,6 +55,7 @@ func (a *App) Shutdown() {
 	defer a.mu.Unlock()
 
 	a.log.Info().Msg("Stop telegram bot")
+	a.notification.Send(nil, "<b>\U0000203C Bot shutdown...</b>")
 	a.bot.StopReceivingUpdates()
 }
 

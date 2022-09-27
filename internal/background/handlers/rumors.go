@@ -84,17 +84,16 @@ func (h *RumorsHandler) list(ctx context.Context, message tgbotapi.Message) erro
 		b.WriteString(host)
 		b.WriteString("</b>\n\n")
 
-		if len(items) > 3 {
-			for j, item := range items {
+		for j, item := range items {
+			if len(items) > 1 {
 				b.WriteString(fmt.Sprintf("<b>%d.</b> ", j+1))
+			}
+			if len(items) > 3 {
 				b.WriteString(item.Line())
-				b.WriteString("\n\n")
-			}
-		} else {
-			for _, item := range items {
+			} else {
 				b.WriteString(item.Info())
-				b.WriteString("\n\n")
 			}
+			b.WriteString("\n\n")
 		}
 
 		b.WriteString("\n\n")
