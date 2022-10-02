@@ -12,14 +12,48 @@ import (
 )
 
 type FilterRooms struct {
-	ChatIds   []int64 `json:"chat_ids,omitempty" query:"chat_ids[]"`
-	Title     *string `json:"title,omitempty" query:"title"`
-	Broadcast *bool   `json:"broadcast,omitempty" query:"broadcast"`
-	Deleted   *bool   `json:"deleted,omitempty" query:"deleted"`
+	Ids       []string `json:"ids,omitempty" query:"ids[]"`
+	ChatIds   []int64  `json:"chat_ids,omitempty" query:"chat_ids[]"`
+	Title     *string  `json:"title,omitempty" query:"title"`
+	Broadcast *bool    `json:"broadcast,omitempty" query:"broadcast"`
+	Deleted   *bool    `json:"deleted,omitempty" query:"deleted"`
+}
+
+func (f *FilterRooms) SetIds(ids ...string) *FilterRooms {
+	f.Ids = ids
+	return f
+}
+
+func (f *FilterRooms) SetChatIds(chatIds ...int64) *FilterRooms {
+	f.ChatIds = chatIds
+	return f
+}
+
+func (f *FilterRooms) SetTitle(title string) *FilterRooms {
+	f.Title = &title
+	return f
+}
+
+func (f *FilterRooms) SetBroadcast(broadcast bool) *FilterRooms {
+	f.Broadcast = &broadcast
+	return f
+}
+
+func (f *FilterRooms) SetDeleted(deleted bool) *FilterRooms {
+	f.Deleted = &deleted
+	return f
 }
 
 func (f *FilterRooms) build() any {
+	if f == nil {
+		return bson.D{}
+	}
+
 	var filter mongodb.Filter
+
+	if len(f.Ids) > 0 {
+		filter = append(filter, mongodb.In("_id", slice.ToAny(f.Ids)...))
+	}
 
 	if len(f.ChatIds) > 0 {
 		filter = append(filter, mongodb.In("chat_id", slice.ToAny(f.ChatIds)...))
@@ -41,9 +75,10 @@ func (f *FilterRooms) build() any {
 }
 
 type RoomStorage interface {
-	FindByChatId(ctx context.Context, chatId int64) (models.Room, error)
-	Find(ctx context.Context, filter FilterRooms, index uint64, size uint32) ([]models.Room, error)
 	Save(ctx context.Context, model models.Room) error
+	Find(ctx context.Context, filter *FilterRooms, index uint64, size uint32) ([]models.Room, error)
+	FindByChatId(ctx context.Context, chatId int64) (models.Room, error)
+	FindById(ctx context.Context, id string) (models.Room, error)
 }
 
 type roomStorage struct {
@@ -72,29 +107,6 @@ func (s *roomStorage) indexes(ctx context.Context) error {
 	_, err := s.c.Indexes().CreateMany(ctx, data)
 
 	return err
-}
-
-func (s *roomStorage) Find(ctx context.Context, filter FilterRooms, index uint64, size uint32) ([]models.Room, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
-	opts := mongodb.FindOptions(index, size).SetSort(bson.D{{"created_at", 1}})
-	cur, err := s.c.Find(ctx, filter.build(), opts)
-	if err != nil {
-		return nil, fmt.Errorf(mongodb.ErrMsgQuery, err)
-	}
-	return mongodb.DecodeAll[models.Room](ctx, cur)
-}
-
-func (s *roomStorage) FindByChatId(ctx context.Context, chatId int64) (models.Room, error) {
-	data, err := s.Find(ctx, FilterRooms{ChatIds: []int64{chatId}}, 0, 1)
-	if err != nil {
-		return models.Room{}, err
-	}
-	if len(data) == 0 {
-		return models.Room{}, fmt.Errorf("room error: %w", mongo.ErrNoDocuments)
-	}
-	return data[0], nil
 }
 
 func (s *roomStorage) Save(ctx context.Context, model models.Room) error {
@@ -126,4 +138,35 @@ func (s *roomStorage) Save(ctx context.Context, model models.Room) error {
 	}
 
 	return nil
+}
+
+func (s *roomStorage) Find(ctx context.Context, filter *FilterRooms, index uint64, size uint32) ([]models.Room, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	opts := mongodb.FindOptions(index, size).SetSort(bson.D{{"created_at", 1}})
+	cur, err := s.c.Find(ctx, filter.build(), opts)
+	if err != nil {
+		return nil, fmt.Errorf(mongodb.ErrMsgQuery, err)
+	}
+	return mongodb.DecodeAll[models.Room](ctx, cur)
+}
+
+func (s *roomStorage) FindByChatId(ctx context.Context, chatId int64) (models.Room, error) {
+	return s.findOne(ctx, new(FilterRooms).SetChatIds(chatId))
+}
+
+func (s *roomStorage) FindById(ctx context.Context, id string) (models.Room, error) {
+	return s.findOne(ctx, new(FilterRooms).SetIds(id))
+}
+
+func (s *roomStorage) findOne(ctx context.Context, filter *FilterRooms) (models.Room, error) {
+	data, err := s.Find(ctx, filter, 0, 1)
+	if err != nil {
+		return models.Room{}, err
+	}
+	if len(data) == 0 {
+		return models.Room{}, fmt.Errorf("room error: %w", mongo.ErrNoDocuments)
+	}
+	return data[0], nil
 }

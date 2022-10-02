@@ -2,61 +2,51 @@ package logger
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog"
-	"io"
+	"github.com/rs/zerolog/log"
+	golog "log"
 	"os"
-	"sync"
 	"time"
 )
 
 func init() {
+	log.Logger = log.Logger.Level(zerolog.InfoLevel)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = time.RFC3339Nano
-	zerolog.TimestampFieldName = "timestamp"
-	zerolog.LevelFieldName = "severity"
+	initAll()
 }
 
-type ZeroLog struct {
-	Command  string
-	Version  string
-	LogLevel string
-	Colored  bool
-	Debug    bool
-	once     sync.Once
-	log      *zerolog.Logger
+func initAll() {
+	zerolog.DefaultContextLogger = &log.Logger
+	golog.SetOutput(log.Logger)
 }
 
-func (zl *ZeroLog) Log() *zerolog.Logger {
-	zl.once.Do(func() {
-		level := zerolog.DebugLevel
-		if !zl.Debug {
-			level, _ = zerolog.ParseLevel(zl.LogLevel)
-			if zerolog.NoLevel == level {
-				level = zerolog.InfoLevel
-			}
-		}
+func ZeroLogWith(lvl, cmd, version string, console, debug bool) {
+	l := log.Logger
 
-		var out io.Writer = os.Stdout
-		if zl.Colored {
-			out = zerolog.ConsoleWriter{Out: out}
-		}
+	if debug {
+		l = l.Level(zerolog.DebugLevel)
+	} else if level, _ := zerolog.ParseLevel(lvl); zerolog.NoLevel != level {
+		l = l.Level(level)
+	}
 
-		log := zerolog.New(out).Level(level).With().Timestamp().Str("command", zl.Command).Str("version", zl.Version).Logger()
+	if console {
+		l = l.Output(zerolog.ConsoleWriter{Out: os.Stdout})
+	}
 
-		zl.log = &log
-	})
-	return zl.log
+	log.Logger = l.With().Str("command", cmd).Str("version", version).Logger()
+
+	initAll()
 }
-
-var _ asynq.Logger = (*asynqLogger)(nil)
 
 type asynqLogger struct {
-	log *zerolog.Logger
+	log zerolog.Logger
 }
 
-func AsyncLogLevel(l zerolog.Level) asynq.LogLevel {
-	switch l {
+func AsyncLogLevel() asynq.LogLevel {
+	switch log.Logger.GetLevel() {
 	case zerolog.DebugLevel, zerolog.TraceLevel:
 		return asynq.DebugLevel
 	case zerolog.InfoLevel:
@@ -71,8 +61,8 @@ func AsyncLogLevel(l zerolog.Level) asynq.LogLevel {
 	return asynq.LogLevel(0)
 }
 
-func NewAsynqLogger(log *zerolog.Logger) *asynqLogger {
-	return &asynqLogger{log: log}
+func NewAsynqLogger() asynq.Logger {
+	return &asynqLogger{log: log.Logger.With().Str("context", "asynq").Logger()}
 }
 
 func (l *asynqLogger) Debug(args ...any) {
@@ -95,14 +85,12 @@ func (l *asynqLogger) Fatal(args ...any) {
 	l.log.Fatal().Msg(args[0].(string))
 }
 
-var _ tgbotapi.BotLogger = (*botLogger)(nil)
-
 type botLogger struct {
-	log *zerolog.Logger
+	log zerolog.Logger
 }
 
-func NewBotLogger(log *zerolog.Logger) *botLogger {
-	return &botLogger{log: log}
+func NewBotLogger() tgbotapi.BotLogger {
+	return &botLogger{log: log.Logger.With().Str("context", "tgbotapi").Logger()}
 }
 
 func (l *botLogger) Println(v ...any) {

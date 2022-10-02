@@ -2,22 +2,26 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/iagapie/rumors/internal/background"
-	backHandlers "github.com/iagapie/rumors/internal/background/handlers"
-	"github.com/iagapie/rumors/internal/bot"
-	botHandlers "github.com/iagapie/rumors/internal/bot/handlers"
 	"github.com/iagapie/rumors/internal/config"
+	"github.com/iagapie/rumors/internal/consts"
+	"github.com/iagapie/rumors/internal/events"
 	"github.com/iagapie/rumors/internal/storage"
+	"github.com/iagapie/rumors/internal/tasks"
+	tasksHandlers "github.com/iagapie/rumors/internal/tasks/handlers"
+	"github.com/iagapie/rumors/pkg/emitter"
 	"github.com/iagapie/rumors/pkg/logger"
 	"github.com/iagapie/rumors/pkg/mongodb"
-	"github.com/rs/zerolog"
+	"github.com/iagapie/rumors/pkg/validate"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	golog "log"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var serveCmd = &cobra.Command{
@@ -32,8 +36,8 @@ var serveCmd = &cobra.Command{
 func init() {
 	flagSet := serveCmd.PersistentFlags()
 
-	flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
-	flagSet.String("server.address", ":8080", "server address")
+	//flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
+	//flagSet.String("server.address", ":8080", "server address")
 
 	flagSet.String("mongodb.uri", "", "mongo db uri")
 
@@ -44,10 +48,12 @@ func init() {
 	flagSet.String("async.redis.address", ":6379", "redis address")
 	flagSet.String("async.redis.username", "", "redis username")
 	flagSet.String("async.redis.password", "", "redis password")
-	flagSet.Int("asynq.redis.db", 0, "by default, redis offers 16 databases (0..15)")
+	flagSet.Int("asynq.redis.db", 0, "by default redis offers 16 databases (0..15)")
 	flagSet.Int("asynq.server.concurrency", 0, "how many concurrent workers to use, zero or negative for number of CPUs")
-	flagSet.String("asynq.scheduler.cron", "@every 5m", "can use cron spec string or can use \"@every <duration>\" to specify the interval")
-	flagSet.String("asynq.scheduler.name", "feeds:parser", "task type (handler route)")
+	flagSet.Int("asynq.server.group.max.size", 50, "if zero no delay limit is used")
+	flagSet.Duration("asynq.server.group.max.delay", 10*time.Minute, "if zero no size limit is used")
+	flagSet.Duration("asynq.server.group.grace.period", 2*time.Minute, "min 1 second")
+	flagSet.String("asynq.scheduler.feed", "@every 5m", "feed importer cron spec string or can use \"@every <duration>\" to specify the interval")
 
 	RootCmd.AddCommand(serveCmd)
 }
@@ -58,12 +64,8 @@ func serve(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	log := zeroLog(cmd, cfg)
-	golog.SetOutput(log)
-
-	botLog := log.With().Str("context", "bot").Logger()
-	backLog := log.With().Str("context", "back").Logger()
-	//httpLog := log.With().Str("context", "http").Logger()
+	logger.ZeroLogWith(cfg.Log.Level, name(cmd), cmd.Version, cfg.Log.Console, cfg.Debug)
+	_ = tgbotapi.SetLogger(logger.NewBotLogger())
 
 	mongoDB, err := mongodb.GetDB(cmd.Context(), cfg.MongoDB.URI)
 	if err != nil {
@@ -85,87 +87,106 @@ func serve(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	backApp := background.NewApp(cfg.Asynq, &backLog)
-	//httpApp := http.NewApp(cfg.Debug, cfg.Server, &httpLog)
-	botApp, err := bot.NewApp(cfg.Debug, cfg.Telegram, &botLog)
+	taskApp := tasks.NewApp(cfg.Asynq)
+	//httpApp := http.NewApp(cfg.Debug, cfg.Server)
+	botApi, err := tgbotapi.NewBotAPI(cfg.Telegram.Token)
 	if err != nil {
 		return err
 	}
+	botApi.Debug = cfg.Debug
 
-	roomsHandler := &backHandlers.RoomsHandler{
-		Notification: botApp.Notification(),
-		RoomStorage:  roomStorage,
-		Client:       backApp.Client(),
-		Log:          &backLog,
+	validator := validate.New()
+	em := emitter.NewEmitter(10)
+
+	listener := &events.Listener{
+		BotAPI:  botApi,
+		Emitter: em,
+		Log:     log.Ctx(cmd.Context()).With().Str("context", "listener").Logger(),
+		Owner:   cfg.Telegram.Owner,
 	}
 
-	feedsHandler := &backHandlers.FeedsHandler{
-		Notification: botApp.Notification(),
-		FeedStorage:  feedStorage,
-		Client:       backApp.Client(),
-		Log:          &backLog,
-	}
-
-	roomsMux := asynq.NewServeMux()
-	roomsMux.Handle("rooms:crud", roomsHandler)
-	roomsMux.Handle("rooms:list", roomsHandler)
-	roomsMux.Handle("rooms:view", roomsHandler)
-	roomsMux.Handle("rooms:update", roomsHandler)
-	roomsMux.Handle("rooms:add", &backHandlers.RoomsAddHandler{
-		Notification: botApp.Notification(),
-		RoomStorage:  roomStorage,
-		Log:          &backLog,
-	})
-	roomsMux.Handle("rooms:left", &backHandlers.RoomsLeftHandler{
-		Notification: botApp.Notification(),
-		RoomStorage:  roomStorage,
-		Log:          &backLog,
+	telegramMux := asynq.NewServeMux()
+	telegramMux.Handle(consts.TaskTelegramUpdate, &tasksHandlers.TelegramUpdateHandler{
+		Client:  taskApp.Client(),
+		Emitter: em,
+		Owner:   cfg.Telegram.Owner,
 	})
 
-	feedsMux := asynq.NewServeMux()
-	feedsMux.Handle("feeds:crud", feedsHandler)
-	feedsMux.Handle("feeds:list", feedsHandler)
-	feedsMux.Handle("feeds:view", feedsHandler)
-	feedsMux.Handle("feeds:update", feedsHandler)
-	feedsMux.Handle("feeds:add", &backHandlers.FeedsAddHandler{
-		Notification: botApp.Notification(),
-		FeedStorage:  feedStorage,
-		Log:          &backLog,
-		Owner:        cfg.Telegram.Owner,
+	roomMux := asynq.NewServeMux()
+	roomMux.Handle(consts.TaskRoomSave, &tasksHandlers.RoomSaveHandler{
+		Storage: roomStorage,
+		Emitter: em,
 	})
-	feedsMux.Handle(cfg.Asynq.Scheduler.TaskName, &backHandlers.FeedsParserHandler{
-		Notification:    botApp.Notification(),
-		FeedStorage:     feedStorage,
-		FeedItemStorage: feedItemStorage,
-		Client:          backApp.Client(),
-		Log:             &backLog,
+	roomMux.Handle(consts.TaskRoomAdd, &tasksHandlers.RoomAddLeftHandler{
+		Storage: roomStorage,
+		Client:  taskApp.Client(),
 	})
-
-	rumorsMux := asynq.NewServeMux()
-	rumorsMux.Handle("rumors:list", &backHandlers.RumorsHandler{
-		Notification:    botApp.Notification(),
-		FeedStorage:     feedStorage,
-		FeedItemStorage: feedItemStorage,
-		Log:             &backLog,
+	roomMux.Handle(consts.TaskRoomLeft, &tasksHandlers.RoomAddLeftHandler{
+		Storage: roomStorage,
+		Client:  taskApp.Client(),
+	})
+	roomMux.Handle(consts.TaskRoomView, &tasksHandlers.RoomViewHandler{
+		Storage: roomStorage,
+		Emitter: em,
 	})
 
-	backMux := asynq.NewServeMux()
-	backMux.Handle("rooms:", roomsMux)
-	backMux.Handle("feeds:", feedsMux)
-	backMux.Handle("rumors:", rumorsMux)
-	backMux.Handle("aggregated:broadcast", &backHandlers.BroadcastHandler{
-		Notification: botApp.Notification(),
-		FeedStorage:  feedStorage,
-		RoomStorage:  roomStorage,
-		Log:          &backLog,
+	feedMux := asynq.NewServeMux()
+	feedMux.Handle(consts.TaskFeedScheduler, &tasksHandlers.FeedSchedulerHandler{
+		Storage: feedStorage,
+		Client:  taskApp.Client(),
+	})
+	feedMux.Handle(consts.TaskFeedImporter, &tasksHandlers.FeedImporterHandler{
+		Client: taskApp.Client(),
+	})
+	feedMux.Handle(consts.TaskFeedSave, &tasksHandlers.FeedSaveHandler{
+		Storage: feedStorage,
+		Emitter: em,
+	})
+	feedMux.Handle(consts.TaskFeedAdd, &tasksHandlers.FeedAddHandler{
+		Validator: validator,
+		Emitter:   em,
+		Client:    taskApp.Client(),
+		Owner:     cfg.Telegram.Owner,
+	})
+	feedMux.Handle(consts.TaskFeedView, &tasksHandlers.FeedViewHandler{
+		Storage: feedStorage,
+		Emitter: em,
 	})
 
-	botHandler := &botHandlers.UpdateHandler{
-		Notification: botApp.Notification(),
-		Client:       backApp.Client(),
-		Log:          &botLog,
-		Owner:        cfg.Telegram.Owner,
-	}
+	feedItemMux := asynq.NewServeMux()
+	feedItemMux.Handle(consts.TaskFeedItemSave, &tasksHandlers.FeedItemSaveHandler{
+		Storage: feedItemStorage,
+		Client:  taskApp.Client(),
+	})
+	feedItemMux.Handle(consts.TaskFeedItemView, &tasksHandlers.FeedItemViewHandler{
+		Storage: feedItemStorage,
+		Emitter: em,
+	})
+	feedItemMux.Handle(consts.TaskFeedItemAggregated, &tasksHandlers.FeedItemAggregatedHandler{
+		Storage: roomStorage,
+		Client:  taskApp.Client(),
+	})
+	feedItemMux.Handle(consts.TaskFeedItemBroadcast, &tasksHandlers.FeedItemBroadcastHandler{
+		Emitter: em,
+	})
+
+	mux := asynq.NewServeMux()
+	mux.Use(func(handler asynq.Handler) asynq.Handler {
+		return asynq.HandlerFunc(func(ctx context.Context, task *asynq.Task) error {
+			l := log.
+				Ctx(ctx).
+				With().
+				Str("context", "tasks").
+				Str("task", task.Type()).
+				RawJSON("payload", task.Payload()).
+				Logger()
+			return handler.ProcessTask(l.WithContext(ctx), task)
+		})
+	})
+	mux.Handle(consts.TaskTelegramPrefix, telegramMux)
+	mux.Handle(consts.TaskRoomPrefix, roomMux)
+	mux.Handle(consts.TaskFeedPrefix, feedMux)
+	mux.Handle(consts.TaskFeedItemPrefix, feedItemMux)
 
 	//api := httpApp.Echo().Group("/api")
 	//{
@@ -178,11 +199,23 @@ func serve(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
 	defer cancel()
 
-	go func(ctx context.Context, backApp *background.App) {
+	go func(ctx context.Context, listener *events.Listener) {
 		<-ctx.Done()
 
-		backApp.Shutdown()
-	}(ctx, backApp)
+		listener.Stop()
+	}(ctx, listener)
+
+	go func(ctx context.Context, taskApp *tasks.App) {
+		<-ctx.Done()
+
+		taskApp.Shutdown()
+	}(ctx, taskApp)
+
+	go func(ctx context.Context, botApi *tgbotapi.BotAPI) {
+		<-ctx.Done()
+
+		botApi.StopReceivingUpdates()
+	}(ctx, botApi)
 
 	//go func(ctx context.Context, httpApp *http.App) {
 	//	<-ctx.Done()
@@ -190,17 +223,13 @@ func serve(cmd *cobra.Command, _ []string) error {
 	//	httpApp.Shutdown()
 	//}(ctx, httpApp)
 
-	go func(ctx context.Context, botApp *bot.App) {
-		<-ctx.Done()
+	listener.Start()
 
-		botApp.Shutdown()
-	}(ctx, botApp)
-
-	if err = backApp.Start(backMux); err != nil {
+	if err = taskApp.Start(mux); err != nil {
 		return err
 	}
 
-	go botApp.Start(botHandler)
+	go startGetUpdates(botApi, taskApp.Client())
 
 	<-ctx.Done()
 
@@ -208,20 +237,26 @@ func serve(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func zeroLog(cmd *cobra.Command, cfg config.Config) *zerolog.Logger {
-	factory := &logger.ZeroLog{
-		Command:  name(cmd),
-		Version:  cmd.Version,
-		Debug:    cfg.Debug,
-		LogLevel: cfg.Log.Level,
-		Colored:  cfg.Log.Colored,
-	}
-	return factory.Log()
-}
-
 func name(cmd *cobra.Command) string {
 	if cmd.Parent() == nil {
 		return cmd.Name()
 	}
 	return fmt.Sprintf("%s %s", name(cmd.Parent()), cmd.Name())
+}
+
+func startGetUpdates(botApi *tgbotapi.BotAPI, client *asynq.Client) {
+	l := log.With().Str("context", "tgbotapi").Logger()
+
+	for update := range botApi.GetUpdatesChan(tgbotapi.UpdateConfig{Timeout: 30}) {
+		payload, err := json.Marshal(update)
+		if err != nil {
+			l.Error().Err(err).Msg("error due to marshal update")
+			continue
+		}
+
+		taskId := asynq.TaskID(fmt.Sprintf("%s:%d", consts.TaskTelegramUpdate, update.UpdateID))
+		if _, err = client.Enqueue(asynq.NewTask(consts.TaskTelegramUpdate, payload), taskId); err != nil {
+			l.Error().Err(err).Msg("error due to enqueue update")
+		}
+	}
 }

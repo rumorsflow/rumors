@@ -1,0 +1,7 @@
+{{range $i, $feed := .}}
+<b>{{inc $i}}.</b> {{$feed.Id}}
+    {{$feed.Link}}
+    L[{{$feed.Lang}}] E[{{$feed.Enabled}}]
+{{else}}
+<b>No Feeds❗</b>
+{{end}}

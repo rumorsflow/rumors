@@ -13,15 +13,44 @@ import (
 
 type FilterFeedItems struct {
 	FeedIds  []string `json:"feed_ids,omitempty" query:"feed_ids[]"`
+	Link     *string  `json:"link,omitempty" query:"link"`
 	Author   *string  `json:"author,omitempty" query:"author"`
 	Category *string  `json:"category,omitempty" query:"category"`
 }
 
+func (f *FilterFeedItems) SetIds(feedIds ...string) *FilterFeedItems {
+	f.FeedIds = feedIds
+	return f
+}
+
+func (f *FilterFeedItems) SetLink(link string) *FilterFeedItems {
+	f.Link = &link
+	return f
+}
+
+func (f *FilterFeedItems) SetAuthor(author string) *FilterFeedItems {
+	f.Author = &author
+	return f
+}
+
+func (f *FilterFeedItems) SetCategory(category string) *FilterFeedItems {
+	f.Category = &category
+	return f
+}
+
 func (f *FilterFeedItems) build() any {
+	if f == nil {
+		return bson.D{}
+	}
+
 	var filter mongodb.Filter
 
 	if len(f.FeedIds) > 0 {
 		filter = append(filter, mongodb.In("feed_id", slice.ToAny(f.FeedIds)...))
+	}
+
+	if f.Link != nil {
+		filter = append(filter, mongodb.Regex("link", *f.Link, "i"))
 	}
 
 	if f.Author != nil {
@@ -36,7 +65,7 @@ func (f *FilterFeedItems) build() any {
 }
 
 type FeedItemStorage interface {
-	Find(ctx context.Context, filter FilterFeedItems, index uint64, size uint32) ([]models.FeedItem, error)
+	Find(ctx context.Context, filter *FilterFeedItems, index uint64, size uint32) ([]models.FeedItem, error)
 	Save(ctx context.Context, model models.FeedItem) error
 }
 
@@ -60,11 +89,10 @@ func (s *feedItemStorage) indexes(ctx context.Context) error {
 
 	data := []mongo.IndexModel{
 		{Keys: bson.D{
-			{"link", 1},
 			{"guid", 1},
 			{"pub_date", 1},
 		}, Options: options.Index().SetUnique(true)},
-		{Keys: bson.D{{"feed_id", 1}, {"pub_date", 1}, {"created_at", 1}}},
+		{Keys: bson.D{{"feed_id", 1}, {"link", 1}, {"pub_date", 1}, {"created_at", 1}}},
 	}
 
 	_, err := s.c.Indexes().CreateMany(ctx, data)
@@ -72,7 +100,7 @@ func (s *feedItemStorage) indexes(ctx context.Context) error {
 	return err
 }
 
-func (s *feedItemStorage) Find(ctx context.Context, filter FilterFeedItems, index uint64, size uint32) ([]models.FeedItem, error) {
+func (s *feedItemStorage) Find(ctx context.Context, filter *FilterFeedItems, index uint64, size uint32) ([]models.FeedItem, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -92,7 +120,6 @@ func (s *feedItemStorage) Save(ctx context.Context, model models.FeedItem) error
 
 	delete(data, "_id")
 	delete(data, "feed_id")
-	delete(data, "link")
 	delete(data, "guid")
 	delete(data, "pub_date")
 	delete(data, "created_at")
@@ -107,7 +134,6 @@ func (s *feedItemStorage) Save(ctx context.Context, model models.FeedItem) error
 			"$set": data,
 			"$setOnInsert": bson.M{
 				"feed_id":    model.FeedId,
-				"link":       model.Link,
 				"guid":       model.Guid,
 				"pub_date":   model.PubDate,
 				"created_at": model.CreatedAt,

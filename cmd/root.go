@@ -38,7 +38,7 @@ func init() {
 	flagSet := RootCmd.PersistentFlags()
 	flagSet.StringP("config", "c", "config.yaml", "application config path")
 	flagSet.BoolP("debug", "d", false, "application debug mode (default \"false\")")
-	flagSet.Bool("log.colored", false, "colored log output")
+	flagSet.Bool("log.console", false, "true for console log output")
 	flagSet.StringP("log.level", "l", "info", "application log level")
 
 	_ = viper.BindPFlags(flagSet)

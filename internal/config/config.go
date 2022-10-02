@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 type Config struct {
 	Debug    bool           `mapstructure:"debug"`
 	Log      LogConfig      `mapstructure:"log"`
@@ -11,7 +13,7 @@ type Config struct {
 
 type LogConfig struct {
 	Level   string `mapstructure:"level"`
-	Colored bool   `mapstructure:"colored"`
+	Console bool   `mapstructure:"console"`
 }
 
 type AsynqConfig struct {
@@ -30,11 +32,19 @@ type RedisConfig struct {
 
 type AsynqServerConfig struct {
 	Concurrency int `mapstructure:"concurrency"`
+	Group       struct {
+		Max struct {
+			Delay time.Duration `mapstructure:"delay"`
+			Size  int           `mapstructure:"size"`
+		} `mapstructure:"max"`
+		Grace struct {
+			Period time.Duration `mapstructure:"period"`
+		} `mapstructure:"grace"`
+	} `mapstructure:"group"`
 }
 
 type AsynqSchedulerConfig struct {
-	Cronspec string `mapstructure:"cron"`
-	TaskName string `mapstructure:"name"`
+	FeedImporter string `mapstructure:"feed"`
 }
 
 type ServerConfig struct {

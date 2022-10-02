@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/ziflex/lecho/v3"
 	"net"
 	"net/http"
@@ -15,23 +16,25 @@ import (
 
 type App struct {
 	cfg    config.ServerConfig
-	log    *zerolog.Logger
+	log    zerolog.Logger
 	e      *echo.Echo
 	server *http.Server
 }
 
-func NewApp(debug bool, cfg config.ServerConfig, log *zerolog.Logger) *App {
+func NewApp(debug bool, cfg config.ServerConfig) *App {
+	l := log.Logger.With().Str("context", "http").Logger()
+
 	e := echo.New()
 	e.Debug = debug
 	e.HideBanner = true
 	e.Validator = validate.New()
-	e.Logger = lecho.From(*log)
+	e.Logger = lecho.From(l)
 
 	e.Use(middleware.Recover(), middleware.RemoveTrailingSlash())
 
 	return &App{
 		cfg: cfg,
-		log: log,
+		log: l,
 		e:   e,
 		server: &http.Server{
 			Handler: e,

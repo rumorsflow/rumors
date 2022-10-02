@@ -14,7 +14,11 @@ type customValidator struct {
 	validator *validator.Validate
 }
 
-func New() *customValidator {
+type Validator interface {
+	Validate(i any) error
+}
+
+func New() Validator {
 	v := validator.New()
 
 	v.RegisterTagNameFunc(func(fld reflect.StructField) string {

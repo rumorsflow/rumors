@@ -9,3 +9,10 @@ func ToAny[T any](list []T) []any {
 
 	return result
 }
+
+func Safe[T any](data []T, index int) (val T) {
+	if len(data) > index {
+		return data[index]
+	}
+	return
+}

@@ -17,7 +17,6 @@
 **/.DS_Store
 **/._.DS_Store
 **/.idea
-/db/
 /release/
 rumors
 config.yaml

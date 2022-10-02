@@ -1,8 +1,7 @@
 package models
 
 import (
-	"fmt"
-	"strings"
+	"github.com/iagapie/rumors/pkg/url"
 	"time"
 )
 
@@ -19,36 +18,7 @@ type FeedItem struct {
 	Categories []string  `json:"categories" bson:"categories,omitempty"`
 }
 
-func (i *FeedItem) Line() string {
-	return fmt.Sprintf("%s - <a href=\"%s\">link</a>", i.Title, i.Link)
-}
-
-func (i *FeedItem) Info() string {
-	var b strings.Builder
-	b.WriteString(fmt.Sprintf("<a href=\"%s\">%s</a>", i.Link, i.Title))
-
-	for n, cat := range i.Categories {
-		if n == 0 {
-			b.WriteString("\n")
-		}
-		b.WriteString(cat)
-		if (n + 1) < len(i.Categories) {
-			b.WriteString(", ")
-		}
-	}
-
-	b.WriteString("\n\n")
-	b.WriteString(i.Desc)
-
-	for n, cat := range i.Authors {
-		if n == 0 {
-			b.WriteString("\n")
-		}
-		b.WriteString(cat)
-		if (n + 1) < len(i.Authors) {
-			b.WriteString(", ")
-		}
-	}
-
-	return b.String()
+func (i *FeedItem) Domain() string {
+	domain, _ := url.Domain(i.Link)
+	return domain
 }

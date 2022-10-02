@@ -17,12 +17,47 @@ const timeout = 5 * time.Second
 type FilterFeeds struct {
 	Ids     []string `json:"ids,omitempty" query:"ids[]"`
 	By      *int64   `json:"by,omitempty" query:"by"`
+	Lang    *string  `json:"lang,omitempty" query:"lang" validate:"omitempty,bcp47_language_tag"`
 	Host    *string  `json:"host,omitempty" query:"host" validate:"omitempty,fqdn"`
 	Link    *string  `json:"link,omitempty" query:"link" validate:"omitempty,url"`
 	Enabled *bool    `json:"enabled,omitempty" query:"enabled"`
 }
 
+func (f *FilterFeeds) SetIds(ids ...string) *FilterFeeds {
+	f.Ids = ids
+	return f
+}
+
+func (f *FilterFeeds) SetBy(by int64) *FilterFeeds {
+	f.By = &by
+	return f
+}
+
+func (f *FilterFeeds) SetLang(lang string) *FilterFeeds {
+	f.Lang = &lang
+	return f
+}
+
+func (f *FilterFeeds) SetHost(host string) *FilterFeeds {
+	f.Host = &host
+	return f
+}
+
+func (f *FilterFeeds) SetLink(link string) *FilterFeeds {
+	f.Link = &link
+	return f
+}
+
+func (f *FilterFeeds) SetEnabled(enabled bool) *FilterFeeds {
+	f.Enabled = &enabled
+	return f
+}
+
 func (f *FilterFeeds) build() any {
+	if f == nil {
+		return bson.D{}
+	}
+
 	var filter mongodb.Filter
 
 	if len(f.Ids) > 0 {
@@ -33,12 +68,16 @@ func (f *FilterFeeds) build() any {
 		filter = append(filter, mongodb.Eq("by", *f.By))
 	}
 
+	if f.Lang != nil {
+		filter = append(filter, mongodb.Eq("lang", *f.Lang))
+	}
+
 	if f.Host != nil {
 		filter = append(filter, mongodb.Regex("host", *f.Host, "i"))
 	}
 
 	if f.Link != nil {
-		filter = append(filter, mongodb.Eq("link", *f.Link))
+		filter = append(filter, mongodb.Regex("link", *f.Link, "i"))
 	}
 
 	if f.Enabled != nil {
@@ -49,10 +88,10 @@ func (f *FilterFeeds) build() any {
 }
 
 type FeedStorage interface {
+	Save(ctx context.Context, model models.Feed) error
+	Find(ctx context.Context, filter *FilterFeeds, index uint64, size uint32) ([]models.Feed, error)
 	FindByLink(ctx context.Context, link string) (models.Feed, error)
 	FindById(ctx context.Context, id string) (models.Feed, error)
-	Find(ctx context.Context, filter FilterFeeds, index uint64, size uint32) ([]models.Feed, error)
-	Save(ctx context.Context, model models.Feed) error
 }
 
 type feedStorage struct {
@@ -75,46 +114,12 @@ func (s *feedStorage) indexes(ctx context.Context) error {
 
 	data := []mongo.IndexModel{
 		{Keys: bson.D{{"link", 1}}, Options: options.Index().SetUnique(true)},
-		{Keys: bson.D{{"host", 1}, {"enabled", 1}, {"created_at", 1}}},
+		{Keys: bson.D{{"lang", 1}, {"host", 1}, {"enabled", 1}, {"created_at", 1}}},
 	}
 
 	_, err := s.c.Indexes().CreateMany(ctx, data)
 
 	return err
-}
-
-func (s *feedStorage) Find(ctx context.Context, filter FilterFeeds, index uint64, size uint32) ([]models.Feed, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
-	opts := mongodb.FindOptions(index, size).SetSort(bson.D{{"created_at", 1}})
-	cur, err := s.c.Find(ctx, filter.build(), opts)
-	if err != nil {
-		return nil, fmt.Errorf(mongodb.ErrMsgQuery, err)
-	}
-	return mongodb.DecodeAll[models.Feed](ctx, cur)
-}
-
-func (s *feedStorage) FindByLink(ctx context.Context, link string) (models.Feed, error) {
-	data, err := s.Find(ctx, FilterFeeds{Link: &link}, 0, 1)
-	if err != nil {
-		return models.Feed{}, err
-	}
-	if len(data) == 0 {
-		return models.Feed{}, fmt.Errorf("feed error: %w", mongo.ErrNoDocuments)
-	}
-	return data[0], nil
-}
-
-func (s *feedStorage) FindById(ctx context.Context, id string) (models.Feed, error) {
-	data, err := s.Find(ctx, FilterFeeds{Ids: []string{id}}, 0, 1)
-	if err != nil {
-		return models.Feed{}, err
-	}
-	if len(data) == 0 {
-		return models.Feed{}, fmt.Errorf("feed error: %w", mongo.ErrNoDocuments)
-	}
-	return data[0], nil
 }
 
 func (s *feedStorage) Save(ctx context.Context, model models.Feed) error {
@@ -150,4 +155,35 @@ func (s *feedStorage) Save(ctx context.Context, model models.Feed) error {
 	}
 
 	return nil
+}
+
+func (s *feedStorage) Find(ctx context.Context, filter *FilterFeeds, index uint64, size uint32) ([]models.Feed, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	opts := mongodb.FindOptions(index, size).SetSort(bson.D{{"created_at", 1}})
+	cur, err := s.c.Find(ctx, filter.build(), opts)
+	if err != nil {
+		return nil, fmt.Errorf(mongodb.ErrMsgQuery, err)
+	}
+	return mongodb.DecodeAll[models.Feed](ctx, cur)
+}
+
+func (s *feedStorage) FindByLink(ctx context.Context, link string) (models.Feed, error) {
+	return s.findOne(ctx, new(FilterFeeds).SetLink(link))
+}
+
+func (s *feedStorage) FindById(ctx context.Context, id string) (models.Feed, error) {
+	return s.findOne(ctx, new(FilterFeeds).SetIds(id))
+}
+
+func (s *feedStorage) findOne(ctx context.Context, filter *FilterFeeds) (models.Feed, error) {
+	data, err := s.Find(ctx, filter, 0, 1)
+	if err != nil {
+		return models.Feed{}, err
+	}
+	if len(data) == 0 {
+		return models.Feed{}, fmt.Errorf("feed error: %w", mongo.ErrNoDocuments)
+	}
+	return data[0], nil
 }

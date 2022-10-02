@@ -1,21 +1,14 @@
 package handlers
 
 import (
+	"encoding/binary"
+	"github.com/iagapie/rumors/pkg/slice"
 	"github.com/spf13/cast"
 	"strings"
 )
 
 func Args(str string) []string {
 	return strings.Split(str, " ")
-}
-
-func Id(str string) (id int64, rest []string) {
-	a := Args(str)
-	if len(a) > 1 {
-		id = cast.ToInt64(a[1])
-		rest = a[2:]
-	}
-	return
 }
 
 func Index(str string) uint64 {
@@ -34,21 +27,21 @@ func Size(str string) uint32 {
 
 func Pagination(str string) (i uint64, s uint32, filters []string) {
 	a := Args(str)
-	if strings.ToLower(a[0]) == "list" || a[0] == "l" || a[0] == "L" {
-		a = append([]string{}, a[1:]...)
-	}
-	t := len(a)
+	i = Index(slice.Safe(a, 0))
+	s = Size(slice.Safe(a, 1))
 
-	if t > 0 {
-		i = Index(a[0])
-	}
-	if t > 1 {
-		s = Size(a[1])
-	} else {
-		s = 10
-	}
-	if t > 2 {
+	if len(a) > 2 {
 		filters = a[2:]
 	}
 	return
+}
+
+func Int64ToBytes(i int64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i))
+	return b
+}
+
+func BytesToInt64(b []byte) int64 {
+	return int64(binary.LittleEndian.Uint64(b))
 }

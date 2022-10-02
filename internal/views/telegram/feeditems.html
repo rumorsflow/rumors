@@ -1,0 +1,13 @@
+{{range $group, $items := .}}
+<b>{{$group}}</b>
+{{range $i, $item := $items}}
+{{if gt (len $items) 1}}<b>{{inc $i}}.</b> {{end}}
+{{- if gt (len $items) 3}}
+    {{- $item.Title}} - <a href="{{$item.Link}}">link</a>
+{{- else}}
+    {{- template "feeditem.html" $item}}
+{{end}}
+{{end}}
+{{else}}
+<b>No Rumors❗</b>
+{{end}}
