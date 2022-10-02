@@ -9,7 +9,7 @@ RUMORS_MONGODB_URI= \
 go run . serve
 ```
 
-### Bot add commands
+### Bot commands
 
 ```shell
 add - <feed link> <lang>
@@ -18,4 +18,4 @@ feed - [list: <index> <size> <link search>] or [info: <id>]
 room - [list: <index> <size> <title search>] or [info: <id>]
 ```
 
-Commands `/add` and `/rumors` are public. Commands `/feed` and `/room` are private and could be access only by bot owner.
+Commands `/add` and `/rumors` are public. Commands `/feed` and `/room` are private and can be access only by bot owner.
