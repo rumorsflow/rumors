@@ -49,6 +49,9 @@ func (l *Listener) send(chatId int64, text string) {
 }
 
 func (l *Listener) run() {
+	onAppStart := l.Emitter.On(consts.EventAppStart)
+	onAppStop := l.Emitter.On(consts.EventAppStop)
+
 	onErrorForbidden := l.Emitter.On(consts.EventErrorForbidden)
 	onErrorNotFound := l.Emitter.On(consts.EventErrorNotFound)
 	onErrorViewList := l.Emitter.On(consts.EventErrorViewList)
@@ -67,6 +70,9 @@ func (l *Listener) run() {
 	onFeedItemViewList := l.Emitter.On(consts.EventFeedItemViewList)
 
 	defer func(e emitter.Emitter) {
+		e.Off(consts.EventAppStart)
+		e.Off(consts.EventAppStop)
+
 		e.Off(consts.EventErrorForbidden, onErrorForbidden)
 		e.Off(consts.EventErrorNotFound, onErrorNotFound)
 		e.Off(consts.EventErrorViewList, onErrorViewList)
@@ -89,6 +95,11 @@ func (l *Listener) run() {
 		select {
 		case <-l.done:
 			return
+
+		case event := <-onAppStart:
+			l.onAppStart(event)
+		case event := <-onAppStop:
+			l.onAppStop(event)
 
 		case event := <-onErrorForbidden:
 			l.onErrorForbidden(event)

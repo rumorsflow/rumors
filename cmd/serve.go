@@ -199,41 +199,23 @@ func serve(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
 	defer cancel()
 
-	go func(ctx context.Context, listener *events.Listener) {
-		<-ctx.Done()
-
-		listener.Stop()
-	}(ctx, listener)
-
-	go func(ctx context.Context, taskApp *tasks.App) {
-		<-ctx.Done()
-
-		taskApp.Shutdown()
-	}(ctx, taskApp)
-
-	go func(ctx context.Context, botApi *tgbotapi.BotAPI) {
-		<-ctx.Done()
-
-		botApi.StopReceivingUpdates()
-	}(ctx, botApi)
-
-	//go func(ctx context.Context, httpApp *http.App) {
-	//	<-ctx.Done()
-	//
-	//	httpApp.Shutdown()
-	//}(ctx, httpApp)
-
 	listener.Start()
+	defer listener.Stop()
 
 	if err = taskApp.Start(mux); err != nil {
 		return err
 	}
+	defer taskApp.Shutdown()
 
 	go startGetUpdates(botApi, taskApp.Client())
+	defer botApi.StopReceivingUpdates()
+
+	em.Fire(cmd.Context(), consts.EventAppStart)
 
 	<-ctx.Done()
 
-	//return httpApp.Start()
+	em.Fire(context.Background(), consts.EventAppStop)
+
 	return nil
 }
 
@@ -247,7 +229,19 @@ func name(cmd *cobra.Command) string {
 func startGetUpdates(botApi *tgbotapi.BotAPI, client *asynq.Client) {
 	l := log.With().Str("context", "tgbotapi").Logger()
 
-	for update := range botApi.GetUpdatesChan(tgbotapi.UpdateConfig{Timeout: 30}) {
+	config := tgbotapi.UpdateConfig{
+		Timeout: 30,
+		AllowedUpdates: []string{
+			"message",
+			"edited_message",
+			"channel_post",
+			"edited_channel_post",
+			"my_chat_member",
+			"chat_member",
+		},
+	}
+
+	for update := range botApi.GetUpdatesChan(config) {
 		payload, err := json.Marshal(update)
 		if err != nil {
 			l.Error().Err(err).Msg("error due to marshal update")

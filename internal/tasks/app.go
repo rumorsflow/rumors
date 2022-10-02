@@ -16,7 +16,6 @@ type App struct {
 	client    *asynq.Client
 	server    *asynq.Server
 	scheduler *asynq.Scheduler
-	mu        sync.Mutex
 }
 
 func NewApp(cfg config.AsynqConfig) *App {
@@ -57,16 +56,10 @@ func NewApp(cfg config.AsynqConfig) *App {
 }
 
 func (a *App) Client() *asynq.Client {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
 	return a.client
 }
 
 func (a *App) Start(handler asynq.Handler) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
 	a.log.Info("Start asynq server")
 	if err := a.server.Start(handler); err != nil {
 		return err
@@ -85,14 +78,10 @@ func (a *App) Start(handler asynq.Handler) error {
 		a.server.Shutdown()
 		return err
 	}
-
 	return nil
 }
 
 func (a *App) Shutdown() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
 	var wg sync.WaitGroup
 	wg.Add(2)
 

@@ -1,6 +1,12 @@
 package consts
 
 const (
+	EventAppPrefix = "app"
+	EventAppStart  = EventAppPrefix + ":start"
+	EventAppStop   = EventAppPrefix + ":stop"
+)
+
+const (
 	EventErrorPrefix    = "error"
 	EventErrorForbidden = EventErrorPrefix + ":forbidden"
 	EventErrorNotFound  = EventErrorPrefix + ":notfound"
