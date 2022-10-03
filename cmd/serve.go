@@ -41,16 +41,9 @@ func init() {
 	flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
 	flagSet.String("server.address", ":8080", "server address")
 
-	flagSet.String("mongodb.uri", "", "mongo db uri")
-
 	flagSet.Int64("telegram.owner", 0, "telegram (BOT) owner id")
 	flagSet.String("telegram.token", "", "telegram bot token")
 
-	flagSet.String("asynq.redis.network", "tcp", "redis network, ex: tcp, unix")
-	flagSet.String("asynq.redis.address", ":6379", "redis address")
-	flagSet.String("asynq.redis.username", "", "redis username")
-	flagSet.String("asynq.redis.password", "", "redis password")
-	flagSet.Int("asynq.redis.db", 0, "by default redis offers 16 databases (0..15)")
 	flagSet.Int("asynq.server.concurrency", 0, "how many concurrent workers to use, zero or negative for number of CPUs")
 	flagSet.Int("asynq.server.group.max.size", 50, "if zero no delay limit is used")
 	flagSet.Duration("asynq.server.group.max.delay", 10*time.Minute, "if zero no size limit is used")
@@ -92,7 +85,14 @@ func serve(cmd *cobra.Command, _ []string) error {
 	validator := validate.New()
 	em := emitter.NewEmitter(10)
 
-	taskApp := tasks.NewApp(cfg.Asynq)
+	redisConnOpt := asynq.RedisClientOpt{
+		Network:  cfg.Redis.Network,
+		Addr:     cfg.Redis.Address,
+		Username: cfg.Redis.Username,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	}
+	taskApp := tasks.NewApp(cfg.Asynq, redisConnOpt)
 	httpApp := http.NewApp(cfg.Debug, cfg.Server, validator)
 	botApi, err := tgbotapi.NewBotAPI(cfg.Telegram.Token)
 	if err != nil {
@@ -227,13 +227,6 @@ func serve(cmd *cobra.Command, _ []string) error {
 	em.Fire(context.Background(), consts.EventAppStop)
 
 	return nil
-}
-
-func name(cmd *cobra.Command) string {
-	if cmd.Parent() == nil {
-		return cmd.Name()
-	}
-	return fmt.Sprintf("%s %s", name(cmd.Parent()), cmd.Name())
 }
 
 func startGetUpdates(botApi *tgbotapi.BotAPI, client *asynq.Client) {

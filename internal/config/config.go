@@ -5,6 +5,7 @@ import "time"
 type Config struct {
 	Debug    bool           `mapstructure:"debug"`
 	Log      LogConfig      `mapstructure:"log"`
+	Redis    RedisConfig    `mapstructure:"redis"`
 	Asynq    AsynqConfig    `mapstructure:"asynq"`
 	Server   ServerConfig   `mapstructure:"server"`
 	MongoDB  MongoDBConfig  `mapstructure:"mongodb"`
@@ -16,18 +17,17 @@ type LogConfig struct {
 	Console bool   `mapstructure:"console"`
 }
 
-type AsynqConfig struct {
-	Redis     RedisConfig          `mapstructure:"redis"`
-	Server    AsynqServerConfig    `mapstructure:"server"`
-	Scheduler AsynqSchedulerConfig `mapstructure:"scheduler"`
-}
-
 type RedisConfig struct {
 	Network  string `mapstructure:"network"`
 	Address  string `mapstructure:"address"`
 	Username string `mapstructure:"username"`
 	Password string `mapstructure:"password"`
 	DB       int    `mapstructure:"db"`
+}
+
+type AsynqConfig struct {
+	Server    AsynqServerConfig    `mapstructure:"server"`
+	Scheduler AsynqSchedulerConfig `mapstructure:"scheduler"`
 }
 
 type AsynqServerConfig struct {

@@ -1,5 +1,7 @@
 <a href="{{.Link}}">{{.Title}}</a>
 {{join .Categories ", "}}
 
+{{if ne .Desc ""}}
 {{.Desc}}
+{{end}}
 {{join .Authors ", "}}

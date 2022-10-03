@@ -8,6 +8,7 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/iagapie/rumors/internal/consts"
 	"github.com/iagapie/rumors/internal/models"
+	"github.com/iagapie/rumors/pkg/str"
 	"github.com/iagapie/rumors/pkg/url"
 	"github.com/mmcdole/gofeed"
 	"github.com/rs/zerolog/log"
@@ -101,10 +102,11 @@ func toFeedItem(item *gofeed.Item, feedId string) *models.FeedItem {
 
 	desc := strings.TrimSpace(item.Description)
 	if desc == "" {
-		desc = strings.TrimSpace(item.Content)
+		desc = item.Content
 	}
+	desc = str.StripHTMLTags(desc)
 
-	title := strings.TrimSpace(item.Title)
+	title := str.StripHTMLTags(item.Title)
 	if title == "" {
 		if desc == "" {
 			return nil
@@ -128,13 +130,13 @@ func toFeedItem(item *gofeed.Item, feedId string) *models.FeedItem {
 	authors := make([]string, 0)
 	for _, author := range item.Authors {
 		if author != nil {
-			authors = append(authors, strings.TrimSpace(author.Name))
+			authors = append(authors, str.StripHTMLTags(author.Name))
 		}
 	}
 
 	categories := make([]string, len(item.Categories))
 	for i, c := range item.Categories {
-		categories[i] = strings.TrimSpace(c)
+		categories[i] = str.StripHTMLTags(c)
 	}
 
 	return &models.FeedItem{

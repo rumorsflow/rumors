@@ -18,15 +18,7 @@ type App struct {
 	scheduler *asynq.Scheduler
 }
 
-func NewApp(cfg config.AsynqConfig) *App {
-	redisConnOpt := asynq.RedisClientOpt{
-		Network:  cfg.Redis.Network,
-		Addr:     cfg.Redis.Address,
-		Username: cfg.Redis.Username,
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-	}
-
+func NewApp(cfg config.AsynqConfig, redisConnOpt asynq.RedisClientOpt) *App {
 	level := logger.AsyncLogLevel()
 	log := logger.NewAsynqLogger()
 
