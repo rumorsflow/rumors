@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"github.com/iagapie/rumors/internal/config"
-	"github.com/iagapie/rumors/pkg/validate"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
@@ -21,13 +20,13 @@ type App struct {
 	server *http.Server
 }
 
-func NewApp(debug bool, cfg config.ServerConfig) *App {
+func NewApp(debug bool, cfg config.ServerConfig, validator echo.Validator) *App {
 	l := log.Logger.With().Str("context", "http").Logger()
 
 	e := echo.New()
 	e.Debug = debug
 	e.HideBanner = true
-	e.Validator = validate.New()
+	e.Validator = validator
 	e.Logger = lecho.From(l)
 
 	e.Use(middleware.Recover(), middleware.RemoveTrailingSlash())
@@ -46,19 +45,17 @@ func (a *App) Echo() *echo.Echo {
 	return a.e
 }
 
-func (a *App) Start() error {
+func (a *App) Start() {
 	a.log.Info().Msg("Start HTTP Server")
 
 	listener, err := net.Listen(a.cfg.Network, a.cfg.Address)
 	if err != nil {
-		return err
+		a.log.Error().Err(err).Msg("Failed to start HTTP Server")
 	}
 
 	if err = a.server.Serve(listener); err != http.ErrServerClosed {
-		return err
+		a.log.Error().Err(err).Msg("Failed to start HTTP Server")
 	}
-
-	return nil
 }
 
 func (a *App) Shutdown() {

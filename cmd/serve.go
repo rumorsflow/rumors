@@ -9,6 +9,8 @@ import (
 	"github.com/iagapie/rumors/internal/config"
 	"github.com/iagapie/rumors/internal/consts"
 	"github.com/iagapie/rumors/internal/events"
+	"github.com/iagapie/rumors/internal/http"
+	httpHandlers "github.com/iagapie/rumors/internal/http/handlers"
 	"github.com/iagapie/rumors/internal/storage"
 	"github.com/iagapie/rumors/internal/tasks"
 	tasksHandlers "github.com/iagapie/rumors/internal/tasks/handlers"
@@ -36,18 +38,18 @@ var serveCmd = &cobra.Command{
 func init() {
 	flagSet := serveCmd.PersistentFlags()
 
-	//flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
-	//flagSet.String("server.address", ":8080", "server address")
+	flagSet.String("server.network", "tcp", "server network, ex: tcp, tcp4, tcp6, unix, unixpacket")
+	flagSet.String("server.address", ":8080", "server address")
 
 	flagSet.String("mongodb.uri", "", "mongo db uri")
 
 	flagSet.Int64("telegram.owner", 0, "telegram (BOT) owner id")
 	flagSet.String("telegram.token", "", "telegram bot token")
 
-	flagSet.String("async.redis.network", "tcp", "redis network, ex: tcp, unix")
-	flagSet.String("async.redis.address", ":6379", "redis address")
-	flagSet.String("async.redis.username", "", "redis username")
-	flagSet.String("async.redis.password", "", "redis password")
+	flagSet.String("asynq.redis.network", "tcp", "redis network, ex: tcp, unix")
+	flagSet.String("asynq.redis.address", ":6379", "redis address")
+	flagSet.String("asynq.redis.username", "", "redis username")
+	flagSet.String("asynq.redis.password", "", "redis password")
 	flagSet.Int("asynq.redis.db", 0, "by default redis offers 16 databases (0..15)")
 	flagSet.Int("asynq.server.concurrency", 0, "how many concurrent workers to use, zero or negative for number of CPUs")
 	flagSet.Int("asynq.server.group.max.size", 50, "if zero no delay limit is used")
@@ -87,16 +89,16 @@ func serve(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	validator := validate.New()
+	em := emitter.NewEmitter(10)
+
 	taskApp := tasks.NewApp(cfg.Asynq)
-	//httpApp := http.NewApp(cfg.Debug, cfg.Server)
+	httpApp := http.NewApp(cfg.Debug, cfg.Server, validator)
 	botApi, err := tgbotapi.NewBotAPI(cfg.Telegram.Token)
 	if err != nil {
 		return err
 	}
 	botApi.Debug = cfg.Debug
-
-	validator := validate.New()
-	em := emitter.NewEmitter(10)
 
 	listener := &events.Listener{
 		BotAPI:  botApi,
@@ -188,27 +190,35 @@ func serve(cmd *cobra.Command, _ []string) error {
 	mux.Handle(consts.TaskFeedPrefix, feedMux)
 	mux.Handle(consts.TaskFeedItemPrefix, feedItemMux)
 
-	//api := httpApp.Echo().Group("/api")
-	//{
-	//	v1 := api.Group("/v1")
-	//	{
-	//		new(httpHandlers.UpdateHandler).Register(v1)
-	//	}
-	//}
+	api := httpApp.Echo().Group("/api")
+	{
+		v1 := api.Group("/v1")
+		{
+			feedHandler := &httpHandlers.FeedHandler{}
+			feedHandler.Register(v1)
+
+			roomHandler := &httpHandlers.RoomHandler{}
+			roomHandler.Register(v1)
+
+			updateHandler := &httpHandlers.UpdateHandler{}
+			updateHandler.Register(v1)
+		}
+	}
 
 	ctx, cancel := signal.NotifyContext(cmd.Context(), syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
 	defer cancel()
 
 	listener.Start()
-	defer listener.Stop()
+	defer listener.Shutdown()
 
-	if err = taskApp.Start(mux); err != nil {
-		return err
-	}
+	taskApp.Start(mux)
 	defer taskApp.Shutdown()
 
 	go startGetUpdates(botApi, taskApp.Client())
 	defer botApi.StopReceivingUpdates()
+
+	go httpApp.Start()
+	defer httpApp.Shutdown()
 
 	em.Fire(cmd.Context(), consts.EventAppStart)
 
@@ -229,7 +239,7 @@ func name(cmd *cobra.Command) string {
 func startGetUpdates(botApi *tgbotapi.BotAPI, client *asynq.Client) {
 	l := log.With().Str("context", "tgbotapi").Logger()
 
-	config := tgbotapi.UpdateConfig{
+	cfg := tgbotapi.UpdateConfig{
 		Timeout: 30,
 		AllowedUpdates: []string{
 			"message",
@@ -237,11 +247,10 @@ func startGetUpdates(botApi *tgbotapi.BotAPI, client *asynq.Client) {
 			"channel_post",
 			"edited_channel_post",
 			"my_chat_member",
-			"chat_member",
 		},
 	}
 
-	for update := range botApi.GetUpdatesChan(config) {
+	for update := range botApi.GetUpdatesChan(cfg) {
 		payload, err := json.Marshal(update)
 		if err != nil {
 			l.Error().Err(err).Msg("error due to marshal update")

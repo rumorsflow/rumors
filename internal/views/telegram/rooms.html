@@ -1,5 +1,6 @@
 {{range $i, $room := .}}
 <b>{{inc $i}}.</b> {{$room.Id}}
+    {{$room.ChatId}}
     {{$room.Title}} B[{{$room.Broadcast}}] D[{{$room.Deleted}}]
 {{else}}
 <b>No Rooms❗</b>

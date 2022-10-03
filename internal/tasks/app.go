@@ -59,26 +59,25 @@ func (a *App) Client() *asynq.Client {
 	return a.client
 }
 
-func (a *App) Start(handler asynq.Handler) error {
+func (a *App) Start(handler asynq.Handler) {
 	a.log.Info("Start asynq server")
 	if err := a.server.Start(handler); err != nil {
-		return err
+		a.log.Error(err.Error())
 	}
 
 	a.log.Info("Register scheduler")
 	task := asynq.NewTask(consts.TaskFeedScheduler, nil)
 	entryId, err := a.scheduler.Register(a.cfg.Scheduler.FeedImporter, task)
 	if err != nil {
+		a.log.Error(err.Error())
 		a.server.Shutdown()
-		return err
 	}
 	a.log.Info(fmt.Sprintf("scheduler entry %s was registered", entryId))
 	a.log.Info("Start asynq scheduler")
 	if err = a.scheduler.Start(); err != nil {
+		a.log.Error(err.Error())
 		a.server.Shutdown()
-		return err
 	}
-	return nil
 }
 
 func (a *App) Shutdown() {

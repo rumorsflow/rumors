@@ -6,6 +6,8 @@ import (
 	"github.com/iagapie/rumors/internal/views"
 	"github.com/iagapie/rumors/pkg/emitter"
 	"github.com/rs/zerolog"
+	"strings"
+	"sync"
 )
 
 type Listener struct {
@@ -18,10 +20,13 @@ type Listener struct {
 
 func (l *Listener) Start() {
 	l.done = make(chan struct{}, 1)
-	go l.run()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go l.run(&wg)
+	wg.Wait()
 }
 
-func (l *Listener) Stop() {
+func (l *Listener) Shutdown() {
 	close(l.done)
 }
 
@@ -35,20 +40,44 @@ func (l *Listener) view(chatId int64, template string, data any) {
 }
 
 func (l *Listener) send(chatId int64, text string) {
-	msg := tgbotapi.NewMessage(chatId, text)
+	msg := tgbotapi.NewMessage(chatId, "")
 	msg.DisableWebPagePreview = true
 	msg.ParseMode = "html"
 
-	if _, err := l.BotAPI.Request(msg); err != nil {
-		if e, ok := err.(*tgbotapi.Error); ok {
-			l.Log.Error().Interface("error", e).Int64("chat_id", chatId).Msg(text)
+	max := 4096
+
+	var data []string
+	for {
+		if len(text) > max {
+			i := strings.LastIndex(text[:max], "\n")
+			if i <= 0 {
+				i = max
+			}
+			data = append(data, text[:i])
+			text = text[i+1:]
+		} else if len(text) > 0 {
+			data = append(data, text)
+			break
 		} else {
-			l.Log.Error().Err(err).Int64("chat_id", chatId).Msg(text)
+			break
+		}
+	}
+
+	for _, str := range data {
+		msg.Text = str
+
+		if _, err := l.BotAPI.Request(msg); err != nil {
+			if e, ok := err.(*tgbotapi.Error); ok {
+				l.Log.Error().Interface("error", e).Int64("chat_id", chatId).Msg(text)
+			} else {
+				l.Log.Error().Err(err).Int64("chat_id", chatId).Msg(text)
+			}
+			break
 		}
 	}
 }
 
-func (l *Listener) run() {
+func (l *Listener) run(wg *sync.WaitGroup) {
 	onAppStart := l.Emitter.On(consts.EventAppStart)
 	onAppStop := l.Emitter.On(consts.EventAppStop)
 
@@ -90,6 +119,8 @@ func (l *Listener) run() {
 
 		e.Off(consts.EventFeedItemViewList, onFeedItemViewList)
 	}(l.Emitter)
+
+	wg.Done()
 
 	for {
 		select {
