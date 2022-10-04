@@ -49,5 +49,5 @@ func View(ns ViewNS, template string, data any) (string, error) {
 	if err := Render(&out, ns, template, data); err != nil {
 		return "", err
 	}
-	return out.String(), nil
+	return strings.Trim(out.String(), "\n"), nil
 }

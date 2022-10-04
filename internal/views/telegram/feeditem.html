@@ -1,7 +1,10 @@
 <a href="{{.Link}}">{{.Title}}</a>
-{{join .Categories ", "}}
-
+{{- with $categories := join .Categories ", "}}
+{{$categories}}
+{{- end}}
 {{if ne .Desc ""}}
 {{.Desc}}
 {{end}}
-{{join .Authors ", "}}
+{{- with $authors := join .Authors ", "}}
+{{$authors}}
+{{- end}}
