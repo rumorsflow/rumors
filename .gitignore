@@ -18,7 +18,7 @@
 **/._.DS_Store
 **/.idea
 /release/
-rumors
+/rumors
 .env
 rumors.error.log
 rumors.log
