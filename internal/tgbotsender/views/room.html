@@ -1,0 +1,25 @@
+<b>Room:</b> {{.Id}}
+
+{{if .Title -}}
+<b>{{.Type}} - {{.Title}}</b>
+{{- end}}
+{{- if .UserName -}}
+<b>{{.Type}} - {{.UserName}}</b>
+{{- end}}
+{{- if or .FirstName .LastName}}
+{{.FirstName}} - {{.LastName}}
+{{- end}}
+
+Deleted: {{.Deleted}}
+Created at: {{.CreatedAt}}
+Updated at: {{.UpdatedAt}}
+{{- if .Broadcast }}
+{{- with $broadcast := join .Broadcast ", "}}
+Broadcast: {{$broadcast}}
+{{- end}}
+{{- end}}
+{{- if .Permissions}}
+{{- with $permissions := join .Permissions ", "}}
+Permissions: {{$permissions}}
+{{- end}}
+{{- end}}

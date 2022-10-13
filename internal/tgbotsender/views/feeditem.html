@@ -1,0 +1,7 @@
+<a href="{{.Link}}">{{.Title}}</a>
+{{- if .Desc}}
+{{.Desc}}
+{{- end}}
+{{- with $categories := hashtag .Categories}}
+{{$categories}}
+{{- end}}

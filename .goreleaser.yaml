@@ -27,6 +27,8 @@ archives:
   - format: zip
     files:
       - LICENSE*
+      - config.yaml
+      - .env.example
 
 checksum:
   name_template: 'checksums.txt'

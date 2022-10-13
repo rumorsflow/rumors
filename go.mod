@@ -1,21 +1,36 @@
-module github.com/iagapie/rumors
+module github.com/rumorsflow/rumors
 
 go 1.19
 
 require (
+	github.com/brpaz/echozap v1.1.3
+	github.com/fatih/color v1.13.0
+	github.com/go-funcards/slice v0.0.0-20221006100628-62fc5503cf4a
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
 	github.com/hibiken/asynq v0.23.0
+	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.9.0
 	github.com/mmcdole/gofeed v1.1.3
-	github.com/olebedev/emitter v0.0.0-20190110104742-e8d1457e6aee
-	github.com/rs/zerolog v1.28.0
+	github.com/roadrunner-server/endure v1.4.5
+	github.com/roadrunner-server/errors v1.2.0
+	github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6
+	github.com/rumorsflow/contracts v0.0.0-20221005155510-69014b04a1a2
+	github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18
+	github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082
+	github.com/rumorsflow/logger v0.0.0-20221005160608-a336850ffe42
+	github.com/rumorsflow/mongo v0.0.0-20221007233728-784dc29adedb
+	github.com/rumorsflow/mongo-ext v0.0.0-20221010091418-14a65836ad32
+	github.com/rumorsflow/redis v0.0.0-20221006202735-80e1a3534183
+	github.com/rumorsflow/scheduler v0.0.0-20221007234618-7d5fad37d4e8
+	github.com/rumorsflow/scheduler-mongo-provider v0.0.0-20221010091706-7be6860b0e89
+	github.com/rumorsflow/telegram-bot-api v0.0.0-20221005200320-e2ef03b3d2de
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
-	github.com/ziflex/lecho/v3 v3.1.0
-	go.mongodb.org/mongo-driver v1.10.2
+	go.mongodb.org/mongo-driver v1.10.3
+	go.uber.org/zap v1.23.0
 )
 
 require (
@@ -58,6 +73,8 @@ require (
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
@@ -66,6 +83,7 @@ require (
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

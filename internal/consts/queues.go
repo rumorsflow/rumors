@@ -1,6 +1,5 @@
 package consts
 
 const (
-	QueueDefault   = "default"
-	QueueFeedItems = "feedItems"
+	QueueFeedItems = "feeditems"
 )

@@ -19,4 +19,6 @@
 **/.idea
 /release/
 rumors
-config.yaml
+.env
+rumors.error.log
+rumors.log
