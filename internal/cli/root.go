@@ -12,17 +12,19 @@ import (
 
 const envDotenv string = "DOTENV_PATH"
 
-func NewCommand(cmdName, version string) *cobra.Command {
+func NewCommand(args []string, version string) *cobra.Command {
 	var cfgFile string
 	var dotenv string
 
 	cmd := &cobra.Command{
-		Use:           cmdName,
+		Use:           filepath.Base(args[0]),
 		Short:         "Rumors CLI",
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		Version:       version,
-		PersistentPreRunE: func(*cobra.Command, []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			cmd.Version = version
+
 			// cfgFile could be defined by user or default `config.yaml`
 			// this check added just to be safe
 			if cfgFile == "" {
@@ -39,8 +41,7 @@ func NewCommand(cmdName, version string) *cobra.Command {
 			}
 
 			if dotenv != "" {
-				err := godotenv.Load(dotenv)
-				if err != nil {
+				if err := godotenv.Load(dotenv); err != nil {
 					return err
 				}
 			}
@@ -51,7 +52,11 @@ func NewCommand(cmdName, version string) *cobra.Command {
 
 	f := cmd.PersistentFlags()
 	f.StringVarP(&cfgFile, "config", "c", "config.yaml", "config file")
-	f.StringVarP(&dotenv, "dotenv", "", "", fmt.Sprintf("dotenv file [$%s]", envDotenv))
+	f.StringVar(&dotenv, "dotenv", "", fmt.Sprintf("dotenv file [$%s]", envDotenv))
+
+	if err := f.Parse(args[1:]); err != nil {
+		panic(err)
+	}
 
 	cmd.AddCommand(serve.NewCommand(cfgFile))
 

@@ -55,7 +55,7 @@ func NewCommand(cfgFile string) *cobra.Command {
 				Path:    cfgFile,
 				Prefix:  prefix,
 				Timeout: containerCfg.GracePeriod,
-				Version: version(cmd),
+				Version: cmd.Version,
 				Cmd:     name(cmd),
 			}
 
@@ -137,13 +137,6 @@ func NewCommand(cfgFile string) *cobra.Command {
 			}
 		},
 	}
-}
-
-func version(cmd *cobra.Command) string {
-	if cmd.Parent() == nil {
-		return cmd.Version
-	}
-	return version(cmd.Parent())
 }
 
 func name(cmd *cobra.Command) string {
