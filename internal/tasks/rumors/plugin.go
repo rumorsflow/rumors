@@ -3,7 +3,7 @@ package rumors
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-funcards/slice"
+	"github.com/go-fc/slice"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
 	mongoext "github.com/rumorsflow/mongo-ext"

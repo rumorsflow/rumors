@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/brpaz/echozap v1.1.3
 	github.com/fatih/color v1.13.0
-	github.com/go-funcards/slice v0.0.0-20221006100628-62fc5503cf4a
+	github.com/go-fc/slice v0.0.0-20221017134547-de0d7a158c21
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
@@ -21,10 +21,10 @@ require (
 	github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082
 	github.com/rumorsflow/logger v0.0.0-20221005160608-a336850ffe42
 	github.com/rumorsflow/mongo v0.0.0-20221007233728-784dc29adedb
-	github.com/rumorsflow/mongo-ext v0.0.0-20221010091418-14a65836ad32
+	github.com/rumorsflow/mongo-ext v0.0.0-20221017134858-944392c49655
 	github.com/rumorsflow/redis v0.0.0-20221006202735-80e1a3534183
 	github.com/rumorsflow/scheduler v0.0.0-20221007234618-7d5fad37d4e8
-	github.com/rumorsflow/scheduler-mongo-provider v0.0.0-20221010091706-7be6860b0e89
+	github.com/rumorsflow/scheduler-mongo-provider v0.0.0-20221017135805-002669afe35b
 	github.com/rumorsflow/telegram-bot-api v0.0.0-20221005200320-e2ef03b3d2de
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0

@@ -3,7 +3,7 @@ package tgbotsender
 import (
 	"bytes"
 	"embed"
-	"github.com/go-funcards/slice"
+	"github.com/go-fc/slice"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/rumorsflow/rumors/internal/pkg/str"
