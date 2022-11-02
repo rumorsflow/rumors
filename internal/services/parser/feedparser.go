@@ -3,9 +3,11 @@ package parser
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/mmcdole/gofeed"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/rumorsflow/rumors/internal/pkg/str"
+	"html"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -22,6 +24,8 @@ func (*Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, 
 	if err != nil {
 		return nil, err
 	}
+
+	p := bluemonday.NewPolicy()
 
 	var data []models.FeedItem
 
@@ -41,9 +45,13 @@ func (*Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, 
 		if desc == "" {
 			desc = item.Content
 		}
-		desc = str.StripHTMLTags(desc)
+		desc = html.UnescapeString(desc)
+		desc = p.Sanitize(desc)
+		desc = html.UnescapeString(desc)
 
-		title := str.StripHTMLTags(item.Title)
+		title := html.UnescapeString(item.Title)
+		title = p.Sanitize(title)
+		title = html.UnescapeString(title)
 		if title == "" {
 			if desc == "" {
 				continue
