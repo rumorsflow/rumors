@@ -6,11 +6,12 @@ import (
 	"github.com/go-fc/slice"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	mongoext "github.com/rumorsflow/mongo-ext"
+	"github.com/rumorsflow/mongo-ext"
 	"github.com/rumorsflow/rumors/internal/consts"
 	"github.com/rumorsflow/rumors/internal/models"
 	rumorscast "github.com/rumorsflow/rumors/internal/pkg/cast"
 	"github.com/rumorsflow/rumors/internal/storage"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"net/url"
@@ -33,10 +34,8 @@ func init() {
 	q := make(url.Values)
 	q.Set(mongoext.QueryIndex, "0")
 	q.Set(mongoext.QuerySize, "100")
-	q.Set("f[0][0][field]", "languages")
-	q.Set("f[0][0][value]", "ro")
-	q.Set("f[1][0][field]", "enabled")
-	q.Set("f[1][0][value]", "true")
+	q.Set("f[0][0][field]", "enabled")
+	q.Set("f[0][0][value]", "true")
 
 	feedsCriteria = mongoext.C(q, "f")
 }
@@ -72,7 +71,7 @@ func (p *Plugin) ProcessTask(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 
-	feedIds := slice.Map(feeds, func(item models.Feed) string {
+	feedIds := lo.Map(feeds, func(item models.Feed, _ int) string {
 		return item.Id
 	})
 

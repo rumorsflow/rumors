@@ -1,6 +1,12 @@
 package consts
 
-const TaskRumors = "rumors"
+const (
+	TaskRumors      = "rumors"
+	TaskSources     = "sources"
+	TaskSubscribed  = "subscribed"
+	TaskSubscribe   = "subscribe"
+	TaskUnsubscribe = "unsubscribe"
+)
 
 const (
 	TaskFeedPrefix   = "feed:"

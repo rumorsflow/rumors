@@ -1,0 +1,5 @@
+{{range $i, $source := .}}
+<b>{{inc $i}}.</b> <a href="{{$source}}">{{$source}}</a>
+{{- else}}
+<b>No Subscribed❗</b>
+{{end}}

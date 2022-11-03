@@ -19,7 +19,11 @@ import (
 	"github.com/rumorsflow/rumors/internal/tasks/roomstart"
 	"github.com/rumorsflow/rumors/internal/tasks/roomupdated"
 	"github.com/rumorsflow/rumors/internal/tasks/rumors"
+	"github.com/rumorsflow/rumors/internal/tasks/sources"
+	"github.com/rumorsflow/rumors/internal/tasks/subscribe"
+	"github.com/rumorsflow/rumors/internal/tasks/subscribed"
 	"github.com/rumorsflow/rumors/internal/tasks/tgupdate"
+	"github.com/rumorsflow/rumors/internal/tasks/unsubscribe"
 	"github.com/rumorsflow/rumors/internal/tgbotsender"
 	"github.com/rumorsflow/rumors/internal/tgbotserver"
 	"github.com/rumorsflow/scheduler"
@@ -87,6 +91,10 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(roomstart.Plugin),
 				new(roomupdated.Plugin),
 				new(rumors.Plugin),
+				new(sources.Plugin),
+				new(subscribed.Plugin),
+				new(subscribe.Plugin),
+				new(unsubscribe.Plugin),
 				cfg,
 			)
 			if err != nil {

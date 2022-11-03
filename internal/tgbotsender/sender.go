@@ -3,10 +3,10 @@ package tgbotsender
 import (
 	"bytes"
 	"embed"
-	"github.com/go-fc/slice"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/rumorsflow/rumors/internal/pkg/str"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"html/template"
 	"io"
@@ -16,10 +16,15 @@ import (
 type View string
 
 const (
-	ViewRoom      = "room.html"
-	ViewFeedItems = "feeditems.html"
-	ViewAppStart  = "appstart.html"
-	ViewAppStop   = "appstop.html"
+	ViewRoom       = "room.html"
+	ViewFeedItems  = "feeditems.html"
+	ViewSources    = "sources.html"
+	ViewSubscribed = "subscribed.html"
+	ViewAppStart   = "appstart.html"
+	ViewAppStop    = "appstop.html"
+	ViewSuccess    = "success.html"
+	ViewError      = "error.html"
+	ViewNotFound   = "notfound.html"
 )
 
 type TelegramSender interface {
@@ -48,7 +53,7 @@ var (
 			case []string:
 				return strings.Join(tmp, sep)
 			case *[]models.RoomPermission:
-				return strings.Join(slice.Map(*tmp, func(p models.RoomPermission) string {
+				return strings.Join(lo.Map(*tmp, func(p models.RoomPermission, _ int) string {
 					return string(p)
 				}), sep)
 			}

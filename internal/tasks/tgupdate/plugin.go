@@ -12,8 +12,12 @@ import (
 const PluginName = consts.TaskTelegramUpdate
 
 var commands = map[string]string{
-	consts.TgCmdStart:  consts.TaskRoomStart,
-	consts.TgCmdRumors: consts.TaskRumors,
+	consts.TgCmdStart:       consts.TaskRoomStart,
+	consts.TgCmdRumors:      consts.TaskRumors,
+	consts.TgCmdSources:     consts.TaskSources,
+	consts.TgCmdSubscribed:  consts.TaskSubscribed,
+	consts.TgCmdSubscribe:   consts.TaskSubscribe,
+	consts.TgCmdUnsubscribe: consts.TaskUnsubscribe,
 }
 
 type Plugin struct {
@@ -70,10 +74,8 @@ func (p *Plugin) message(ctx context.Context, message *tgbotapi.Message) error {
 	if !message.IsCommand() {
 		return nil
 	}
-	cmd := message.Command()
-	switch cmd {
-	case consts.TgCmdStart, consts.TgCmdRumors:
-		return p.enqueue(ctx, commands[cmd], message)
+	if cmd, ok := commands[message.Command()]; ok {
+		return p.enqueue(ctx, cmd, message)
 	}
 	return nil
 }

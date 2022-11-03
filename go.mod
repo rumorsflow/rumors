@@ -21,12 +21,13 @@ require (
 	github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18
 	github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082
 	github.com/rumorsflow/logger v0.0.0-20221005160608-a336850ffe42
-	github.com/rumorsflow/mongo v0.0.0-20221007233728-784dc29adedb
-	github.com/rumorsflow/mongo-ext v0.0.0-20221017134858-944392c49655
+	github.com/rumorsflow/mongo v0.0.0-20221103003013-f0002128dd0a
+	github.com/rumorsflow/mongo-ext v0.0.0-20221103002717-ea1c332bb951
 	github.com/rumorsflow/redis v0.0.0-20221006202735-80e1a3534183
 	github.com/rumorsflow/scheduler v0.0.0-20221007234618-7d5fad37d4e8
-	github.com/rumorsflow/scheduler-mongo-provider v0.0.0-20221017135805-002669afe35b
+	github.com/rumorsflow/scheduler-mongo-provider v0.0.0-20221103003029-3c0c4c8ce607
 	github.com/rumorsflow/telegram-bot-api v0.0.0-20221005200320-e2ef03b3d2de
+	github.com/samber/lo v1.33.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.13.0
@@ -79,6 +80,7 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.0.0-20221002022538-bcab6841153b // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect

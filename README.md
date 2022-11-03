@@ -6,10 +6,14 @@
 go run . --dotenv=.env serve
 ```
 
-### Bot command
+### Bot commands
 
 ```shell
 rumors - <index> <size> <search>
+sources - List of available sources
+subscribed - List of subscribed sources
+subscribe - <source>
+unsubscribe - <source>
 ```
 
 ## License
