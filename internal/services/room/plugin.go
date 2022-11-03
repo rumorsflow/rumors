@@ -9,14 +9,21 @@ import (
 const PluginName = "room_service"
 
 type Plugin struct {
-	log     *zap.Logger
-	storage storage.RoomStorage
-	sender  tgbotsender.TelegramSender
+	log         *zap.Logger
+	roomStorage storage.RoomStorage
+	feedStorage storage.FeedStorage
+	sender      tgbotsender.TelegramSender
 }
 
-func (p *Plugin) Init(log *zap.Logger, storage storage.RoomStorage, sender tgbotsender.TelegramSender) error {
+func (p *Plugin) Init(
+	log *zap.Logger,
+	roomStorage storage.RoomStorage,
+	feedStorage storage.FeedStorage,
+	sender tgbotsender.TelegramSender,
+) error {
 	p.log = log
-	p.storage = storage
+	p.roomStorage = roomStorage
+	p.feedStorage = feedStorage
 	p.sender = sender
 	return nil
 }

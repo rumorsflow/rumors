@@ -25,6 +25,7 @@ const (
 	ViewSuccess    = "success.html"
 	ViewError      = "error.html"
 	ViewNotFound   = "notfound.html"
+	ViewForbidden  = "forbidden.html"
 )
 
 type TelegramSender interface {

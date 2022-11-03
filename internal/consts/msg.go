@@ -7,6 +7,6 @@ const (
 )
 
 const (
-	SuccessMsgSubscribed   = "Subscribed to `%s`."
-	SuccessMsgUnsubscribed = "Unsubscribed to `%s`."
+	SuccessMsgSubscribed   = "Subscribed successfully."
+	SuccessMsgUnsubscribed = "Unsubscribed successfully."
 )
