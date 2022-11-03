@@ -59,7 +59,7 @@ func (p *Plugin) ProcessTask(ctx context.Context, task *asynq.Task) error {
 		} else if errors2.Is(err, room.ErrEmptyBroadcast) {
 			return nil
 		} else {
-			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, consts.ErrMsgTryLater)
+			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, nil)
 		}
 		return nil
 	}

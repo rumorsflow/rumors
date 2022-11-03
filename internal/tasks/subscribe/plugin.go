@@ -57,7 +57,7 @@ func (p *Plugin) ProcessTask(ctx context.Context, task *asynq.Task) error {
 		if errors2.Is(err, room.ErrNotFoundFeeds) {
 			p.sender.SendView(message.Chat.ID, tgbotsender.ViewNotFound, fmt.Sprintf(consts.ErrMsgNotFoundSource, message.CommandArguments()))
 		} else {
-			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, consts.ErrMsgTryLater)
+			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, nil)
 		}
 		return nil
 	}

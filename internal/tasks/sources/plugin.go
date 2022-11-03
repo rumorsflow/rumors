@@ -57,7 +57,7 @@ func (p *Plugin) ProcessTask(ctx context.Context, task *asynq.Task) error {
 		items, err := p.feedStorage.Find(ctx, criteria)
 		if err != nil {
 			p.log.Error("error due to find feeds", zap.Error(err))
-			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, consts.ErrMsgTryLater)
+			p.sender.SendView(message.Chat.ID, tgbotsender.ViewError, nil)
 			return nil
 		}
 
