@@ -10,7 +10,11 @@ func Domain(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.ReplaceAll(strings.ToLower(u.Hostname()), "www.", ""), nil
+	domain := strings.ToLower(u.Hostname())
+	if data := strings.Split(domain, "."); len(data) > 2 {
+		domain = strings.Join(data[len(data)-2:], ".")
+	}
+	return domain, nil
 }
 
 func SafeDomain(url string) string {
