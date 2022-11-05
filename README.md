@@ -12,8 +12,11 @@ go run . --dotenv=.env serve
 rumors - <index> <size> <search>
 sources - List of available sources
 subscribed - List of subscribed sources
+on - /subscribed alias
 subscribe - <source>
+sub - /subscribe alias
 unsubscribe - <source>
+unsub - /unsubscribe alias
 ```
 
 ## License

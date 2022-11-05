@@ -108,6 +108,7 @@ func (p *Plugin) getFeedsByHost(ctx context.Context, host string) ([]string, err
 	q.Set(mongoext.QueryIndex, "0")
 	q.Set(mongoext.QuerySize, "1000")
 	q.Set("f[0][0][field]", "host")
+	q.Set("f[0][0][condition]", "regex")
 	q.Set("f[0][0][value]", host)
 	q.Set("f[1][0][field]", "enabled")
 	q.Set("f[1][0][value]", "true")
