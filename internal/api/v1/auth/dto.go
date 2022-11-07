@@ -1,9 +1,19 @@
 package auth
 
-import "github.com/cristalhq/jwt/v4"
+type SignUpRequest struct {
+	Username       string `json:"username,omitempty" validate:"required,min=3,max=254"`
+	Email          string `json:"email,omitempty" validate:"required,email,min=3,max=254"`
+	Password       string `json:"password" validate:"required,eqfield=RepeatPassword,min=8,max=64"`
+	RepeatPassword string `json:"repeat_password" validate:"required,min=8,max=64"`
+}
 
-type SessionRequest struct {
-	Username string `json:"username,omitempty" validate:"required,max=254"`
+type SignUpResponse struct {
+	Uri string `json:"uri"`
+	Qr  string `json:"qr"`
+}
+
+type SignInRequest struct {
+	Username string `json:"username,omitempty" validate:"required,min=3,max=254"`
 	Password string `json:"password,omitempty" validate:"required,min=8,max=64"`
 }
 
@@ -13,18 +23,4 @@ type OtpRequest struct {
 
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required,uuid4"`
-}
-
-type SessionResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-type UserClaims struct {
-	jwt.RegisteredClaims
-	Username  string            `json:"username,omitempty"`
-	Email     string            `json:"email,omitempty"`
-	Roles     []string          `json:"roles,omitempty"`
-	Two2FA    bool              `json:"two_fa,omitempty"`
-	Providers map[string]string `json:"providers,omitempty"`
 }

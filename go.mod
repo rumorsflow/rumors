@@ -8,17 +8,19 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/go-fc/slice v0.0.0-20221017134547-de0d7a158c21
 	github.com/go-playground/validator/v10 v10.11.1
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/google/uuid v1.3.0
 	github.com/hibiken/asynq v0.23.0
 	github.com/joho/godotenv v1.4.0
 	github.com/microcosm-cc/bluemonday v1.0.21
 	github.com/mmcdole/gofeed v1.1.3
+	github.com/pquerna/otp v1.3.0
 	github.com/roadrunner-server/endure v1.4.5
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6
 	github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29
-	github.com/rumorsflow/http v0.0.0-20221107024107-b671b2cf0152
+	github.com/rumorsflow/http v0.0.0-20221107133429-29f42b051a53
 	github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18
 	github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082
 	github.com/rumorsflow/logger v0.0.0-20221005160608-a336850ffe42
@@ -41,12 +43,12 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1 // indirect
 	github.com/andybalholm/cascadia v1.1.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/css v1.0.0 // indirect

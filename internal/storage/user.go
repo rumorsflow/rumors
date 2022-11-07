@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/mongo-ext"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/samber/lo"
@@ -16,6 +17,7 @@ var _ UserStorage = (*userStorage)(nil)
 type UserStorage interface {
 	Find(ctx context.Context, criteria mongoext.Criteria) ([]models.User, error)
 	FindById(ctx context.Context, id string) (models.User, error)
+	FindByUsername(ctx context.Context, username string) (models.User, error)
 	Count(ctx context.Context, filter any) (int64, error)
 	Save(ctx context.Context, model *models.User) error
 	Delete(ctx context.Context, id string) error
@@ -56,6 +58,24 @@ func (s *userStorage) Find(ctx context.Context, criteria mongoext.Criteria) ([]m
 
 func (s *userStorage) FindById(ctx context.Context, id string) (models.User, error) {
 	return mongoext.FindOne[models.User](ctx, s.c, bson.D{{"_id", id}})
+}
+
+func (s *userStorage) FindByUsername(ctx context.Context, username string) (user models.User, err error) {
+	criteria := mongoext.Criteria{
+		Size: 1,
+		Filter: mongoext.Filter{mongoext.Or(
+			mongoext.Eq("username", username),
+			mongoext.Eq("email", username),
+		)}.Build(),
+	}
+	items, err := s.Find(ctx, criteria)
+	if err != nil {
+		return
+	}
+	if len(items) != 1 {
+		return user, fmt.Errorf(mongoext.ErrMsgQuery, mongo.ErrNoDocuments)
+	}
+	return items[0], nil
 }
 
 func (s *userStorage) Count(ctx context.Context, filter any) (int64, error) {

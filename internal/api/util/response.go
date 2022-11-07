@@ -16,6 +16,14 @@ func BadRequest(err error) {
 	panic(NewHTTPError(http.StatusBadRequest, err))
 }
 
+func Unauthorized(err error) {
+	panic(NewHTTPError(http.StatusUnauthorized, err))
+}
+
+func Forbidden(err error) {
+	panic(NewHTTPError(http.StatusForbidden, err))
+}
+
 func OK(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusOK, data)
 }

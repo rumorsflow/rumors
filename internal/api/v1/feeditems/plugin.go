@@ -2,7 +2,7 @@ package feeditems
 
 import (
 	"github.com/alexedwards/flow"
-	"github.com/rumorsflow/mongo-ext"
+	"github.com/rumorsflow/rumors/internal/api/middleware/authz"
 	"github.com/rumorsflow/rumors/internal/api/util"
 	"github.com/rumorsflow/rumors/internal/storage"
 	"net/http"
@@ -30,12 +30,12 @@ func (p *Plugin) Name() string {
 func (p *Plugin) Register(mux *flow.Mux) {
 	mux.HandleFunc(PluginName, p.list, http.MethodGet)
 	mux.HandleFunc(PluginName+id, p.read, http.MethodGet)
-	mux.HandleFunc(PluginName+id, p.update, http.MethodPatch)
-	mux.HandleFunc(PluginName+id, p.delete, http.MethodDelete)
+	mux.HandleFunc(PluginName+id, authz.IsAdmin(p.update), http.MethodPatch)
+	mux.HandleFunc(PluginName+id, authz.IsAdmin(p.delete), http.MethodDelete)
 }
 
 func (p *Plugin) list(w http.ResponseWriter, r *http.Request) {
-	criteria, _ := mongoext.GetC(r.URL.RawQuery, "filters")
+	criteria := util.GetCriteria(r)
 
 	data, err := p.storage.Find(r.Context(), criteria)
 	if err != nil {

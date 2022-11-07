@@ -27,6 +27,12 @@ Run the following command to generate `cert.pem` and `key.pem` files:
 go run $GOROOT/src/crypto/tls/generate_cert.go --host localhost
 ```
 
+Run the following command to generate RSA private key
+
+```shell
+openssl genrsa -out rsa_prv.pem 4096
+```
+
 ## License
 
 Distributed under MIT License, please see license file within the code for more details.

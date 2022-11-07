@@ -48,6 +48,8 @@ github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9Pq
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
+github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc h1:biVzkmvwrH8WK8raXaxBx6fRVTlJILwEwQGL1I/ByEI=
+github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
@@ -245,6 +247,8 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pkg/sftp v1.13.1/go.mod h1:3HaPG6Dq1ILlpPZRO0HVMrsydcdLt6HRDccSgb87qRg=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/pquerna/otp v1.3.0 h1:oJV/SkzR33anKXwQU3Of42rL4wbrffP4uvUf1SvS5Xs=
+github.com/pquerna/otp v1.3.0/go.mod h1:dkJfzwRKNiegxyNb54X/3fLwhCynbMspSyWKnvi1AEg=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/roadrunner-server/endure v1.4.5 h1:kInGwZc9Xd55gXsdAQonajz5I202MDyJdV+biJ6+asI=
 github.com/roadrunner-server/endure v1.4.5/go.mod h1:FLqkppN/DAXhdMpuoVAlMt1L2odLCvCDRQr83gTHOl4=
@@ -260,8 +264,8 @@ github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6 h1:NsYT4jS9HsBvs
 github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6/go.mod h1:UofGcaC/O7kMftkVidBT68S3UfXP9Pn8EKJHdZiw2s8=
 github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29 h1:/CArWMsz41D3Svp76lQ8f7Hin4cZ+W85ogMRVhI4G+0=
 github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29/go.mod h1:iAzWTKiAyTvhl2gF9G8xKYRwvf3E55lm3xkWJ17R2Bc=
-github.com/rumorsflow/http v0.0.0-20221107024107-b671b2cf0152 h1:1eb3T3f3CCuiXko6peKVe9QFVoEN3kQ70TSIEKbFEwo=
-github.com/rumorsflow/http v0.0.0-20221107024107-b671b2cf0152/go.mod h1:9s2cPextKV4YbMt22WeFzHWc2z0AqsU1QrcHkEB5Fi8=
+github.com/rumorsflow/http v0.0.0-20221107133429-29f42b051a53 h1:+5U5FLzee4/XmAz+LM1a/NqdnRfjbC4SvsGx6QPefMM=
+github.com/rumorsflow/http v0.0.0-20221107133429-29f42b051a53/go.mod h1:9s2cPextKV4YbMt22WeFzHWc2z0AqsU1QrcHkEB5Fi8=
 github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18 h1:VWdFPLGMECdL4Wqs3iH4gTWhys72zSZoJJ/40oNXfrI=
 github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18/go.mod h1:yb7WESfxx5hn0gYRNqlRmKpaAaxygyzvHQW0aGUjwhI=
 github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082 h1:j1pCFwcmrtnjxU0knuuZ6ZJg1VmEYubc6dtXxVQljGE=

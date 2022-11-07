@@ -55,16 +55,28 @@ jobs_client:
     addrs:
       - ${RUMORS_REDIS_ADDRESS}
 
+token:
+  redis:
+    addrs:
+      - ${RUMORS_REDIS_ADDRESS}
+  private_key: ${RUMORS_TOKEN_PRIVATE_KEY}
+  ttl:
+    jwt: ${RUMORS_TOKEN_TTL_JWT}
+    refresh: ${RUMORS_TOKEN_TTL_REFRESH}
+
 http:
   address: ${RUMORS_HTTP_ADDRESS}
   cert_file: ${RUMORS_HTTP_CERT_FILE}
   key_file: ${RUMORS_HTTP_KEY_FILE}
   dir_cache: ${RUMORS_HTTP_TLS_DIR_CACHE}
+  parallel_requests:
+    max_allowed: ${RUMORS_HTTP_MAX_PARALLEL_REQUESTS_ALLOWED}
   middleware:
     - proxy_headers
     - logging
     - headers
     - recovery
+    - jwt
   headers:
     request:
       Accept: application/json

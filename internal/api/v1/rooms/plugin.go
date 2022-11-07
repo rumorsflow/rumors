@@ -2,11 +2,10 @@ package rooms
 
 import (
 	"github.com/alexedwards/flow"
-	"github.com/rumorsflow/mongo-ext"
+	"github.com/rumorsflow/rumors/internal/api/middleware/authz"
 	"github.com/rumorsflow/rumors/internal/api/util"
 	"github.com/rumorsflow/rumors/internal/storage"
 	"github.com/spf13/cast"
-	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -16,12 +15,10 @@ const (
 )
 
 type Plugin struct {
-	log     *zap.Logger
 	storage storage.RoomStorage
 }
 
-func (p *Plugin) Init(log *zap.Logger, s storage.RoomStorage) error {
-	p.log = log
+func (p *Plugin) Init(s storage.RoomStorage) error {
 	p.storage = s
 	return nil
 }
@@ -32,13 +29,13 @@ func (p *Plugin) Name() string {
 }
 
 func (p *Plugin) Register(mux *flow.Mux) {
-	mux.HandleFunc(PluginName, p.list, http.MethodGet)
-	mux.HandleFunc(PluginName+id, p.read, http.MethodGet)
-	mux.HandleFunc(PluginName+id, p.update, http.MethodPatch)
+	mux.HandleFunc(PluginName, authz.IsAdmin(p.list), http.MethodGet)
+	mux.HandleFunc(PluginName+id, authz.IsAdmin(p.read), http.MethodGet)
+	mux.HandleFunc(PluginName+id, authz.IsAdmin(p.update), http.MethodPatch)
 }
 
 func (p *Plugin) list(w http.ResponseWriter, r *http.Request) {
-	criteria, _ := mongoext.GetC(r.URL.RawQuery, "filters")
+	criteria := util.GetCriteria(r)
 
 	data, err := p.storage.Find(r.Context(), criteria)
 	if err != nil {

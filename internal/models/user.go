@@ -2,21 +2,31 @@ package models
 
 import (
 	"crypto/rand"
+	"encoding/base32"
 	"errors"
 	"fmt"
+	"github.com/pquerna/otp/totp"
 	"github.com/samber/lo"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-type Provider string
+type (
+	Role     string
+	Provider string
+)
 
 const (
 	Google   Provider = "GOOGLE"
 	Facebook Provider = "FACEBOOK"
 	Linkedin Provider = "LINKEDIN"
 	GitHub   Provider = "GITHUB"
+
+	AdminRole Role = "ROLE_ADMIN"
+	UserRole  Role = "ROLE_USER"
 )
+
+var b32NoPadding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 type ProviderData struct {
 	Name   Provider `json:"name,omitempty" bson:"name,omitempty"`
@@ -34,8 +44,8 @@ type User struct {
 	Email       string         `json:"email,omitempty" bson:"email,omitempty"`
 	Password    string         `json:"-" bson:"password,omitempty"`
 	OTPSecret   []byte         `json:"-" bson:"otp_secret,omitempty"`
-	Roles       []string       `json:"roles,omitempty" bson:"roles,omitempty"`
-	DeleteRoles []string       `json:"-" bson:"-"`
+	Roles       []Role         `json:"roles,omitempty" bson:"roles,omitempty"`
+	DeleteRoles []Role         `json:"-" bson:"-"`
 	Providers   []ProviderData `json:"providers,omitempty" bson:"providers,omitempty"`
 	CreatedAt   time.Time      `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt   time.Time      `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
@@ -46,7 +56,7 @@ func (u *User) HasPassword() bool {
 }
 
 func (u *User) Secret() string {
-	return string(u.OTPSecret)
+	return b32NoPadding.EncodeToString(u.OTPSecret)
 }
 
 func (u *User) HasProvider(provider Provider) bool {
@@ -61,6 +71,13 @@ func (u *User) CheckPassword(password string) error {
 		return errors.New("password does not match")
 	}
 	return nil
+}
+
+func (u *User) CheckTOTP(password string) error {
+	if totp.Validate(password, u.Secret()) {
+		return nil
+	}
+	return errors.New("otp is not valid")
 }
 
 func (u *User) GenerateOTPSecret(size uint) (err error) {

@@ -7,6 +7,7 @@ import (
 	"github.com/rumorsflow/http"
 	"github.com/rumorsflow/http/middleware/headers"
 	"github.com/rumorsflow/http/middleware/logging"
+	"github.com/rumorsflow/http/middleware/parallel_requests"
 	"github.com/rumorsflow/http/middleware/proxy_headers"
 	"github.com/rumorsflow/http/middleware/recovery"
 	"github.com/rumorsflow/jobs"
@@ -15,6 +16,7 @@ import (
 	"github.com/rumorsflow/mongo"
 	"github.com/rumorsflow/redis"
 	"github.com/rumorsflow/rumors/internal/api/errorhandler"
+	"github.com/rumorsflow/rumors/internal/api/middleware/jwt"
 	"github.com/rumorsflow/rumors/internal/api/v1/auth"
 	"github.com/rumorsflow/rumors/internal/api/v1/feeditems"
 	"github.com/rumorsflow/rumors/internal/api/v1/feeds"
@@ -23,6 +25,7 @@ import (
 	"github.com/rumorsflow/rumors/internal/container"
 	"github.com/rumorsflow/rumors/internal/services/parser"
 	"github.com/rumorsflow/rumors/internal/services/room"
+	"github.com/rumorsflow/rumors/internal/services/token"
 	"github.com/rumorsflow/rumors/internal/storage"
 	"github.com/rumorsflow/rumors/internal/tasks/feedimporter"
 	"github.com/rumorsflow/rumors/internal/tasks/feeditemgroup"
@@ -106,12 +109,15 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(subscribed.Plugin),
 				new(subscribe.Plugin),
 				new(unsubscribe.Plugin),
+				new(token.Plugin),
 				new(http.Plugin),
 				new(errorhandler.Plugin),
+				new(parallel_requests.Plugin),
 				new(proxy_headers.Plugin),
 				new(logging.Plugin),
 				new(headers.Plugin),
 				new(recovery.Plugin),
+				new(jwt.Plugin),
 				new(auth.Plugin),
 				new(feeds.Plugin),
 				new(feeditems.Plugin),
