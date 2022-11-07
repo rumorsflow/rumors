@@ -4,11 +4,22 @@ import (
 	"fmt"
 	"github.com/roadrunner-server/errors"
 	"github.com/rumorsflow/config"
+	"github.com/rumorsflow/http"
+	"github.com/rumorsflow/http/middleware/headers"
+	"github.com/rumorsflow/http/middleware/logging"
+	"github.com/rumorsflow/http/middleware/proxy_headers"
+	"github.com/rumorsflow/http/middleware/recovery"
 	"github.com/rumorsflow/jobs"
 	"github.com/rumorsflow/jobs-client"
 	"github.com/rumorsflow/logger"
 	"github.com/rumorsflow/mongo"
 	"github.com/rumorsflow/redis"
+	"github.com/rumorsflow/rumors/internal/api/errorhandler"
+	"github.com/rumorsflow/rumors/internal/api/v1/auth"
+	"github.com/rumorsflow/rumors/internal/api/v1/feeditems"
+	"github.com/rumorsflow/rumors/internal/api/v1/feeds"
+	"github.com/rumorsflow/rumors/internal/api/v1/rooms"
+	"github.com/rumorsflow/rumors/internal/api/v1/schedulerjobs"
 	"github.com/rumorsflow/rumors/internal/container"
 	"github.com/rumorsflow/rumors/internal/services/parser"
 	"github.com/rumorsflow/rumors/internal/services/room"
@@ -95,6 +106,17 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(subscribed.Plugin),
 				new(subscribe.Plugin),
 				new(unsubscribe.Plugin),
+				new(http.Plugin),
+				new(errorhandler.Plugin),
+				new(proxy_headers.Plugin),
+				new(logging.Plugin),
+				new(headers.Plugin),
+				new(recovery.Plugin),
+				new(auth.Plugin),
+				new(feeds.Plugin),
+				new(feeditems.Plugin),
+				new(schedulerjobs.Plugin),
+				new(rooms.Plugin),
 				cfg,
 			)
 			if err != nil {

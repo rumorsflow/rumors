@@ -19,6 +19,14 @@ unsubscribe - <source>
 unsub - /unsubscribe alias
 ```
 
+### Generate a self-signed X.509 TLS certificate
+
+Run the following command to generate `cert.pem` and `key.pem` files:
+
+```shell
+go run $GOROOT/src/crypto/tls/generate_cert.go --host localhost
+```
+
 ## License
 
 Distributed under MIT License, please see license file within the code for more details.

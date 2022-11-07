@@ -14,6 +14,7 @@ var _ FeedStorage = (*feedStorage)(nil)
 
 type FeedStorage interface {
 	Save(ctx context.Context, model *models.Feed) error
+	Delete(ctx context.Context, id string) error
 	Count(ctx context.Context, filter any) (int64, error)
 	Find(ctx context.Context, criteria mongoext.Criteria) ([]models.Feed, error)
 	FindByLink(ctx context.Context, link string) (models.Feed, error)
@@ -77,6 +78,10 @@ func (s *feedStorage) Save(ctx context.Context, model *models.Feed) error {
 	}
 
 	return nil
+}
+
+func (s *feedStorage) Delete(ctx context.Context, id string) error {
+	return mongoext.Delete(ctx, s.c, bson.D{{"_id", id}})
 }
 
 func (s *feedStorage) Count(ctx context.Context, filter any) (int64, error) {

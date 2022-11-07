@@ -15,6 +15,7 @@ type Plugin struct {
 	roomStorage     *roomStorage
 	feedStorage     *feedStorage
 	feedItemStorage *feedItemStorage
+	userStorage     *userStorage
 	done            chan struct{}
 	wg              sync.WaitGroup
 }
@@ -24,6 +25,7 @@ func (p *Plugin) Init(log *zap.Logger, db *mongo.Database) error {
 	p.roomStorage = newRoomStorage(db)
 	p.feedStorage = newFeedStorage(db)
 	p.feedItemStorage = newFeedItemStorage(db)
+	p.userStorage = newUserStorage(db)
 	p.done = make(chan struct{})
 
 	return nil
@@ -55,6 +57,7 @@ func (p *Plugin) Provides() []any {
 		p.RoomStorage,
 		p.FeedStorage,
 		p.FeedItemStorage,
+		p.UserStorage,
 	}
 }
 
@@ -70,6 +73,10 @@ func (p *Plugin) FeedItemStorage() FeedItemStorage {
 	return p.feedItemStorage
 }
 
+func (p *Plugin) UserStorage() UserStorage {
+	return p.userStorage
+}
+
 func (p *Plugin) indexes(errCh chan error) {
 	defer p.wg.Done()
 
@@ -82,6 +89,7 @@ func (p *Plugin) indexes(errCh chan error) {
 		p.roomStorage.indexes,
 		p.feedStorage.indexes,
 		p.feedItemStorage.indexes,
+		p.userStorage.indexes,
 	}
 
 	for _, fn := range fns {
