@@ -5,9 +5,9 @@ const (
 	TgCmdRumors      = "rumors"
 	TgCmdSources     = "sources"
 	TgCmdSubscribed  = "subscribed"
-	TgCmdOn          = "on"
-	TgCmdSubscribe   = "subscribe"
 	TgCmdSub         = "sub"
+	TgCmdSubscribe   = "subscribe"
+	TgCmdOn          = "on"
 	TgCmdUnsubscribe = "unsubscribe"
-	TgCmdUnsub       = "unsub"
+	TgCmdOff         = "off"
 )

@@ -73,6 +73,7 @@ func (s *feedItemStorage) Save(ctx context.Context, model *models.FeedItem) erro
 			"feed_id":    model.FeedId,
 			"guid":       model.Guid,
 			"created_at": now,
+			"pub_date":   model.PubDate,
 		},
 	})
 	if err != nil {

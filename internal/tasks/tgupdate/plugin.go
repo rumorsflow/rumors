@@ -16,11 +16,11 @@ var commands = map[string]string{
 	consts.TgCmdRumors:      consts.TaskRumors,
 	consts.TgCmdSources:     consts.TaskSources,
 	consts.TgCmdSubscribed:  consts.TaskSubscribed,
-	consts.TgCmdOn:          consts.TaskSubscribed,
+	consts.TgCmdSub:         consts.TaskSubscribed,
 	consts.TgCmdSubscribe:   consts.TaskSubscribe,
-	consts.TgCmdSub:         consts.TaskSubscribe,
+	consts.TgCmdOn:          consts.TaskSubscribe,
 	consts.TgCmdUnsubscribe: consts.TaskUnsubscribe,
-	consts.TgCmdUnsub:       consts.TaskUnsubscribe,
+	consts.TgCmdOff:         consts.TaskUnsubscribe,
 }
 
 type Plugin struct {

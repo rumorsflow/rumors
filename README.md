@@ -12,11 +12,11 @@ go run . --dotenv=.env serve
 rumors - <index> <size> <search>
 sources - List of available sources
 subscribed - List of subscribed sources
-on - /subscribed alias
+sub - /subscribed alias
 subscribe - <source>
-sub - /subscribe alias
+on - /subscribe alias
 unsubscribe - <source>
-unsub - /unsubscribe alias
+off - /unsubscribe alias
 ```
 
 ### Generate a self-signed X.509 TLS certificate
