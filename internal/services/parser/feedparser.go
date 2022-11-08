@@ -32,11 +32,15 @@ func (p *Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem
 			link = item.Links[0]
 		}
 
+		if link == "" {
+			p.log.Warn("link is empty", zap.Any("parsed_item", item))
+			continue
+		}
+
 		guid := item.GUID
 
-		if link == "" || guid == "" {
-			p.log.Warn("link or guid is empty", zap.Any("parsed_item", item))
-			continue
+		if guid == "" {
+			guid = link
 		}
 
 		desc := strings.TrimSpace(item.Description)
