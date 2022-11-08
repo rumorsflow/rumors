@@ -70,7 +70,11 @@ func (p *Plugin) ProcessTask(ctx context.Context, task *asynq.Task) error {
 	for _, item := range data {
 		feedItem := &item
 		if err = p.feedItemStorage.Save(ctx, feedItem); err != nil {
-			p.log.Warn("error due to save feed item", zap.Error(err), zap.Any("feedItem", feedItem))
+			if mongo.IsDuplicateKeyError(err) {
+				p.log.Debug("error due to save feed item", zap.Error(err), zap.Any("feedItem", feedItem))
+			} else {
+				p.log.Warn("error due to save feed item", zap.Error(err), zap.Any("feedItem", feedItem))
+			}
 			continue
 		}
 
