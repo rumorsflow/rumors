@@ -6,6 +6,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/rumorsflow/rumors/internal/pkg/str"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -17,7 +18,7 @@ type FeedParser interface {
 	Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, error)
 }
 
-func (*Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, error) {
+func (p *Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, error) {
 	parsed, err := gofeed.NewParser().ParseURLWithContext(feed.Link, ctx)
 	if err != nil {
 		return nil, err
@@ -34,6 +35,7 @@ func (*Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, 
 		guid := item.GUID
 
 		if link == "" || guid == "" {
+			p.log.Warn("link or guid is empty", zap.Any("parsed_item", item))
 			continue
 		}
 
@@ -46,6 +48,7 @@ func (*Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem, 
 		title := str.StripHTMLTags(item.Title)
 		if title == "" {
 			if desc == "" {
+				p.log.Warn("title and desc are empty", zap.Any("parsed_item", item))
 				continue
 			}
 
