@@ -3,7 +3,6 @@ package serve
 import (
 	"fmt"
 	"github.com/roadrunner-server/errors"
-	"github.com/rumorsflow/config"
 	"github.com/rumorsflow/http"
 	"github.com/rumorsflow/http/middleware/headers"
 	"github.com/rumorsflow/http/middleware/logging"
@@ -23,6 +22,7 @@ import (
 	"github.com/rumorsflow/rumors/internal/api/v1/rooms"
 	"github.com/rumorsflow/rumors/internal/api/v1/schedulerjobs"
 	"github.com/rumorsflow/rumors/internal/container"
+	"github.com/rumorsflow/rumors/internal/pkg/cobracmd"
 	"github.com/rumorsflow/rumors/internal/services/parser"
 	"github.com/rumorsflow/rumors/internal/services/room"
 	"github.com/rumorsflow/rumors/internal/services/token"
@@ -58,33 +58,13 @@ func NewCommand(cfgFile string) *cobra.Command {
 		Short: "Start Rumors server",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			const op = errors.Op("handle serve command")
-			// just to be safe
-			if cfgFile == "" {
-				return errors.E(op, errors.Str("no configuration file provided"))
-			}
 
-			// create endure container config
-			containerCfg, err := container.NewConfig(cfgFile, prefix)
+			ioc, err := container.New(cobracmd.FullName(cmd), cmd.Version, cfgFile)
 			if err != nil {
 				return errors.E(op, err)
 			}
 
-			cfg := &config.Plugin{
-				Path:    cfgFile,
-				Prefix:  prefix,
-				Timeout: containerCfg.GracePeriod,
-				Version: cmd.Version,
-				Cmd:     name(cmd),
-			}
-
-			// create endure container
-			endureContainer, err := container.NewContainer(*containerCfg)
-			if err != nil {
-				return errors.E(op, err)
-			}
-
-			// register plugins
-			err = endureContainer.RegisterAll(
+			err = ioc.RegisterAll(
 				new(logger.Plugin),
 				new(redis.Plugin),
 				new(mongo.Plugin),
@@ -123,20 +103,17 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(feeditems.Plugin),
 				new(schedulerjobs.Plugin),
 				new(rooms.Plugin),
-				cfg,
 			)
 			if err != nil {
 				return errors.E(op, err)
 			}
 
-			// init container and all services
-			err = endureContainer.Init()
+			err = ioc.Init()
 			if err != nil {
 				return errors.E(op, err)
 			}
 
-			// start serving the graph
-			errCh, err := endureContainer.Serve()
+			errCh, err := ioc.Serve()
 			if err != nil {
 				return errors.E(op, err)
 			}
@@ -161,10 +138,10 @@ func NewCommand(cfgFile string) *cobra.Command {
 				select {
 				case e := <-errCh:
 					return fmt.Errorf("error: %w\nplugin: %s", e.Error, e.VertexID)
-				case <-stop: // stop the container after first signal
-					fmt.Printf("stop signal received, grace timeout is: %0.f seconds\n", containerCfg.GracePeriod.Seconds())
+				case <-stop:
+					fmt.Println("stop signal received")
 
-					if err = endureContainer.Stop(); err != nil {
+					if err = ioc.Stop(); err != nil {
 						return fmt.Errorf("error: %w", err)
 					}
 
@@ -173,11 +150,4 @@ func NewCommand(cfgFile string) *cobra.Command {
 			}
 		},
 	}
-}
-
-func name(cmd *cobra.Command) string {
-	if cmd.Parent() == nil {
-		return cmd.Name()
-	}
-	return fmt.Sprintf("%s %s", name(cmd.Parent()), cmd.Name())
 }

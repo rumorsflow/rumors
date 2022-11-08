@@ -54,9 +54,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 	f.StringVarP(&cfgFile, "config", "c", "config.yaml", "config file")
 	f.StringVar(&dotenv, "dotenv", "", fmt.Sprintf("dotenv file [$%s]", envDotenv))
 
-	if err := f.Parse(args[1:]); err != nil {
-		panic(err)
-	}
+	_ = f.Parse(args[1:])
 
 	cmd.AddCommand(serve.NewCommand(cfgFile))
 

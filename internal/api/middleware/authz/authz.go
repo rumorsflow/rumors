@@ -5,7 +5,6 @@ import (
 	"github.com/rumorsflow/rumors/internal/api/middleware/jwt"
 	"github.com/rumorsflow/rumors/internal/api/util"
 	"github.com/rumorsflow/rumors/internal/models"
-	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -41,7 +40,7 @@ func middleware(full bool, roles ...models.Role) func(next http.HandlerFunc) htt
 				util.Forbidden(ErrNoOTP)
 			}
 
-			if len(roles) > 0 && !lo.Some(user.Roles, roles) {
+			if len(roles) > 0 && !user.IsGranted(roles...) {
 				util.Forbidden(ErrNoRole)
 			}
 

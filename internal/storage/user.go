@@ -24,11 +24,12 @@ type UserStorage interface {
 }
 
 type userStorage struct {
-	c *mongo.Collection
+	c      *mongo.Collection
+	admins []string
 }
 
-func newUserStorage(db *mongo.Database) *userStorage {
-	return &userStorage{c: db.Collection("users")}
+func newUserStorage(db *mongo.Database, admins []string) *userStorage {
+	return &userStorage{c: db.Collection("users"), admins: admins}
 }
 
 func (s *userStorage) indexes(ctx context.Context) error {
@@ -85,6 +86,11 @@ func (s *userStorage) Count(ctx context.Context, filter any) (int64, error) {
 func (s *userStorage) Save(ctx context.Context, model *models.User) error {
 	now := time.Now().UTC()
 	model.UpdatedAt = now
+
+	if len(s.admins) > 0 && lo.Contains(s.admins, model.Username) && !model.IsGranted(models.AdminRole) {
+		model.DeleteRoles = append(model.DeleteRoles, model.Roles...)
+		model.Roles = []models.Role{models.AdminRole}
+	}
 
 	data, err := mongoext.ToBson(model)
 	if err != nil {

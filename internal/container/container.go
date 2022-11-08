@@ -22,7 +22,13 @@
 
 package container
 
-import endure "github.com/roadrunner-server/endure/pkg/container"
+import (
+	"github.com/roadrunner-server/endure/pkg/container"
+	"github.com/roadrunner-server/errors"
+	"github.com/rumorsflow/config"
+)
+
+const prefix = "RUMORS"
 
 // NewContainer creates endure container with all required options (based on container Config). Logger is nil by
 // default.
@@ -36,4 +42,34 @@ func NewContainer(cfg Config) (*endure.Endure, error) {
 	}
 
 	return endure.NewContainer(cfg.Logger, endureOptions...)
+}
+
+func New(cmd, version, cfgFile string) (*endure.Endure, error) {
+	if cfgFile == "" {
+		return nil, errors.Str("no configuration file provided")
+	}
+
+	containerCfg, err := NewConfig(cfgFile, prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	container, err := NewContainer(*containerCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := &config.Plugin{
+		Path:    cfgFile,
+		Prefix:  prefix,
+		Timeout: containerCfg.GracePeriod,
+		Version: version,
+		Cmd:     cmd,
+	}
+
+	if err = container.Register(cfg); err != nil {
+		return nil, err
+	}
+
+	return container, nil
 }

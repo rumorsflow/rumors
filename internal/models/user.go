@@ -51,6 +51,13 @@ type User struct {
 	UpdatedAt   time.Time      `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
+func (u *User) IsGranted(roles ...Role) bool {
+	if len(roles) == 0 {
+		panic(errors.New("roles is empty"))
+	}
+	return lo.Some(u.Roles, roles)
+}
+
 func (u *User) HasPassword() bool {
 	return u.Password != ""
 }

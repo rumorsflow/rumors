@@ -89,3 +89,6 @@ http:
       allowed_methods: ${RUMORS_HTTP_CORS_ALLOWED_METHODS}
       allow_credentials: ${RUMORS_HTTP_CORS_ALLOWED_CREDENTIALS}
       exposed_headers: ${RUMORS_HTTP_CORS_EXPOSED_HEADERS}
+
+storage:
+  admins:
