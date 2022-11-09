@@ -69,6 +69,8 @@ http:
   cert_file: ${RUMORS_HTTP_CERT_FILE}
   key_file: ${RUMORS_HTTP_KEY_FILE}
   dir_cache: ${RUMORS_HTTP_TLS_DIR_CACHE}
+  host_whitelist:
+    - ${RUMORS_HTTP_TLS_HOST_WHITE}
   parallel_requests:
     max_allowed: ${RUMORS_HTTP_MAX_PARALLEL_REQUESTS_ALLOWED}
   middleware:
@@ -78,17 +80,17 @@ http:
     - recovery
     - jwt
   headers:
-    request:
-      Accept: application/json
-      Content-Type: application/json
-    response:
-      Content-Type: application/json
     cors:
       allowed_origin: ${RUMORS_HTTP_CORS_ALLOWED_ORIGIN}
       allowed_headers: ${RUMORS_HTTP_CORS_ALLOWED_HEADERS}
       allowed_methods: ${RUMORS_HTTP_CORS_ALLOWED_METHODS}
       allow_credentials: ${RUMORS_HTTP_CORS_ALLOWED_CREDENTIALS}
       exposed_headers: ${RUMORS_HTTP_CORS_EXPOSED_HEADERS}
+#  static:
+#    - dir: ui
+#      pattern: /...
+#      methods:
+#        - GET
 
 storage:
   admins:
