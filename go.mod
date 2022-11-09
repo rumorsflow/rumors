@@ -20,7 +20,7 @@ require (
 	github.com/roadrunner-server/errors v1.2.0
 	github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6
 	github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29
-	github.com/rumorsflow/http v0.0.0-20221109134713-bc0c77143f53
+	github.com/rumorsflow/http v0.0.0-20221109141300-6ad74311ecf8
 	github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18
 	github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082
 	github.com/rumorsflow/logger v0.0.0-20221005160608-a336850ffe42

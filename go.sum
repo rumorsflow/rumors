@@ -264,8 +264,8 @@ github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6 h1:NsYT4jS9HsBvs
 github.com/rumorsflow/config v0.0.0-20221006202749-2694d568e4d6/go.mod h1:UofGcaC/O7kMftkVidBT68S3UfXP9Pn8EKJHdZiw2s8=
 github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29 h1:/CArWMsz41D3Svp76lQ8f7Hin4cZ+W85ogMRVhI4G+0=
 github.com/rumorsflow/contracts v0.0.0-20221008094131-41476ae36d29/go.mod h1:iAzWTKiAyTvhl2gF9G8xKYRwvf3E55lm3xkWJ17R2Bc=
-github.com/rumorsflow/http v0.0.0-20221109134713-bc0c77143f53 h1:992M7hMqzI43+5mFEiLvyYWciy/OLKaDDrUV3nosDWg=
-github.com/rumorsflow/http v0.0.0-20221109134713-bc0c77143f53/go.mod h1:9s2cPextKV4YbMt22WeFzHWc2z0AqsU1QrcHkEB5Fi8=
+github.com/rumorsflow/http v0.0.0-20221109141300-6ad74311ecf8 h1:Q4W1weP7GZbuDjeb6tcdCtqDUqsfCH/LKRs0BRInMUA=
+github.com/rumorsflow/http v0.0.0-20221109141300-6ad74311ecf8/go.mod h1:9s2cPextKV4YbMt22WeFzHWc2z0AqsU1QrcHkEB5Fi8=
 github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18 h1:VWdFPLGMECdL4Wqs3iH4gTWhys72zSZoJJ/40oNXfrI=
 github.com/rumorsflow/jobs v0.0.0-20221010090028-b1a1dcee6c18/go.mod h1:yb7WESfxx5hn0gYRNqlRmKpaAaxygyzvHQW0aGUjwhI=
 github.com/rumorsflow/jobs-client v0.0.0-20221005195330-a095b0e0a082 h1:j1pCFwcmrtnjxU0knuuZ6ZJg1VmEYubc6dtXxVQljGE=
