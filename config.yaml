@@ -76,6 +76,7 @@ http:
   middleware:
     - proxy_headers
     - logging
+    - www
     - headers
     - recovery
     - jwt

@@ -9,6 +9,7 @@ import (
 	"github.com/rumorsflow/http/middleware/parallel_requests"
 	"github.com/rumorsflow/http/middleware/proxy_headers"
 	"github.com/rumorsflow/http/middleware/recovery"
+	"github.com/rumorsflow/http/middleware/www"
 	"github.com/rumorsflow/jobs"
 	"github.com/rumorsflow/jobs-client"
 	"github.com/rumorsflow/logger"
@@ -91,6 +92,7 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(unsubscribe.Plugin),
 				new(token.Plugin),
 				new(http.Plugin),
+				new(www.Plugin),
 				new(errorhandler.Plugin),
 				new(parallel_requests.Plugin),
 				new(proxy_headers.Plugin),
