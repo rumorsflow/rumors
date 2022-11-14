@@ -19,7 +19,7 @@ func init() {
 	mu.Lock()
 	defer mu.Unlock()
 
-	p = bluemonday.StripTagsPolicy()
+	p = bluemonday.StrictPolicy()
 }
 
 func StripNewLine(s string, maxNewLine int) string {

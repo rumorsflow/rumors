@@ -97,7 +97,7 @@ func (p *Plugin) Parse(ctx context.Context, feed models.Feed) ([]models.FeedItem
 		data = append(data, models.FeedItem{
 			Id:         uuid.NewString(),
 			FeedId:     feed.Id,
-			Title:      item.Title,
+			Title:      title,
 			Desc:       d,
 			Link:       link,
 			Guid:       guid,
