@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"github.com/rumorsflow/mongo-ext"
 	"github.com/rumorsflow/rumors/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -68,10 +67,7 @@ func (s *feedItemStorage) Save(ctx context.Context, model *models.FeedItem) erro
 	delete(data, "pub_date")
 	delete(data, "created_at")
 
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	result, err := s.c.UpdateOne(ctx, bson.D{{"_id", model.Id}}, bson.M{
+	result, err := mongoext.Save(ctx, s.c, bson.D{{"_id", model.Id}}, bson.M{
 		"$set": data,
 		"$setOnInsert": bson.M{
 			"feed_id":    model.FeedId,
@@ -81,7 +77,7 @@ func (s *feedItemStorage) Save(ctx context.Context, model *models.FeedItem) erro
 		},
 	}, options.Update().SetUpsert(true))
 	if err != nil {
-		return fmt.Errorf(mongoext.ErrMsgQuery, err)
+		return err
 	}
 
 	if result.UpsertedCount > 0 {
