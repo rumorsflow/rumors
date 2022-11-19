@@ -75,7 +75,7 @@ func (s *feedItemStorage) Save(ctx context.Context, model *models.FeedItem) erro
 			"created_at": now,
 			"pub_date":   model.PubDate,
 		},
-	}, options.Update().SetUpsert(true))
+	})
 	if err != nil {
 		return err
 	}
