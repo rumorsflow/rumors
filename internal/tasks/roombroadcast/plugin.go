@@ -3,12 +3,15 @@ package roombroadcast
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/hibiken/asynq"
 	"github.com/rumorsflow/rumors/internal/consts"
 	"github.com/rumorsflow/rumors/internal/models"
 	"github.com/rumorsflow/rumors/internal/pkg/cast"
+	"github.com/rumorsflow/rumors/internal/pkg/str"
 	"github.com/rumorsflow/rumors/internal/tgbotsender"
 	"go.uber.org/zap"
+	"strings"
 )
 
 const PluginName = consts.TaskRoomBroadcast
@@ -45,6 +48,12 @@ func (p *Plugin) ProcessTask(_ context.Context, task *asynq.Task) error {
 
 	for _, item := range items {
 		d := item.Domain()
+		if item.Desc != nil {
+			desc := str.MaxLen(*item.Desc, 500)
+			desc = strings.TrimRight(desc, ".")
+			desc = fmt.Sprintf("%s…", desc)
+			item.Desc = &desc
+		}
 		if _, ok := group[d]; !ok {
 			group[d] = []models.FeedItem{item}
 		} else {
