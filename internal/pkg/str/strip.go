@@ -9,6 +9,7 @@ import (
 )
 
 const newLine = rune('\n')
+const space = rune(' ')
 
 var (
 	p  *bluemonday.Policy
@@ -26,17 +27,26 @@ func StripNewLine(s string, maxNewLine int) string {
 	var builder strings.Builder
 	builder.Grow(len(s) + utf8.UTFMax)
 
-	j := 0
+	sNewLine := 0
+	sSpace := 0
 	for _, c := range s {
 		if c == newLine {
-			j++
-			if j <= maxNewLine {
+			sNewLine++
+			if sNewLine <= maxNewLine {
+				builder.WriteRune(c)
+			}
+			continue
+		}
+		if c == space {
+			sSpace++
+			if sSpace == 1 {
 				builder.WriteRune(c)
 			}
 			continue
 		}
 		builder.WriteRune(c)
-		j = 0
+		sNewLine = 0
+		sSpace = 0
 	}
 
 	return strings.TrimSpace(builder.String())
