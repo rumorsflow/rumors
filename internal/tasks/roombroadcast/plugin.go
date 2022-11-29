@@ -61,7 +61,9 @@ func (p *Plugin) ProcessTask(_ context.Context, task *asynq.Task) error {
 		}
 	}
 
-	p.sender.SendView(chatId, tgbotsender.ViewFeedItems, group)
+	for key, value := range group {
+		p.sender.SendView(chatId, tgbotsender.ViewFeedItems, map[string][]models.FeedItem{key: value})
+	}
 
 	return nil
 }
