@@ -3,6 +3,7 @@ module github.com/rumorsflow/rumors
 go 1.19
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alexedwards/flow v0.0.0-20220806114457-cf11be9e0e03
 	github.com/cristalhq/jwt/v4 v4.0.2
 	github.com/fatih/color v1.13.0

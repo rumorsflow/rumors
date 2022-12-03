@@ -74,12 +74,14 @@ http:
   parallel_requests:
     max_allowed: ${RUMORS_HTTP_MAX_PARALLEL_REQUESTS_ALLOWED}
   middleware:
+    - gzip
     - proxy_headers
     - logging
     - www
     - headers
     - recovery
     - jwt
+    - forward
   headers:
     cors:
       allowed_origin: ${RUMORS_HTTP_CORS_ALLOWED_ORIGIN}

@@ -23,6 +23,8 @@ import (
 	"github.com/rumorsflow/rumors/internal/api/v1/rooms"
 	"github.com/rumorsflow/rumors/internal/api/v1/schedulerjobs"
 	"github.com/rumorsflow/rumors/internal/container"
+	"github.com/rumorsflow/rumors/internal/http/middleware/forward"
+	"github.com/rumorsflow/rumors/internal/http/middleware/gzip"
 	"github.com/rumorsflow/rumors/internal/pkg/cobracmd"
 	"github.com/rumorsflow/rumors/internal/services/parser"
 	"github.com/rumorsflow/rumors/internal/services/room"
@@ -49,8 +51,6 @@ import (
 	"os/signal"
 	"syscall"
 )
-
-const prefix = "RUMORS"
 
 // NewCommand creates `serve` command.
 func NewCommand(cfgFile string) *cobra.Command {
@@ -105,6 +105,8 @@ func NewCommand(cfgFile string) *cobra.Command {
 				new(feeditems.Plugin),
 				new(schedulerjobs.Plugin),
 				new(rooms.Plugin),
+				new(forward.Plugin),
+				new(gzip.Plugin),
 			)
 			if err != nil {
 				return errors.E(op, err)
