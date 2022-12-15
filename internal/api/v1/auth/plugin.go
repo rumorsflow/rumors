@@ -98,16 +98,16 @@ func (p *Plugin) signIn(w http.ResponseWriter, r *http.Request) {
 
 	user, err := p.userStorage.FindByUsername(r.Context(), dto.Username)
 	if err != nil {
-		panic(err)
+		util.BadRequest(err)
 	}
 
 	if err = user.CheckPassword(dto.Password); err != nil {
-		panic(err)
+		util.BadRequest(err)
 	}
 
 	session, err := p.tokenService.SessByUser(r.Context(), user, false)
 	if err != nil {
-		panic(err)
+		util.BadRequest(err)
 	}
 
 	util.OK(w, session)
@@ -124,7 +124,7 @@ func (p *Plugin) otp(w http.ResponseWriter, r *http.Request) {
 
 	session, err := p.tokenService.SessByUser(r.Context(), user, true)
 	if err != nil {
-		panic(err)
+		util.BadRequest(err)
 	}
 
 	util.OK(w, session)
@@ -136,7 +136,7 @@ func (p *Plugin) refresh(w http.ResponseWriter, r *http.Request) {
 
 	session, err := p.tokenService.SessByRefreshToken(r.Context(), dto.RefreshToken)
 	if err != nil {
-		panic(err)
+		util.BadRequest(err)
 	}
 
 	util.OK(w, session)
