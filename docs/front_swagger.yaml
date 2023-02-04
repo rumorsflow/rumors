@@ -1,0 +1,182 @@
+basePath: /api/v1
+definitions:
+  entity.Article:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      categories:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      guid:
+        type: string
+      id:
+        type: string
+      lang:
+        type: string
+      link:
+        type: string
+      long_desc:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/entity.Media'
+        type: array
+      pub_date:
+        type: string
+      short_desc:
+        type: string
+      source:
+        $ref: '#/definitions/entity.Source'
+      source_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.Feed:
+    properties:
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      host:
+        type: string
+      id:
+        type: string
+      languages:
+        items:
+          type: string
+        type: array
+      link:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.Media:
+    properties:
+      meta:
+        additionalProperties: {}
+        type: object
+      type:
+        $ref: '#/definitions/entity.MediaType'
+      url:
+        type: string
+    type: object
+  entity.MediaType:
+    enum:
+    - image
+    - video
+    - audio
+    type: string
+    x-enum-varnames:
+    - ImageType
+    - VideoType
+    - AudioType
+  entity.Source:
+    enum:
+    - feed
+    type: string
+    x-enum-varnames:
+    - FeedSource
+  wool.Error:
+    properties:
+      code:
+        type: integer
+      data: {}
+      developer_message:
+        type: string
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Rumors Frontend API
+  version: "1.0"
+paths:
+  /articles:
+    get:
+      consumes:
+      - application/json
+      description: get articles
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Article'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: List articles
+      tags:
+      - articles
+  /feeds:
+    get:
+      consumes:
+      - application/json
+      description: get feeds
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Feed'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: List feeds
+      tags:
+      - feeds
+swagger: "2.0"

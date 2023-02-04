@@ -1,0 +1,1419 @@
+basePath: /sys/api
+definitions:
+  entity.Article:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      categories:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      guid:
+        type: string
+      id:
+        type: string
+      lang:
+        type: string
+      link:
+        type: string
+      long_desc:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/entity.Media'
+        type: array
+      pub_date:
+        type: string
+      short_desc:
+        type: string
+      source:
+        $ref: '#/definitions/entity.Source'
+      source_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.Chat:
+    properties:
+      blocked:
+        type: boolean
+      broadcast:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      deleted:
+        type: boolean
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      rights:
+        $ref: '#/definitions/entity.ChatRights'
+      telegram_id:
+        type: integer
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/entity.ChatType'
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  entity.ChatRights:
+    properties:
+      can_add_web_page_previews:
+        type: boolean
+      can_be_edited:
+        type: boolean
+      can_change_info:
+        type: boolean
+      can_delete_messages:
+        type: boolean
+      can_edit_messages:
+        type: boolean
+      can_invite_users:
+        type: boolean
+      can_manage_chat:
+        type: boolean
+      can_pin_messages:
+        type: boolean
+      can_post_messages:
+        type: boolean
+      can_promote_members:
+        type: boolean
+      can_restrict_members:
+        type: boolean
+      can_send_media_messages:
+        type: boolean
+      can_send_messages:
+        type: boolean
+      can_send_other_messages:
+        type: boolean
+      can_send_polls:
+        type: boolean
+      is_anonymous:
+        type: boolean
+      is_member:
+        type: boolean
+      status:
+        type: string
+      until_date:
+        type: integer
+    type: object
+  entity.ChatType:
+    enum:
+    - private
+    - group
+    - supergroup
+    - channel
+    type: string
+    x-enum-varnames:
+    - Private
+    - Group
+    - SuperGroup
+    - Channel
+  entity.Feed:
+    properties:
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      host:
+        type: string
+      id:
+        type: string
+      languages:
+        items:
+          type: string
+        type: array
+      link:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.Job:
+    properties:
+      created_at:
+        type: string
+      cron_expr:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      opts:
+        items:
+          $ref: '#/definitions/entity.JobOption'
+        type: array
+      payload:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.JobOption:
+    properties:
+      type:
+        $ref: '#/definitions/entity.JobOptionType'
+      value:
+        type: string
+    type: object
+  entity.JobOptionType:
+    enum:
+    - max-retry
+    - queue
+    - timeout
+    - deadline
+    - unique
+    - process-at
+    - process-in
+    - task-id
+    - retention
+    - group
+    type: string
+    x-enum-varnames:
+    - MaxRetryOpt
+    - QueueOpt
+    - TimeoutOpt
+    - DeadlineOpt
+    - UniqueOpt
+    - ProcessAtOpt
+    - ProcessInOpt
+    - TaskIDOpt
+    - RetentionOpt
+    - GroupOpt
+  entity.Media:
+    properties:
+      meta:
+        additionalProperties: {}
+        type: object
+      type:
+        $ref: '#/definitions/entity.MediaType'
+      url:
+        type: string
+    type: object
+  entity.MediaType:
+    enum:
+    - image
+    - video
+    - audio
+    type: string
+    x-enum-varnames:
+    - ImageType
+    - VideoType
+    - AudioType
+  entity.Source:
+    enum:
+    - feed
+    type: string
+    x-enum-varnames:
+    - FeedSource
+  sys.CreateChatDTO:
+    properties:
+      blocked:
+        type: boolean
+      broadcast:
+        items:
+          type: string
+        type: array
+      deleted:
+        type: boolean
+      first_name:
+        maxLength: 254
+        type: string
+      last_name:
+        maxLength: 254
+        type: string
+      telegram_id:
+        type: integer
+      title:
+        maxLength: 254
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.ChatType'
+        enum:
+        - private
+        - group
+        - supergroup
+        - channel
+      user_name:
+        maxLength: 254
+        type: string
+    required:
+    - telegram_id
+    - type
+    type: object
+  sys.CreateFeedDTO:
+    properties:
+      enabled:
+        type: boolean
+      languages:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      link:
+        type: string
+      title:
+        maxLength: 254
+        type: string
+    required:
+    - languages
+    - link
+    - title
+    type: object
+  sys.CreateJobDTO:
+    properties:
+      cron_expr:
+        maxLength: 254
+        minLength: 9
+        type: string
+      enabled:
+        type: boolean
+      name:
+        maxLength: 254
+        type: string
+      opts:
+        items:
+          $ref: '#/definitions/sys.JobOptionDTO'
+        type: array
+      payload:
+        type: string
+    required:
+    - cron_expr
+    - name
+    type: object
+  sys.JobOptionDTO:
+    properties:
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.JobOptionType'
+        maxLength: 50
+      value:
+        type: string
+    required:
+    - type
+    - value
+    type: object
+  sys.MediaDTO:
+    properties:
+      meta:
+        additionalProperties: {}
+        type: object
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.MediaType'
+        maxLength: 10
+      url:
+        type: string
+    required:
+    - type
+    - url
+    type: object
+  sys.OtpDTO:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  sys.RefreshTokenDTO:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  sys.Session:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  sys.SignInDTO:
+    properties:
+      password:
+        maxLength: 64
+        minLength: 8
+        type: string
+      username:
+        maxLength: 254
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  sys.UpdateArticleDTO:
+    properties:
+      authors:
+        items:
+          type: string
+        type: array
+      categories:
+        items:
+          type: string
+        type: array
+      link:
+        type: string
+      long_desc:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/sys.MediaDTO'
+        type: array
+      short_desc:
+        type: string
+      title:
+        maxLength: 254
+        type: string
+    type: object
+  sys.UpdateChatDTO:
+    properties:
+      blocked:
+        type: boolean
+      broadcast:
+        items:
+          type: string
+        type: array
+    type: object
+  sys.UpdateFeedDTO:
+    properties:
+      enabled:
+        type: boolean
+      languages:
+        items:
+          type: string
+        type: array
+      link:
+        type: string
+      title:
+        maxLength: 254
+        type: string
+    type: object
+  sys.UpdateJobDTO:
+    properties:
+      cron_expr:
+        maxLength: 254
+        minLength: 9
+        type: string
+      enabled:
+        type: boolean
+      name:
+        maxLength: 254
+        type: string
+      opts:
+        items:
+          $ref: '#/definitions/sys.JobOptionDTO'
+        type: array
+      payload:
+        type: string
+    type: object
+  wool.Error:
+    properties:
+      code:
+        type: integer
+      data: {}
+      developer_message:
+        type: string
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Rumors System API
+  version: "1.0"
+paths:
+  /articles:
+    get:
+      consumes:
+      - application/json
+      description: get articles
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Article'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: List articles
+      tags:
+      - articles
+  /articles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete article
+      parameters:
+      - description: Article ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Delete article
+      tags:
+      - articles
+    get:
+      consumes:
+      - application/json
+      description: get article by ID
+      parameters:
+      - description: Article ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Article'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Show an article
+      tags:
+      - articles
+    patch:
+      consumes:
+      - application/json
+      description: edit article
+      parameters:
+      - description: Article ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Article DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.UpdateArticleDTO'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Update article
+      tags:
+      - articles
+  /auth/otp:
+    post:
+      consumes:
+      - application/json
+      description: get new session
+      parameters:
+      - description: Otp DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.OtpDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sys.Session'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: OTP
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: get new session
+      parameters:
+      - description: Refresh Token DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.RefreshTokenDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sys.Session'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: Refresh Token
+      tags:
+      - auth
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: get sign in session
+      parameters:
+      - description: Sign In DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.SignInDTO'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sys.Session'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: Sign In
+      tags:
+      - auth
+  /chats:
+    get:
+      consumes:
+      - application/json
+      description: get chats
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Chat'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: List chats
+      tags:
+      - chats
+    post:
+      consumes:
+      - application/json
+      description: add new chat
+      parameters:
+      - description: Create Chat DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.CreateChatDTO'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Create chat
+      tags:
+      - chats
+  /chats/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete chat
+      parameters:
+      - description: Chat ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Delete chat
+      tags:
+      - chats
+    get:
+      consumes:
+      - application/json
+      description: get chat by ID
+      parameters:
+      - description: Chat ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Chat'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Show a chat
+      tags:
+      - chats
+    patch:
+      consumes:
+      - application/json
+      description: edit chat
+      parameters:
+      - description: Chat ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Chat DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.UpdateChatDTO'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Update chat
+      tags:
+      - chats
+  /feeds:
+    get:
+      consumes:
+      - application/json
+      description: get feeds
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Feed'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: List feeds
+      tags:
+      - feeds
+    post:
+      consumes:
+      - application/json
+      description: add new feed
+      parameters:
+      - description: Create Feed DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.CreateFeedDTO'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Create feed
+      tags:
+      - feeds
+  /feeds/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete feed
+      parameters:
+      - description: Feed ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Delete feed
+      tags:
+      - feeds
+    get:
+      consumes:
+      - application/json
+      description: get feed by ID
+      parameters:
+      - description: Feed ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Feed'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Show a feed
+      tags:
+      - feeds
+    patch:
+      consumes:
+      - application/json
+      description: edit feed
+      parameters:
+      - description: Feed ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Feed DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.UpdateFeedDTO'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Update feed
+      tags:
+      - feeds
+  /jobs:
+    get:
+      consumes:
+      - application/json
+      description: get jobs
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Job'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: List jobs
+      tags:
+      - jobs
+    post:
+      consumes:
+      - application/json
+      description: add new job
+      parameters:
+      - description: Create Job DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.CreateJobDTO'
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Create job
+      tags:
+      - jobs
+  /jobs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete job
+      parameters:
+      - description: Job ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Delete job
+      tags:
+      - jobs
+    get:
+      consumes:
+      - application/json
+      description: get job by ID
+      parameters:
+      - description: Job ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Job'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Show a job
+      tags:
+      - jobs
+    patch:
+      consumes:
+      - application/json
+      description: edit job
+      parameters:
+      - description: Job ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Job DTO
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sys.UpdateJobDTO'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Update job
+      tags:
+      - jobs
+securityDefinitions:
+  SysAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

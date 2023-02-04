@@ -2,9 +2,12 @@ package main
 
 import (
 	"github.com/fatih/color"
-	"github.com/rumorsflow/rumors/internal/cli"
+	"github.com/rumorsflow/rumors/v2/internal/cli"
 	"os"
 )
+
+//go:generate swag f --dir internal/http/front
+//go:generate swag f --dir internal/http/sys
 
 var version = "(untracked)"
 

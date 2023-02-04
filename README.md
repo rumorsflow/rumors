@@ -1,9 +1,9 @@
-# Rumors
+# Rumors v2
 
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 ```shell
-go run . --dotenv=.env serve
+go run . --dotenv=.env
 ```
 
 ### Bot commands
@@ -11,12 +11,29 @@ go run . --dotenv=.env serve
 ```shell
 rumors - <index> <size> <search>
 sources - List of available sources
-subscribed - List of subscribed sources
-sub - /subscribed alias
-subscribe - <source>
-on - /subscribe alias
-unsubscribe - <source>
-off - /unsubscribe alias
+sub - List of subscribed sources
+on - subscribe <source>
+off - unsubscribe <source>
+```
+
+### Generate Swagger Documentation 2.0
+
+Install swag
+
+```shell
+go install github.com/swaggo/swag/cmd/swag@aa3e8d5fa2f6ee3a56f54c7ae3bd18145783eaac
+```
+
+Run the following command to generate Front API Documentation
+
+```shell
+swag i -g swagger.go -dir internal/http/front,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230130091242-d34b26a7081c --instanceName front
+```
+
+Run the following command to generate System API Documentation
+
+```shell
+swag i -g swagger.go -dir internal/http/sys,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230130091242-d34b26a7081c --instanceName sys
 ```
 
 ### Generate a self-signed X.509 TLS certificate
