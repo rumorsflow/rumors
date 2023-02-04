@@ -20,7 +20,6 @@
 /release/
 /rumors
 .env
-rumors.error.log
 rumors.log
 cert.pem
 key.pem
