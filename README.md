@@ -6,12 +6,6 @@
 go run . --dotenv=.env
 ```
 
-or
-
-```shell
-go run -race -tags ui,sys_ui . -c config.yaml --dotenv=.env
-```
-
 ### Bot commands
 
 ```shell
@@ -22,21 +16,21 @@ on - subscribe <source>
 off - unsubscribe <source>
 ```
 
-### Install swag
+### Generate Swagger Documentation 2.0
+
+Install swag
 
 ```shell
 go install github.com/swaggo/swag/cmd/swag@aa3e8d5fa2f6ee3a56f54c7ae3bd18145783eaac
 ```
 
-### Generate Swagger Documentation 2.0
-
-For frontend
+Run the following command to generate Front API Documentation
 
 ```shell
 swag i -g swagger.go -dir internal/http/front,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230130091242-d34b26a7081c --instanceName front
 ```
 
-For system
+Run the following command to generate System API Documentation
 
 ```shell
 swag i -g swagger.go -dir internal/http/sys,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230130091242-d34b26a7081c --instanceName sys
