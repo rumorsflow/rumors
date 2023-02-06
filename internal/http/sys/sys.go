@@ -26,11 +26,11 @@ func (s *Sys) Register(mux *wool.Wool) {
 		sys.Group("/api/auth", func(w *wool.Wool) {
 			auth := NewAuthActions(s.AuthService)
 
-			w.Post("/sign-in", auth.SignIn)
-			w.Post("/refresh", auth.Refresh)
+			w.POST("/sign-in", auth.SignIn)
+			w.POST("/refresh", auth.Refresh)
 
 			w.Use(JWTMiddleware(s.CfgJWT, false))
-			w.Post("/otp", auth.OTP)
+			w.POST("/otp", auth.OTP)
 		})
 
 		sys.Group("/api", func(w *wool.Wool) {
