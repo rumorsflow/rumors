@@ -15,14 +15,14 @@ import (
 )
 
 type ArticleActions struct {
-	articleRepo repository.ReadRepository[*entity.Article]
-	feedRepo    repository.ReadRepository[*entity.Feed]
+	ArticleRepo repository.ReadRepository[*entity.Article]
+	FeedRepo    repository.ReadRepository[*entity.Feed]
 }
 
 func (a *ArticleActions) List(c wool.Ctx) error {
 	query := c.Req().URL.Query()
+
 	feedsFilter := bson.M{"enabled": true}
-	articlesFilter := bson.M{}
 
 	if query.Has("host") {
 		feedsFilter["host"] = bson.M{"$in": strings.Split(query.Get("host"), ",")}
@@ -32,7 +32,7 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 		feedsFilter["_id"] = bson.M{"$in": strings.Split(query.Get("source_id"), ",")}
 	}
 
-	feeds, err := a.feedRepo.Find(c.Req().Context(), &repository.Criteria{Filter: feedsFilter})
+	feeds, err := a.FeedRepo.Find(c.Req().Context(), &repository.Criteria{Filter: feedsFilter})
 	if err != nil {
 		return nil
 	}
@@ -41,13 +41,14 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 	for i, f := range feeds {
 		sources[i] = f.ID
 	}
-	articlesFilter["source_id"] = bson.M{"$in": sources}
+
+	articlesFilter := bson.M{"source_id": bson.M{"$in": sources}}
 
 	if query.Has("lang") {
 		articlesFilter["lang"] = bson.M{"$in": strings.Split(query.Get("lang"), ",")}
 	}
 
-	total, err := a.articleRepo.Count(c.Req().Context(), articlesFilter)
+	total, err := a.ArticleRepo.Count(c.Req().Context(), articlesFilter)
 	if err != nil {
 		return err
 	}
@@ -57,12 +58,7 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 		Filter: articlesFilter,
 	}
 	criteria.SetIndex(cast.ToInt64(query.Get(db.QueryIndex)))
-
-	size := cast.ToInt64(query.Get(db.QuerySize))
-	if size <= 0 {
-		size = 20
-	}
-	criteria.SetSize(20)
+	criteria.SetSize(cast.ToInt64(query.Get(db.QuerySize)))
 
 	response := action.ListResponse{
 		Total: total,
@@ -71,7 +67,7 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 	}
 
 	if total > 0 {
-		data, err := a.articleRepo.Find(c.Req().Context(), criteria)
+		data, err := a.ArticleRepo.Find(c.Req().Context(), criteria)
 		if err != nil {
 			return err
 		}

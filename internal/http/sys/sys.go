@@ -23,17 +23,17 @@ type Sys struct {
 
 func (s *Sys) Register(mux *wool.Wool) {
 	mux.Group("/sys", func(sys *wool.Wool) {
-		sys.Group("/api/auth", func(w *wool.Wool) {
-			auth := NewAuthActions(s.AuthService)
-
-			w.POST("/sign-in", auth.SignIn)
-			w.POST("/refresh", auth.Refresh)
-
-			w.Use(JWTMiddleware(s.CfgJWT, false))
-			w.POST("/otp", auth.OTP)
-		})
-
 		sys.Group("/api", func(w *wool.Wool) {
+			w.Group("/auth", func(a *wool.Wool) {
+				auth := NewAuthActions(s.AuthService)
+
+				a.POST("/sign-in", auth.SignIn)
+				a.POST("/refresh", auth.Refresh)
+
+				a.Use(JWTMiddleware(s.CfgJWT, false))
+				a.POST("/otp", auth.OTP)
+			})
+
 			w.Use(JWTMiddleware(s.CfgJWT, true))
 			w.CRUD("/feeds", NewFeedCRUD(s.FeedRepo, s.FeedRepo))
 			w.CRUD("/chats", NewChatCRUD(s.ChatRepo, s.ChatRepo))

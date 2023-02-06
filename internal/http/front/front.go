@@ -17,9 +17,10 @@ type Front struct {
 
 func (front *Front) Register(mux *wool.Wool) {
 	mux.Group("/api/v1", func(w *wool.Wool) {
-		w.CRUD("/feeds", NewFeedActions(front.FeedRepo))
+		feedActions := &FeedActions{FeedRepo: front.FeedRepo}
+		articleActions := &ArticleActions{ArticleRepo: front.ArticleRepo, FeedRepo: front.FeedRepo}
 
-		articleActions := &ArticleActions{articleRepo: front.ArticleRepo, feedRepo: front.FeedRepo}
+		w.GET("/feeds", feedActions.List)
 		w.GET("/articles", articleActions.List)
 	})
 
