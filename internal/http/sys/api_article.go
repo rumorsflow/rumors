@@ -54,8 +54,8 @@ func (dto UpdateArticleDTO) toEntity(id uuid.UUID) *entity.Article {
 }
 
 type ArticleActions struct {
-	*action.ListAction[*entity.Article]
-	*action.TakeAction[*entity.Article]
+	*action.ListAction[*entity.Article, any]
+	*action.TakeAction[*entity.Article, any]
 	*action.UpdateAction[*UpdateArticleDTO, *entity.Article]
 	*action.DeleteAction[*entity.Article]
 }
@@ -65,12 +65,12 @@ func NewArticleActions(
 	write repository.WriteRepository[*entity.Article],
 ) *ArticleActions {
 	return &ArticleActions{
-		ListAction: &action.ListAction[*entity.Article]{ReadRepository: read},
-		TakeAction: &action.TakeAction[*entity.Article]{ReadRepository: read},
+		ListAction: &action.ListAction[*entity.Article, any]{ReadRepository: read},
+		TakeAction: &action.TakeAction[*entity.Article, any]{ReadRepository: read},
 		UpdateAction: &action.UpdateAction[*UpdateArticleDTO, *entity.Article]{
 			WriteRepository: write,
 			DTOFactory:      action.NewDTOFactory[*UpdateArticleDTO](),
-			Mapper: action.MapperFunc[*UpdateArticleDTO, *entity.Article](
+			Mapper: action.RequestMapperFunc[*UpdateArticleDTO, *entity.Article](
 				func(id uuid.UUID, dto *UpdateArticleDTO) (*entity.Article, error) {
 					return dto.toEntity(id), nil
 				},

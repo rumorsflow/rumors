@@ -47,7 +47,7 @@ func NewFrontCommand() *cobra.Command {
 			prometheus.Mount(w)
 
 			if logger.IsDebug() {
-				w.Get("/swagger/front/...", swagger.New(&swagger.Config{InstanceName: "front"}).Handler)
+				w.GET("/swagger/front/...", swagger.New(&swagger.Config{InstanceName: "front"}).Handler)
 			}
 
 			frontApi.Register(w)

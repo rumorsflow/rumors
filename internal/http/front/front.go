@@ -10,17 +10,17 @@ import (
 var uiBuiltIn = true
 
 type Front struct {
-	Logger           *slog.Logger
-	FeedRepo         repository.ReadRepository[*entity.Feed]
-	ArticleRepo      repository.ReadRepository[*entity.Article]
-	FeedNoFilters    []string
-	ArticleNoFilters []string
+	Logger      *slog.Logger
+	FeedRepo    repository.ReadRepository[*entity.Feed]
+	ArticleRepo repository.ReadRepository[*entity.Article]
 }
 
 func (front *Front) Register(mux *wool.Wool) {
 	mux.Group("/api/v1", func(w *wool.Wool) {
-		w.CRUD("/feeds", NewFeedActions(front.FeedRepo, front.FeedNoFilters))
-		w.CRUD("/articles", NewArticleActions(front.ArticleRepo, front.ArticleNoFilters))
+		w.CRUD("/feeds", NewFeedActions(front.FeedRepo))
+
+		articleActions := &ArticleActions{articleRepo: front.ArticleRepo, feedRepo: front.FeedRepo}
+		w.GET("/articles", articleActions.List)
 	})
 
 	front.Logger.WithGroup("api").WithGroup("v1").Info("frontend V1 APIs registered")

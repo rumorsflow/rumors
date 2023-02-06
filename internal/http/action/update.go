@@ -10,18 +10,18 @@ var _ wool.PartiallyUpdate = (*UpdateAction[any, repository.Entity])(nil)
 type UpdateAction[DTO any, Entity repository.Entity] struct {
 	WriteRepository repository.WriteRepository[Entity]
 	DTOFactory      DTOFactory[DTO]
-	Mapper          Mapper[DTO, Entity]
+	Mapper          RequestMapper[DTO, Entity]
 }
 
-func (a *UpdateAction[DTO, Entity]) PartiallyUpdate(ctx wool.Ctx) error {
-	id, err := parseID(ctx)
+func (a *UpdateAction[DTO, Entity]) PartiallyUpdate(c wool.Ctx) error {
+	id, err := parseID(c)
 	if err != nil {
 		return err
 	}
 
 	dto := a.DTOFactory.NewDTO()
 
-	if err = ctx.Bind(dto); err != nil {
+	if err = c.Bind(dto); err != nil {
 		return err
 	}
 
@@ -30,9 +30,9 @@ func (a *UpdateAction[DTO, Entity]) PartiallyUpdate(ctx wool.Ctx) error {
 		return err
 	}
 
-	if err = a.WriteRepository.Save(ctx.Req().Context(), entity); err != nil {
+	if err = a.WriteRepository.Save(c.Req().Context(), entity); err != nil {
 		return err
 	}
 
-	return ctx.NoContent()
+	return c.NoContent()
 }

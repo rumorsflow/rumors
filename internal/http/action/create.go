@@ -12,13 +12,13 @@ var _ wool.Create = (*CreateAction[any, repository.Entity])(nil)
 type CreateAction[DTO any, Entity repository.Entity] struct {
 	WriteRepository repository.WriteRepository[Entity]
 	DTOFactory      DTOFactory[DTO]
-	Mapper          Mapper[DTO, Entity]
+	Mapper          RequestMapper[DTO, Entity]
 }
 
-func (a *CreateAction[DTO, Entity]) Create(ctx wool.Ctx) error {
+func (a *CreateAction[DTO, Entity]) Create(c wool.Ctx) error {
 	dto := a.DTOFactory.NewDTO()
 
-	if err := ctx.Bind(dto); err != nil {
+	if err := c.Bind(dto); err != nil {
 		return err
 	}
 
@@ -27,17 +27,17 @@ func (a *CreateAction[DTO, Entity]) Create(ctx wool.Ctx) error {
 		return err
 	}
 
-	if err = a.WriteRepository.Save(ctx.Req().Context(), entity); err != nil {
+	if err = a.WriteRepository.Save(c.Req().Context(), entity); err != nil {
 		return err
 	}
 
 	location := fmt.Sprintf(
 		"%s://%s%s/%s",
-		ctx.Req().URL.Scheme,
-		ctx.Req().Host,
-		ctx.Req().URL.Path,
+		c.Req().URL.Scheme,
+		c.Req().Host,
+		c.Req().URL.Path,
 		entity.EntityID().String(),
 	)
 
-	return ctx.Created(location)
+	return c.Created(location)
 }

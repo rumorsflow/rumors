@@ -45,31 +45,3 @@ type ReadWriteRepository[T Entity] interface {
 	ReadRepository[T]
 	WriteRepository[T]
 }
-
-type innerReadRepo[T Entity] struct {
-	inner        ReadRepository[T]
-	changeFilter func(any) any
-}
-
-func NewReadRepository[T Entity](inner ReadRepository[T], changeFilter func(any) any) ReadRepository[T] {
-	return &innerReadRepo[T]{inner: inner, changeFilter: changeFilter}
-}
-
-func (r *innerReadRepo[T]) Count(ctx context.Context, filter any) (int64, error) {
-	return r.inner.Count(ctx, r.changeFilter(filter))
-}
-
-func (r *innerReadRepo[T]) Find(ctx context.Context, criteria *Criteria) ([]T, error) {
-	return r.inner.Find(ctx, criteria)
-}
-
-func (r *innerReadRepo[T]) FindIter(ctx context.Context, criteria *Criteria) (Iter[T], error) {
-	if criteria != nil {
-		criteria.Filter = r.changeFilter(criteria.Filter)
-	}
-	return r.inner.FindIter(ctx, criteria)
-}
-
-func (r *innerReadRepo[T]) FindByID(ctx context.Context, id uuid.UUID) (T, error) {
-	return r.inner.FindByID(ctx, id)
-}

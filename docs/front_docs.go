@@ -45,6 +45,24 @@ const docTemplatefront = `{
                         "description": "Page Size",
                         "name": "size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source Host",
+                        "name": "host",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Languages",
+                        "name": "lang",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -53,7 +71,7 @@ const docTemplatefront = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entity.Article"
+                                "$ref": "#/definitions/pubsub.Article"
                             }
                         }
                     },
@@ -131,65 +149,6 @@ const docTemplatefront = `{
         }
     },
     "definitions": {
-        "entity.Article": {
-            "type": "object",
-            "properties": {
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "guid": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "lang": {
-                    "type": "string"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "long_desc": {
-                    "type": "string"
-                },
-                "media": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.Media"
-                    }
-                },
-                "pub_date": {
-                    "type": "string"
-                },
-                "short_desc": {
-                    "type": "string"
-                },
-                "source": {
-                    "$ref": "#/definitions/entity.Source"
-                },
-                "source_id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "entity.Feed": {
             "type": "object",
             "properties": {
@@ -222,34 +181,6 @@ const docTemplatefront = `{
                 }
             }
         },
-        "entity.Media": {
-            "type": "object",
-            "properties": {
-                "meta": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "type": {
-                    "$ref": "#/definitions/entity.MediaType"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "entity.MediaType": {
-            "type": "string",
-            "enum": [
-                "image",
-                "video",
-                "audio"
-            ],
-            "x-enum-varnames": [
-                "ImageType",
-                "VideoType",
-                "AudioType"
-            ]
-        },
         "entity.Source": {
             "type": "string",
             "enum": [
@@ -258,6 +189,47 @@ const docTemplatefront = `{
             "x-enum-varnames": [
                 "FeedSource"
             ]
+        },
+        "pubsub.Article": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lang": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "long_desc": {
+                    "type": "string"
+                },
+                "pub_date": {
+                    "type": "string"
+                },
+                "short_desc": {
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/entity.Source"
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
         },
         "wool.Error": {
             "type": "object",

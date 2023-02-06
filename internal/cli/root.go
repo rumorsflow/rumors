@@ -152,8 +152,8 @@ func NewCommand(args []string, version string) *cobra.Command {
 
 			if logger.IsDebug() {
 				w.Group("/swagger", func(sw *wool.Wool) {
-					sw.Get("/sys/...", swagger.New(&swagger.Config{InstanceName: "sys"}).Handler)
-					sw.Get("/front/...", swagger.New(&swagger.Config{InstanceName: "front"}).Handler)
+					sw.GET("/sys/...", swagger.New(&swagger.Config{InstanceName: "sys"}).Handler)
+					sw.GET("/front/...", swagger.New(&swagger.Config{InstanceName: "front"}).Handler)
 				})
 			}
 

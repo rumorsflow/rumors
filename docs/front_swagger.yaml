@@ -1,44 +1,5 @@
 basePath: /api/v1
 definitions:
-  entity.Article:
-    properties:
-      authors:
-        items:
-          type: string
-        type: array
-      categories:
-        items:
-          type: string
-        type: array
-      created_at:
-        type: string
-      guid:
-        type: string
-      id:
-        type: string
-      lang:
-        type: string
-      link:
-        type: string
-      long_desc:
-        type: string
-      media:
-        items:
-          $ref: '#/definitions/entity.Media'
-        type: array
-      pub_date:
-        type: string
-      short_desc:
-        type: string
-      source:
-        $ref: '#/definitions/entity.Source'
-      source_id:
-        type: string
-      title:
-        type: string
-      updated_at:
-        type: string
-    type: object
   entity.Feed:
     properties:
       created_at:
@@ -60,32 +21,39 @@ definitions:
       updated_at:
         type: string
     type: object
-  entity.Media:
-    properties:
-      meta:
-        additionalProperties: {}
-        type: object
-      type:
-        $ref: '#/definitions/entity.MediaType'
-      url:
-        type: string
-    type: object
-  entity.MediaType:
-    enum:
-    - image
-    - video
-    - audio
-    type: string
-    x-enum-varnames:
-    - ImageType
-    - VideoType
-    - AudioType
   entity.Source:
     enum:
     - feed
     type: string
     x-enum-varnames:
     - FeedSource
+  pubsub.Article:
+    properties:
+      categories:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      lang:
+        type: string
+      link:
+        type: string
+      long_desc:
+        type: string
+      pub_date:
+        type: string
+      short_desc:
+        type: string
+      source:
+        $ref: '#/definitions/entity.Source'
+      source_id:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   wool.Error:
     properties:
       code:
@@ -120,6 +88,18 @@ paths:
         minimum: 1
         name: size
         type: integer
+      - description: Source Host
+        in: query
+        name: host
+        type: string
+      - description: Source IDs
+        in: query
+        name: source_id
+        type: string
+      - description: Languages
+        in: query
+        name: lang
+        type: string
       produces:
       - application/json
       responses:
@@ -127,7 +107,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/entity.Article'
+              $ref: '#/definitions/pubsub.Article'
             type: array
         "400":
           description: Bad Request

@@ -9,10 +9,8 @@ import (
 	"github.com/gowool/middleware/proxy"
 	"github.com/gowool/wool"
 	_ "github.com/rumorsflow/rumors/v2/docs"
-	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/http/front"
 	"github.com/rumorsflow/rumors/v2/internal/http/sys"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
@@ -20,7 +18,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
-	"go.mongodb.org/mongo-driver/bson"
 	"io/fs"
 	"net/http"
 	"net/http/pprof"
@@ -52,32 +49,20 @@ func FrontActivator() *di.Activator {
 	return &di.Activator{
 		Key: FrontKey{},
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
-			fr, err := db.GetFeedRepository(ctx, c)
+			feedRepo, err := db.GetFeedRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
 			}
 
-			ar, err := db.GetArticleRepository(ctx, c)
+			articleRepo, err := db.GetArticleRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
 			}
 
 			return &front.Front{
-				Logger: logger.WithGroup("http").WithGroup("front"),
-				FeedRepo: repository.NewReadRepository[*entity.Feed](fr, func(f any) any {
-					if ff, ok := f.(bson.M); ok {
-						ff["enabled"] = true
-					}
-					return f
-				}),
-				ArticleRepo: repository.NewReadRepository[*entity.Article](ar, func(f any) any {
-					if ff, ok := f.(bson.M); ok {
-						ff["enabled"] = true
-					}
-					return f
-				}),
-				FeedNoFilters:    []string{"enabled"},
-				ArticleNoFilters: []string{"enabled"},
+				Logger:      logger.WithGroup("http").WithGroup("front"),
+				FeedRepo:    feedRepo,
+				ArticleRepo: articleRepo,
 			}, nil, nil
 		}),
 	}

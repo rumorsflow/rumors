@@ -65,16 +65,17 @@ func NewChatCRUD(
 	read repository.ReadRepository[*entity.Chat],
 	write repository.WriteRepository[*entity.Chat],
 ) action.CRUD {
-	return action.NewCRUD[*CreateChatDTO, *UpdateChatDTO, *entity.Chat](
+	return action.NewCRUD[*CreateChatDTO, *UpdateChatDTO, *entity.Chat, any](
 		read,
 		write,
 		action.NewDTOFactory[*CreateChatDTO](),
 		action.NewDTOFactory[*UpdateChatDTO](),
-		action.MapperFunc[*CreateChatDTO, *entity.Chat](func(id uuid.UUID, dto *CreateChatDTO) (*entity.Chat, error) {
+		action.RequestMapperFunc[*CreateChatDTO, *entity.Chat](func(id uuid.UUID, dto *CreateChatDTO) (*entity.Chat, error) {
 			return dto.toEntity(id), nil
 		}),
-		action.MapperFunc[*UpdateChatDTO, *entity.Chat](func(id uuid.UUID, dto *UpdateChatDTO) (*entity.Chat, error) {
+		action.RequestMapperFunc[*UpdateChatDTO, *entity.Chat](func(id uuid.UUID, dto *UpdateChatDTO) (*entity.Chat, error) {
 			return dto.toEntity(id), nil
 		}),
+		nil,
 	)
 }

@@ -82,16 +82,17 @@ func NewJobCRUD(
 	read repository.ReadRepository[*entity.Job],
 	write repository.WriteRepository[*entity.Job],
 ) action.CRUD {
-	return action.NewCRUD[*CreateJobDTO, *UpdateJobDTO, *entity.Job](
+	return action.NewCRUD[*CreateJobDTO, *UpdateJobDTO, *entity.Job, any](
 		read,
 		write,
 		action.NewDTOFactory[*CreateJobDTO](),
 		action.NewDTOFactory[*UpdateJobDTO](),
-		action.MapperFunc[*CreateJobDTO, *entity.Job](func(id uuid.UUID, dto *CreateJobDTO) (*entity.Job, error) {
+		action.RequestMapperFunc[*CreateJobDTO, *entity.Job](func(id uuid.UUID, dto *CreateJobDTO) (*entity.Job, error) {
 			return dto.toEntity(id), nil
 		}),
-		action.MapperFunc[*UpdateJobDTO, *entity.Job](func(id uuid.UUID, dto *UpdateJobDTO) (*entity.Job, error) {
+		action.RequestMapperFunc[*UpdateJobDTO, *entity.Job](func(id uuid.UUID, dto *UpdateJobDTO) (*entity.Job, error) {
 			return dto.toEntity(id), nil
 		}),
+		nil,
 	)
 }

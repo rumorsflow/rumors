@@ -11,15 +11,15 @@ type DeleteAction[Entity repository.Entity] struct {
 	WriteRepository repository.WriteRepository[Entity]
 }
 
-func (a *DeleteAction[Entity]) Delete(ctx wool.Ctx) error {
-	id, err := parseID(ctx)
+func (a *DeleteAction[Entity]) Delete(c wool.Ctx) error {
+	id, err := parseID(c)
 	if err != nil {
 		return err
 	}
 
-	if err = a.WriteRepository.Remove(ctx.Req().Context(), id); err != nil {
+	if err = a.WriteRepository.Remove(c.Req().Context(), id); err != nil {
 		return err
 	}
 
-	return ctx.NoContent()
+	return c.NoContent()
 }
