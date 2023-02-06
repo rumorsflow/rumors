@@ -56,7 +56,7 @@ func NewSysCommand() *cobra.Command {
 			prometheus.Mount(w)
 
 			if logger.IsDebug() {
-				w.Get("/swagger/sys/...", swagger.New(&swagger.Config{InstanceName: "sys"}).Handler)
+				w.GET("/swagger/sys/...", swagger.New(&swagger.Config{InstanceName: "sys"}).Handler)
 			}
 
 			sysApi.Register(w)

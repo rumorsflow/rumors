@@ -148,14 +148,12 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, ite
 		return
 	}
 
-	if lang = whatlanggo.DetectLang(item.Title).Iso6391(); lang == "" {
-		if lang = whatlanggo.DetectLang(item.Title + " " + shortDesc + " " + item.Description).Iso6391(); lang == "" {
-			if len(feed.Languages) > 0 {
-				lang = feed.Languages[0]
-			} else {
-				h.logger.Warn("feed item's lang not detected", "item", item)
-				return
-			}
+	if lang = whatlanggo.DetectLang(item.Title + " " + shortDesc + " " + item.Description).Iso6391(); lang == "" {
+		if len(feed.Languages) > 0 {
+			lang = feed.Languages[0]
+		} else {
+			h.logger.Warn("feed item's lang not detected", "item", item)
+			return
 		}
 	}
 

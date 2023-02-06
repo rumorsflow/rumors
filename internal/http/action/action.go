@@ -27,14 +27,24 @@ func NewDTOFactory[DTO any]() DTOFactory[DTO] {
 	})
 }
 
-type Mapper[DTO any, Entity repository.Entity] interface {
+type RequestMapper[DTO any, Entity repository.Entity] interface {
 	ToEntity(id uuid.UUID, dto DTO) (Entity, error)
 }
 
-type MapperFunc[DTO any, Entity repository.Entity] func(id uuid.UUID, dto DTO) (Entity, error)
+type RequestMapperFunc[DTO any, Entity repository.Entity] func(id uuid.UUID, dto DTO) (Entity, error)
 
-func (m MapperFunc[DTO, Entity]) ToEntity(id uuid.UUID, dto DTO) (Entity, error) {
+func (m RequestMapperFunc[DTO, Entity]) ToEntity(id uuid.UUID, dto DTO) (Entity, error) {
 	return m(id, dto)
+}
+
+type ResponseMapper[Entity repository.Entity, DTO any] interface {
+	ToResponse(entity Entity) DTO
+}
+
+type ResponseMapperFunc[Entity repository.Entity, DTO any] func(entity Entity) DTO
+
+func (m ResponseMapperFunc[Entity, DTO]) ToResponse(entity Entity) DTO {
+	return m(entity)
 }
 
 func parseID(ctx wool.Ctx) (uuid.UUID, error) {
@@ -53,25 +63,26 @@ type CRUD interface {
 	wool.Delete
 }
 
-type crud[CreateDTO any, UpdateDTO any, Entity repository.Entity] struct {
-	*ListAction[Entity]
-	*TakeAction[Entity]
+type crud[CreateDTO any, UpdateDTO any, Entity repository.Entity, ResponseDTO any] struct {
+	*ListAction[Entity, ResponseDTO]
+	*TakeAction[Entity, ResponseDTO]
 	*CreateAction[CreateDTO, Entity]
 	*UpdateAction[UpdateDTO, Entity]
 	*DeleteAction[Entity]
 }
 
-func NewCRUD[CreateDTO any, UpdateDTO any, Entity repository.Entity](
+func NewCRUD[CreateDTO any, UpdateDTO any, Entity repository.Entity, ResponseDTO any](
 	read repository.ReadRepository[Entity],
 	write repository.WriteRepository[Entity],
 	createDTO DTOFactory[CreateDTO],
 	updateDTO DTOFactory[UpdateDTO],
-	createMapper Mapper[CreateDTO, Entity],
-	updateMapper Mapper[UpdateDTO, Entity],
+	createMapper RequestMapper[CreateDTO, Entity],
+	updateMapper RequestMapper[UpdateDTO, Entity],
+	responseMapper ResponseMapper[Entity, ResponseDTO],
 ) CRUD {
-	return &crud[CreateDTO, UpdateDTO, Entity]{
-		ListAction:   &ListAction[Entity]{ReadRepository: read},
-		TakeAction:   &TakeAction[Entity]{ReadRepository: read},
+	return &crud[CreateDTO, UpdateDTO, Entity, ResponseDTO]{
+		ListAction:   &ListAction[Entity, ResponseDTO]{ReadRepository: read, ResponseMapper: responseMapper},
+		TakeAction:   &TakeAction[Entity, ResponseDTO]{ReadRepository: read, ResponseMapper: responseMapper},
 		CreateAction: &CreateAction[CreateDTO, Entity]{WriteRepository: write, DTOFactory: createDTO, Mapper: createMapper},
 		UpdateAction: &UpdateAction[UpdateDTO, Entity]{WriteRepository: write, DTOFactory: updateDTO, Mapper: updateMapper},
 		DeleteAction: &DeleteAction[Entity]{WriteRepository: write},

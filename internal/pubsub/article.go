@@ -13,6 +13,7 @@ type Article struct {
 	Lang       string        `json:"lang,omitempty"`
 	Title      string        `json:"title,omitempty"`
 	ShortDesc  string        `json:"short_desc,omitempty"`
+	LongDesc   string        `json:"long_desc,omitempty"`
 	Link       string        `json:"link,omitempty"`
 	Image      string        `json:"url,omitempty"`
 	PubDate    time.Time     `json:"pub_date,omitempty"`
@@ -33,6 +34,10 @@ func FromEntity(e *entity.Article) Article {
 
 	if e.ShortDesc != nil {
 		a.ShortDesc = *e.ShortDesc
+	}
+
+	if e.LongDesc != nil {
+		a.LongDesc = *e.LongDesc
 	}
 
 	if e.Categories != nil {

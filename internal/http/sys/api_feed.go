@@ -42,16 +42,17 @@ func NewFeedCRUD(
 	read repository.ReadRepository[*entity.Feed],
 	write repository.WriteRepository[*entity.Feed],
 ) action.CRUD {
-	return action.NewCRUD[*CreateFeedDTO, *UpdateFeedDTO, *entity.Feed](
+	return action.NewCRUD[*CreateFeedDTO, *UpdateFeedDTO, *entity.Feed, any](
 		read,
 		write,
 		action.NewDTOFactory[*CreateFeedDTO](),
 		action.NewDTOFactory[*UpdateFeedDTO](),
-		action.MapperFunc[*CreateFeedDTO, *entity.Feed](func(id uuid.UUID, dto *CreateFeedDTO) (*entity.Feed, error) {
+		action.RequestMapperFunc[*CreateFeedDTO, *entity.Feed](func(id uuid.UUID, dto *CreateFeedDTO) (*entity.Feed, error) {
 			return dto.toEntity(id), nil
 		}),
-		action.MapperFunc[*UpdateFeedDTO, *entity.Feed](func(id uuid.UUID, dto *UpdateFeedDTO) (*entity.Feed, error) {
+		action.RequestMapperFunc[*UpdateFeedDTO, *entity.Feed](func(id uuid.UUID, dto *UpdateFeedDTO) (*entity.Feed, error) {
 			return dto.toEntity(id), nil
 		}),
+		nil,
 	)
 }
