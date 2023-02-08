@@ -119,7 +119,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 				jwt.ConfigActivator("http.jwt"),
 				jwt.SignerActivator(),
 
-				http.FrontActivator(),
+				http.FrontActivator(cmd.Version),
 				http.SysActivator(),
 				http.WoolActivator(cmd.Version),
 				http.ServerActivator(nil, nil),
@@ -201,6 +201,10 @@ func NewCommand(args []string, version string) *cobra.Command {
 			}
 
 			g, ctx := errgroup.WithContext(ctx)
+
+			g.Go(func() error {
+				return frontApi.Listen(ctx)
+			})
 
 			g.Go(func() error {
 				return srv.Start(w)

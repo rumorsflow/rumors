@@ -34,3 +34,13 @@ func nopFeedList() {}
 //	@Failure		500			{object}	wool.Error
 //	@Router			/articles [get]
 func nopArticleList() {}
+
+//	@Summary		Realtime
+//	@Description	sse stream
+//	@Tags			sse
+//	@Header			default	{string}	Content-Type	text/event-stream
+//	@response		default
+//	@Failure		400	{object}	wool.Error
+//	@Failure		500	{object}	wool.Error
+//	@Router			/realtime [get]
+func nopRealtime() {}

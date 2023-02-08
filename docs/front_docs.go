@@ -146,6 +146,32 @@ const docTemplatefront = `{
                     }
                 }
             }
+        },
+        "/realtime": {
+            "get": {
+                "description": "sse stream",
+                "tags": [
+                    "sse"
+                ],
+                "summary": "Realtime",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "definitions": {

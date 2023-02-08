@@ -159,4 +159,21 @@ paths:
       summary: List feeds
       tags:
       - feeds
+  /realtime:
+    get:
+      description: sse stream
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+        default:
+          description: ""
+      summary: Realtime
+      tags:
+      - sse
 swagger: "2.0"
