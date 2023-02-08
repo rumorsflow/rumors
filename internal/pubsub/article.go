@@ -15,7 +15,7 @@ type Article struct {
 	ShortDesc  string        `json:"short_desc,omitempty"`
 	LongDesc   string        `json:"long_desc,omitempty"`
 	Link       string        `json:"link,omitempty"`
-	Image      string        `json:"url,omitempty"`
+	Image      string        `json:"image,omitempty"`
 	PubDate    time.Time     `json:"pub_date,omitempty"`
 	Categories []string      `json:"categories,omitempty"`
 }
