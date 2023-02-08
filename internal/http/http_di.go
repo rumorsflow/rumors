@@ -7,10 +7,12 @@ import (
 	"github.com/gowool/middleware/gzip"
 	"github.com/gowool/middleware/prometheus"
 	"github.com/gowool/middleware/proxy"
+	"github.com/gowool/middleware/sse"
 	"github.com/gowool/wool"
 	_ "github.com/rumorsflow/rumors/v2/docs"
 	"github.com/rumorsflow/rumors/v2/internal/http/front"
 	"github.com/rumorsflow/rumors/v2/internal/http/sys"
+	"github.com/rumorsflow/rumors/v2/internal/pubsub"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
@@ -21,6 +23,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/http/pprof"
+	"time"
 )
 
 const (
@@ -45,7 +48,7 @@ func GetServer(ctx context.Context, c ...di.Container) (*wool.Server, error) {
 	return di.Get[*wool.Server](ctx, ServerKey{}, c...)
 }
 
-func FrontActivator() *di.Activator {
+func FrontActivator(version string) *di.Activator {
 	return &di.Activator{
 		Key: FrontKey{},
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
@@ -59,10 +62,21 @@ func FrontActivator() *di.Activator {
 				return nil, nil, err
 			}
 
+			sub, err := pubsub.GetSub(ctx, c)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			sseCfg := &sse.Config{Version: version, ClientIdle: 30 * time.Minute}
+
+			log := logger.WithGroup("http").WithGroup("front")
+
 			return &front.Front{
-				Logger:      logger.WithGroup("http").WithGroup("front"),
-				FeedRepo:    feedRepo,
-				ArticleRepo: articleRepo,
+				Logger:         log,
+				Sub:            sub,
+				SSE:            sse.New(sseCfg, log.WithGroup("sse")),
+				FeedActions:    &front.FeedActions{FeedRepo: feedRepo},
+				ArticleActions: &front.ArticleActions{ArticleRepo: articleRepo, FeedRepo: feedRepo},
 			}, nil, nil
 		}),
 	}
@@ -119,13 +133,13 @@ func SysActivator() *di.Activator {
 			authService := sys.NewAuthService(userRepo, client, signer, jwtCfg)
 
 			return &sys.Sys{
-				Logger:      logger.WithGroup("http").WithGroup("sys"),
-				CfgJWT:      jwtCfg,
-				AuthService: authService,
-				FeedRepo:    feedRepo,
-				ChatRepo:    chatRepo,
-				JobRepo:     jobRepo,
-				ArticleRepo: articleRepo,
+				Logger:         logger.WithGroup("http").WithGroup("sys"),
+				CfgJWT:         jwtCfg,
+				AuthActions:    sys.NewAuthActions(authService),
+				ArticleActions: sys.NewArticleActions(articleRepo, articleRepo),
+				FeedCRUD:       sys.NewFeedCRUD(feedRepo, feedRepo),
+				ChatCRUD:       sys.NewChatCRUD(chatRepo, chatRepo),
+				JobCRUD:        sys.NewJobCRUD(jobRepo, jobRepo),
 			}, cl, nil
 		}),
 	}

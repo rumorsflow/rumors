@@ -2,8 +2,7 @@ package sys
 
 import (
 	"github.com/gowool/wool"
-	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/internal/http/action"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"golang.org/x/exp/slog"
 	"strings"
@@ -12,33 +11,31 @@ import (
 var uiBuiltIn = true
 
 type Sys struct {
-	Logger      *slog.Logger
-	CfgJWT      *jwt.Config
-	AuthService AuthService
-	FeedRepo    repository.ReadWriteRepository[*entity.Feed]
-	ChatRepo    repository.ReadWriteRepository[*entity.Chat]
-	JobRepo     repository.ReadWriteRepository[*entity.Job]
-	ArticleRepo repository.ReadWriteRepository[*entity.Article]
+	Logger         *slog.Logger
+	CfgJWT         *jwt.Config
+	AuthActions    *AuthActions
+	ArticleActions *ArticleActions
+	FeedCRUD       action.CRUD
+	ChatCRUD       action.CRUD
+	JobCRUD        action.CRUD
 }
 
 func (s *Sys) Register(mux *wool.Wool) {
 	mux.Group("/sys", func(sys *wool.Wool) {
 		sys.Group("/api", func(w *wool.Wool) {
 			w.Group("/auth", func(a *wool.Wool) {
-				auth := NewAuthActions(s.AuthService)
-
-				a.POST("/sign-in", auth.SignIn)
-				a.POST("/refresh", auth.Refresh)
+				a.POST("/sign-in", s.AuthActions.SignIn)
+				a.POST("/refresh", s.AuthActions.Refresh)
 
 				a.Use(JWTMiddleware(s.CfgJWT, false))
-				a.POST("/otp", auth.OTP)
+				a.POST("/otp", s.AuthActions.OTP)
 			})
 
 			w.Use(JWTMiddleware(s.CfgJWT, true))
-			w.CRUD("/feeds", NewFeedCRUD(s.FeedRepo, s.FeedRepo))
-			w.CRUD("/chats", NewChatCRUD(s.ChatRepo, s.ChatRepo))
-			w.CRUD("/jobs", NewJobCRUD(s.JobRepo, s.JobRepo))
-			w.CRUD("/articles", NewArticleActions(s.ArticleRepo, s.ArticleRepo))
+			w.CRUD("/articles", s.ArticleActions)
+			w.CRUD("/feeds", s.FeedCRUD)
+			w.CRUD("/chats", s.ChatCRUD)
+			w.CRUD("/jobs", s.JobCRUD)
 		})
 
 		s.Logger.WithGroup("api").Info("system APIs registered")

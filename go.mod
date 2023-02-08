@@ -10,11 +10,12 @@ require (
 	github.com/goccy/go-json v0.10.0
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/google/uuid v1.3.0
-	github.com/gowool/middleware/cors v0.0.0-20230206100301-b4c2a1c3b52b
-	github.com/gowool/middleware/gzip v0.0.0-20230206100301-b4c2a1c3b52b
-	github.com/gowool/middleware/keyauth v0.0.0-20230206100301-b4c2a1c3b52b
-	github.com/gowool/middleware/prometheus v0.0.0-20230206100301-b4c2a1c3b52b
-	github.com/gowool/middleware/proxy v0.0.0-20230206100301-b4c2a1c3b52b
+	github.com/gowool/middleware/cors v0.0.0-20230208012606-2c007ce407ef
+	github.com/gowool/middleware/gzip v0.0.0-20230208012606-2c007ce407ef
+	github.com/gowool/middleware/keyauth v0.0.0-20230208012606-2c007ce407ef
+	github.com/gowool/middleware/prometheus v0.0.0-20230208012606-2c007ce407ef
+	github.com/gowool/middleware/proxy v0.0.0-20230208012606-2c007ce407ef
+	github.com/gowool/middleware/sse v0.0.0-20230208012606-2c007ce407ef
 	github.com/gowool/swagger v0.0.0-20230206100617-5cfcdc7729c5
 	github.com/gowool/wool v0.0.0-20230206095925-11fec9706d35
 	github.com/hibiken/asynq v0.24.0

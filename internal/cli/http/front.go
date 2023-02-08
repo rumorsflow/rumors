@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gowool/middleware/prometheus"
 	"github.com/gowool/swagger"
+	"github.com/gowool/wool"
 	"github.com/rumorsflow/rumors/v2/internal/http"
 	"github.com/rumorsflow/rumors/v2/internal/http/front"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
@@ -10,6 +11,8 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
+	"os/signal"
 )
 
 func NewFrontCommand() *cobra.Command {
@@ -17,7 +20,8 @@ func NewFrontCommand() *cobra.Command {
 		Use:   "front",
 		Short: "Start Front API Server",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			ctx := cmd.Context()
+			ctx, cancel := signal.NotifyContext(cmd.Context(), wool.StopSignals...)
+			defer cancel()
 
 			if err := di.Activators(
 				mongodb.Activator("mongo"),
@@ -25,7 +29,7 @@ func NewFrontCommand() *cobra.Command {
 				db.ArticleActivator(),
 				db.FeedActivator(),
 
-				http.FrontActivator(),
+				http.FrontActivator(cmd.Version),
 				http.WoolActivator(cmd.Version),
 				http.ServerActivator(nil, nil),
 			); err != nil {
@@ -57,7 +61,17 @@ func NewFrontCommand() *cobra.Command {
 				return err
 			}
 
-			return srv.StartC(ctx, w)
+			g, ctx := errgroup.WithContext(ctx)
+
+			g.Go(func() error {
+				return frontApi.Listen(ctx)
+			})
+
+			g.Go(func() error {
+				return srv.StartC(ctx, w)
+			})
+
+			return g.Wait()
 		},
 	}
 }
