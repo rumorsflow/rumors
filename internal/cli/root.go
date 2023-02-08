@@ -227,21 +227,24 @@ func NewCommand(args []string, version string) *cobra.Command {
 			})
 
 			g.Go(func() error {
-				if err1 := bot.Send(telegram.Message{View: telegram.ViewAppStart}); err != nil {
-					err2 := srv.Shutdown(context.Background())
-
-					return multierr.Append(err1, err2)
-				}
-
 				<-ctx.Done()
 
-				err1 := bot.Send(telegram.Message{View: telegram.ViewAppStop})
-				err2 := srv.GracefulShutdown(context.Background())
-
-				return multierr.Append(err1, err2)
+				return srv.GracefulShutdown(context.Background())
 			})
 
-			return g.Wait()
+			if err = bot.Send(telegram.Message{View: telegram.ViewAppStart}); err != nil {
+				logger.Error("error due to send app start message to bot", err)
+			}
+
+			logger.Debug("press Ctrl+C to stop")
+
+			err = g.Wait()
+
+			if err1 := bot.Send(telegram.Message{View: telegram.ViewAppStop}); err1 != nil {
+				logger.Error("error due to send app stop message to bot", err1)
+			}
+
+			return err
 		},
 	}
 

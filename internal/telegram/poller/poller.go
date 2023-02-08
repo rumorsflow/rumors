@@ -7,6 +7,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/rumorsflow/rumors/v2/internal/task"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
+	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"golang.org/x/exp/slog"
 	"time"
@@ -102,7 +103,7 @@ func (p *TelegramPoller) listen() {
 		case <-p.done:
 			cancel()
 
-			if err := ctx.Err(); err != nil && err != context.DeadlineExceeded && err != context.Canceled {
+			if err := ctx.Err(); err != nil && !errs.IsCanceledOrDeadline(err) {
 				p.logger.Error("failed to enqueue update", ctx.Err())
 			}
 

@@ -84,6 +84,9 @@ func NewScheduler(repo repository.ReadRepository[*entity.Job], rdbMaker *rdb.Uni
 
 func (s *Scheduler) Run(ctx context.Context) error {
 	if err := s.sync(ctx); err != nil {
+		if errs.IsCanceledOrDeadline(err) {
+			return nil
+		}
 		return errs.E(OpSchedulerStart, err)
 	}
 

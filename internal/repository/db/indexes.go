@@ -17,10 +17,6 @@ func ArticleIndexes(indexView mongo.IndexView) error {
 			{"source_id", 1},
 			{"source", 1},
 			{"lang", 1},
-			{"link", 1},
-			{"pub_date", 1},
-			{"created_at", 1},
-			{"updated_at", 1},
 			{"categories", 1},
 		}},
 	}); err != nil {
@@ -52,8 +48,6 @@ func FeedIndexes(indexView mongo.IndexView) error {
 			{"languages", 1},
 			{"host", 1},
 			{"enabled", 1},
-			{"created_at", 1},
-			{"updated_at", 1},
 		}},
 	}); err != nil {
 		return errs.E(repository.OpIndexes, err)

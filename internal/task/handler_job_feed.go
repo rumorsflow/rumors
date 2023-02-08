@@ -16,6 +16,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/strutil"
 	"golang.org/x/exp/slog"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -59,10 +60,9 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 
 	parsed, err := h.parseFeed(ctx, feed.Link)
 	if err != nil {
-		if errs.Is(err, context.Canceled) || errs.Is(err, context.DeadlineExceeded) {
-			return nil
+		if !errs.IsCanceledOrDeadline(err) {
+			h.logger.Error("error due to parse feed", err, "id", feed.ID)
 		}
-		h.logger.Error("error due to parse feed", err, "id", feed.ID)
 		return nil
 	}
 
@@ -109,10 +109,9 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, ite
 
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
-		if errs.Is(err, context.Canceled) || errs.Is(err, context.DeadlineExceeded) {
-			return
+		if !errs.IsCanceledOrDeadline(err) {
+			h.logger.Error("error due to parse feed item's link", errs.E(OpServerProcessTask, err), "item", item)
 		}
-		h.logger.Error("error due to parse feed item's link", errs.E(OpServerProcessTask, err), "item", item)
 		return
 	}
 
@@ -272,23 +271,9 @@ func (h *HandlerJobFeed) parseFeed(ctx context.Context, link string) (*gofeed.Fe
 	return parsed, err
 }
 
-func (h *HandlerJobFeed) parseOpengraphMeta(ctx context.Context, link string) (*opengraph.OpenGraph, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	og, err := opengraph.Fetch(link, opengraph.Intent{Strict: false, Context: ctx})
-	if err != nil {
-		return nil, errs.E(OpServerParseArticle, err)
-	}
-
-	h.logger.Debug("article link parsed", "article", og)
-
-	return og, nil
-}
-
 func (h *HandlerJobFeed) saveArticle(ctx context.Context, article *entity.Article) {
 	if err := h.articleRepo.Save(ctx, article); err != nil {
-		if errs.Is(err, context.Canceled) || errs.Is(err, context.DeadlineExceeded) {
+		if errs.IsCanceledOrDeadline(err) {
 			return
 		}
 
@@ -339,4 +324,53 @@ func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item
 	}
 
 	return -1, nil
+}
+
+func (h *HandlerJobFeed) parseOpengraphMeta(ctx context.Context, link string) (*opengraph.OpenGraph, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	og, err := openGraphFetch(ctx, link)
+	if err != nil {
+		return nil, errs.E(OpServerParseArticle, err)
+	}
+
+	h.logger.Debug("article link parsed", "article", og)
+
+	return og, nil
+}
+
+func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req = req.WithContext(ctx)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if !strings.HasPrefix(res.Header.Get("Content-Type"), "text/html") {
+		return nil, errs.New("content type must be text/html")
+	}
+
+	if res.StatusCode >= 400 {
+		return nil, fmt.Errorf("open graph error due to request %s with response status code %d", url, res.StatusCode)
+	}
+
+	og := opengraph.New(url)
+
+	if err = og.Parse(res.Body); err != nil {
+		return nil, err
+	}
+
+	if !og.Intent.Strict && og.Favicon.URL == "" {
+		og.Favicon.URL = "/favicon.ico"
+	}
+
+	return og, nil
 }

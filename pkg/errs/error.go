@@ -1,6 +1,7 @@
 package errs
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -114,4 +115,11 @@ func Unwrap(err error) error {
 
 func HasOp(err error, op Op) bool {
 	return err != nil && string(op) != "" && strings.Contains(err.Error(), string(op))
+}
+
+func IsCanceledOrDeadline(err error) bool {
+	if Is(err, context.Canceled) || Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	return false
 }

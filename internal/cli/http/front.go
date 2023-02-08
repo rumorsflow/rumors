@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"github.com/gowool/middleware/prometheus"
 	"github.com/gowool/swagger"
 	"github.com/gowool/wool"
@@ -68,8 +69,16 @@ func NewFrontCommand() *cobra.Command {
 			})
 
 			g.Go(func() error {
-				return srv.StartC(ctx, w)
+				return srv.Start(w)
 			})
+
+			g.Go(func() error {
+				<-ctx.Done()
+
+				return srv.GracefulShutdown(context.Background())
+			})
+
+			logger.Debug("press Ctrl+C to stop")
 
 			return g.Wait()
 		},
