@@ -2,6 +2,8 @@ module github.com/rumorsflow/rumors/v2
 
 go 1.20
 
+replace github.com/abadojack/whatlanggo v1.0.1 => github.com/retarus/whatlanggo v1.1.1
+
 require (
 	github.com/abadojack/whatlanggo v1.0.1
 	github.com/fatih/color v1.14.1

@@ -29,14 +29,13 @@ type Media struct {
 
 type Article struct {
 	ID         uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
+	Link       string    `json:"link,omitempty" bson:"link,omitempty"`
 	SourceID   uuid.UUID `json:"source_id,omitempty" bson:"source_id,omitempty"`
 	Source     Source    `json:"source,omitempty" bson:"source,omitempty"`
 	Lang       string    `json:"lang,omitempty" bson:"lang,omitempty"`
 	Title      string    `json:"title,omitempty" bson:"title,omitempty"`
 	ShortDesc  *string   `json:"short_desc,omitempty" bson:"short_desc,omitempty"`
 	LongDesc   *string   `json:"long_desc,omitempty" bson:"long_desc,omitempty"`
-	Guid       string    `json:"guid,omitempty" bson:"guid,omitempty"`
-	Link       string    `json:"link,omitempty" bson:"link,omitempty"`
 	Media      *[]Media  `json:"media,omitempty" bson:"media,omitempty"`
 	PubDate    time.Time `json:"pub_date,omitempty" bson:"pub_date,omitempty"`
 	CreatedAt  time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`

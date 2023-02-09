@@ -98,25 +98,12 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 }
 
 func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, item *gofeed.Item) {
-	if item.Link == "" && len(item.Links) > 0 {
-		item.Link = item.Links[0]
-	}
-
-	if item.Link == "" {
-		h.logger.Warn("feed item's link is empty", "item", item)
-		return
-	}
-
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
 			h.logger.Error("error due to parse feed item's link", errs.E(OpServerProcessTask, err), "item", item)
 		}
 		return
-	}
-
-	if item.GUID == "" {
-		item.GUID = item.Link
 	}
 
 	if item.Description == "" {
@@ -156,21 +143,12 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, ite
 		}
 	}
 
-	if item.PublishedParsed == nil {
-		now := time.Now()
-		if item.UpdatedParsed != nil {
-			now = *item.UpdatedParsed
-		}
-		item.PublishedParsed = &now
-	}
-
 	article := &entity.Article{
 		ID:       uuid.New(),
 		SourceID: feed.ID,
 		Source:   entity.FeedSource,
 		Lang:     lang,
 		Title:    item.Title,
-		Guid:     item.GUID,
 		Link:     item.Link,
 		PubDate:  *item.PublishedParsed,
 	}
@@ -244,26 +222,38 @@ func (h *HandlerJobFeed) parseFeed(ctx context.Context, link string) (*gofeed.Fe
 		return nil, errs.E(OpServerParseFeed, err)
 	}
 
+	items := make([]*gofeed.Item, 0, len(parsed.Items))
+
+	for i, item := range parsed.Items {
+		if item == nil {
+			continue
+		}
+
+		if item.Link == "" && len(item.Links) > 0 {
+			item.Link = item.Links[0]
+		}
+
+		if item.Link == "" {
+			parsed.Items[i] = nil
+			continue
+		}
+
+		if item.PublishedParsed == nil {
+			if item.UpdatedParsed != nil {
+				item.PublishedParsed = item.UpdatedParsed
+			} else {
+				now := time.Now()
+				item.PublishedParsed = &now
+			}
+		}
+
+		items = append(items, item)
+	}
+
+	parsed.Items = items
+
 	sort.Slice(parsed.Items, func(i, j int) bool {
-		var a, b time.Time
-
-		if parsed.Items[i].PublishedParsed != nil {
-			a = *parsed.Items[i].PublishedParsed
-		} else if parsed.Items[i].UpdatedParsed != nil {
-			a = *parsed.Items[i].UpdatedParsed
-		}
-
-		if parsed.Items[j].PublishedParsed != nil {
-			b = *parsed.Items[j].PublishedParsed
-		} else if parsed.Items[j].UpdatedParsed != nil {
-			b = *parsed.Items[j].UpdatedParsed
-		}
-
-		if a.IsZero() || b.IsZero() {
-			return true
-		}
-
-		return a.Before(b)
+		return parsed.Items[i].PublishedParsed.Before(*parsed.Items[j].PublishedParsed)
 	})
 
 	h.logger.Debug("feed link parsed", "items", parsed.Items)
@@ -292,19 +282,15 @@ func (h *HandlerJobFeed) saveArticle(ctx context.Context, article *entity.Articl
 
 func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item) (int, error) {
 	seen := make(map[string]int, len(items))
-	guids := make([]string, 0, len(items))
+	links := make([]string, len(items))
 
 	for i, item := range items {
-		guid := item.GUID
-		if guid == "" {
-			guid = item.Link
-		}
-		seen[guid] = i
-		guids = append(guids, guid)
+		seen[item.Link] = i
+		links[i] = item.Link
 	}
 
-	query := fmt.Sprintf("sort=-pub_date&field.0.0=guid&cond.0.0=in&value.0.0=%s", strings.Join(guids, ","))
-	criteria := db.BuildCriteria(query).SetSize(int64(len(guids)))
+	query := fmt.Sprintf("sort=-pub_date&field.0.0=link&cond.0.0=in&value.0.0=%s", strings.Join(links, ","))
+	criteria := db.BuildCriteria(query).SetSize(int64(len(links)))
 
 	iter, err := h.articleRepo.FindIter(ctx, criteria)
 	if err != nil {
@@ -318,7 +304,7 @@ func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item
 	for iter.Next(ctx) {
 		article := iter.Entity()
 
-		if i, ok := seen[article.Guid]; ok {
+		if i, ok := seen[article.Link]; ok {
 			return i, nil
 		}
 	}
@@ -366,10 +352,6 @@ func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, erro
 
 	if err = og.Parse(res.Body); err != nil {
 		return nil, err
-	}
-
-	if !og.Intent.Strict && og.Favicon.URL == "" {
-		og.Favicon.URL = "/favicon.ico"
 	}
 
 	return og, nil
