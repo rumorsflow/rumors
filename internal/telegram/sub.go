@@ -124,14 +124,14 @@ func (s *Subscriber) Run(ctx context.Context) error {
 }
 
 func (s *Subscriber) send(message Message, channel string) {
-	msgs, err := message.chattable(s.bot)
+	chunks, err := message.chattable(s.bot)
 	if err != nil {
 		err = errs.E(OpPrepareMessage, err)
 		s.logger.Error("error due prepare message before send", err, "channel", channel, "message", message)
 		return
 	}
 
-	s.pool.Add(message.ChatID, newEntry(msgs, message.Delay))
+	s.pool.Add(message.ChatID, newEntry(chunks, message.Delay))
 }
 
 func (s *Subscriber) processor(message tgbotapi.Chattable) error {

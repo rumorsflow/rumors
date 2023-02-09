@@ -42,8 +42,7 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		return nil
 	}
 
-	payload := conv.BytesToString(task.Payload())
-	id, err := uuid.Parse(payload)
+	id, err := uuid.Parse(conv.BytesToString(task.Payload()))
 	if err != nil {
 		h.logger.Error("error due to parse uuid", err, "payload", task.Payload())
 		return nil
@@ -327,12 +326,11 @@ func (h *HandlerJobFeed) parseOpengraphMeta(ctx context.Context, link string) (*
 }
 
 func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req = req.WithContext(ctx)
+	req.Header.Set("User-Agent", userAgent)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

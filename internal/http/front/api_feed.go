@@ -25,10 +25,7 @@ func (a *FeedActions) List(c wool.Ctx) error {
 
 	query := c.Req().URL.Query()
 
-	criteria := &repository.Criteria{
-		Sort:   bson.D{{Key: "host", Value: 1}},
-		Filter: filter,
-	}
+	criteria := &repository.Criteria{Sort: bson.D{{Key: "host", Value: 1}}, Filter: filter}
 	criteria.SetIndex(cast.ToInt64(query.Get(db.QueryIndex)))
 	criteria.SetSize(cast.ToInt64(query.Get(db.QuerySize)))
 

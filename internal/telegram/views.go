@@ -51,16 +51,14 @@ var (
 
 			switch tags := data.(type) {
 			case []string:
-				return joinWithPrefix(tags, "#", " #")
+				return hashtag(tags)
 			case *[]string:
-				return joinWithPrefix(*tags, "#", " #")
+				return hashtag(*tags)
 			default:
 				return ""
 			}
 		},
-		"domain": func(link string) string {
-			return urlutil.SafeDomain(link)
-		},
+		"domain": urlutil.SafeDomain,
 	}
 
 	templates *template.Template
@@ -89,16 +87,16 @@ func isNilPtr(data any) bool {
 	return reflect.TypeOf(data).Kind() == reflect.Ptr && reflect.ValueOf(data).IsNil()
 }
 
-func joinWithPrefix(data []string, firstSep, sep string) string {
+func hashtag(data []string) string {
 	var buf bytes.Buffer
 	first := true
 	for _, item := range data {
 		if tag := replacer.Replace(item); tag != "" {
 			if first {
 				first = false
-				_, _ = buf.WriteString(firstSep)
+				_, _ = buf.WriteString("#")
 			} else {
-				_, _ = buf.WriteString(sep)
+				_, _ = buf.WriteString(" #")
 			}
 			_, _ = buf.WriteString(tag)
 		}
