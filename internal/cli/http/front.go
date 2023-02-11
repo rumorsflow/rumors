@@ -7,10 +7,12 @@ import (
 	"github.com/gowool/wool"
 	"github.com/rumorsflow/rumors/v2/internal/http"
 	"github.com/rumorsflow/rumors/v2/internal/http/front"
+	"github.com/rumorsflow/rumors/v2/internal/pubsub"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
+	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"os/signal"
@@ -25,7 +27,11 @@ func NewFrontCommand() *cobra.Command {
 			defer cancel()
 
 			if err := di.Activators(
+				rdb.UniversalClientActivator("redis"),
+				rdb.MakerActivator(),
 				mongodb.Activator("mongo"),
+
+				pubsub.SubscriberActivator(),
 
 				db.ArticleActivator(),
 				db.FeedActivator(),
