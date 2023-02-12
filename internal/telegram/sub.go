@@ -99,13 +99,13 @@ func (s *Subscriber) Run(ctx context.Context) error {
 				chats, err := s.chatRepo.Find(ctx, db.BuildCriteria(fmt.Sprintf(chatQuery, article.SourceID)))
 				if err != nil {
 					err = errs.E(OpFindChats, err)
-					s.logger.Warn("error due to find chats", err, "channel", data.Channel, "article", article.ID, "feed", article.SourceID)
+					s.logger.Error("error due to find chats", err, "channel", data.Channel, "article", article.ID, "source", article.SourceID)
 					continue
 				}
 
 				if len(chats) == 0 {
 					err = errs.E(OpFindChats, "chats not found")
-					s.logger.Warn("error due to find chats", err, "channel", data.Channel, "article", article.ID, "feed", article.SourceID)
+					s.logger.Debug("error due to find chats", "err", err, "channel", data.Channel, "article", article.ID, "source", article.SourceID)
 					continue
 				}
 
