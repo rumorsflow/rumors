@@ -19,6 +19,7 @@ redis:
 
 http:
   address: ${RUMORS_HTTP_ADDRESS}
+  cert_path: ${RUMORS_HTTP_CERT_PATH}
   cert_file: ${RUMORS_HTTP_CERT_FILE}
   key_file: ${RUMORS_HTTP_KEY_FILE}
   graceful_timeout: 5s

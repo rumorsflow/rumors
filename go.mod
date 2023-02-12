@@ -19,7 +19,7 @@ require (
 	github.com/gowool/middleware/proxy v0.0.0-20230208012606-2c007ce407ef
 	github.com/gowool/middleware/sse v0.0.0-20230208012606-2c007ce407ef
 	github.com/gowool/swagger v0.0.0-20230206100617-5cfcdc7729c5
-	github.com/gowool/wool v0.0.0-20230206095925-11fec9706d35
+	github.com/gowool/wool v0.0.0-20230212000935-245e67db993b
 	github.com/hibiken/asynq v0.24.0
 	github.com/hibiken/asynq/x v0.0.0-20230106040302-cc777ebdaa62
 	github.com/joho/godotenv v1.5.0

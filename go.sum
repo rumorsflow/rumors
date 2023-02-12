@@ -218,8 +218,8 @@ github.com/gowool/middleware/sse v0.0.0-20230208012606-2c007ce407ef h1:OykzLSNmg
 github.com/gowool/middleware/sse v0.0.0-20230208012606-2c007ce407ef/go.mod h1:EveigXZefXPLOun2I53Gaan+1KUzSWgdYphHvvqUAVw=
 github.com/gowool/swagger v0.0.0-20230206100617-5cfcdc7729c5 h1:kAUCcaxlZ1aHpjCJNORY32DcehWLwB29c/GYKOta2r8=
 github.com/gowool/swagger v0.0.0-20230206100617-5cfcdc7729c5/go.mod h1:QkOP5VcRDhPoXjG6n0sSXBrbd+XeuGhWedBtdPoR8nk=
-github.com/gowool/wool v0.0.0-20230206095925-11fec9706d35 h1:hKAy0ZS2ZPvPE2Fv9qlHZueZKqIBdjx0Og5IvyEwQos=
-github.com/gowool/wool v0.0.0-20230206095925-11fec9706d35/go.mod h1:B++NOGR9kkD1Kh2zD2yz63oDHUOh6/eVwJbDVT3nmU8=
+github.com/gowool/wool v0.0.0-20230212000935-245e67db993b h1:pT84pvxb2F/VoDYg66waAMCWzfwotPfJpgFOD6U3a2Q=
+github.com/gowool/wool v0.0.0-20230212000935-245e67db993b/go.mod h1:B++NOGR9kkD1Kh2zD2yz63oDHUOh6/eVwJbDVT3nmU8=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
