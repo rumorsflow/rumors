@@ -67,7 +67,7 @@ func FrontActivator(version string) *di.Activator {
 				return nil, nil, err
 			}
 
-			sseCfg := &sse.Config{Version: version, ClientIdle: 30 * time.Minute}
+			sseCfg := &sse.Config{Version: version, ClientIdle: time.Hour}
 
 			log := logger.WithGroup("http").WithGroup("front")
 

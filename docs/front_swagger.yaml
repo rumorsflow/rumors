@@ -35,6 +35,8 @@ definitions:
         type: array
       id:
         type: string
+      image:
+        type: string
       lang:
         type: string
       link:
@@ -50,8 +52,6 @@ definitions:
       source_id:
         type: string
       title:
-        type: string
-      url:
         type: string
     type: object
   wool.Error:
@@ -88,17 +88,18 @@ paths:
         minimum: 1
         name: size
         type: integer
-      - description: Source Host
+      - description: Source Hosts
         in: query
-        name: host
+        name: h
         type: string
-      - description: Source IDs
+      - description: From DateTime
+        format: date-time
         in: query
-        name: source_id
+        name: dt
         type: string
       - description: Languages
         in: query
-        name: lang
+        name: l
         type: string
       produces:
       - application/json

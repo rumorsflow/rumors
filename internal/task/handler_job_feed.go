@@ -17,6 +17,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/strutil"
 	"golang.org/x/exp/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -228,13 +229,17 @@ func (h *HandlerJobFeed) parseFeed(ctx context.Context, link string) (*gofeed.Fe
 			continue
 		}
 
-		if item.Link == "" && len(item.Links) > 0 {
-			item.Link = item.Links[0]
-		}
+		if _, err = url.ParseRequestURI(item.GUID); err == nil {
+			item.Link = item.GUID
+		} else {
+			if item.Link == "" && len(item.Links) > 0 {
+				item.Link = item.Links[0]
+			}
 
-		if item.Link == "" {
-			parsed.Items[i] = nil
-			continue
+			if _, err = url.ParseRequestURI(item.Link); err != nil {
+				parsed.Items[i] = nil
+				continue
+			}
 		}
 
 		if item.PublishedParsed == nil {

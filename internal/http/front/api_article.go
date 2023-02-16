@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type ArticleActions struct {
@@ -24,12 +25,8 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 
 	feedsFilter := bson.M{"enabled": true}
 
-	if query.Has("host") {
-		feedsFilter["host"] = bson.M{"$in": strings.Split(query.Get("host"), ",")}
-	}
-
-	if query.Has("source_id") {
-		feedsFilter["_id"] = bson.M{"$in": strings.Split(query.Get("source_id"), ",")}
+	if query.Has("h") {
+		feedsFilter["host"] = bson.M{"$in": strings.Split(query.Get("h"), ",")}
 	}
 
 	feeds, err := a.FeedRepo.Find(c.Req().Context(), &repository.Criteria{Filter: feedsFilter})
@@ -44,8 +41,14 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 
 	articlesFilter := bson.M{"source_id": bson.M{"$in": sources}}
 
-	if query.Has("lang") {
-		articlesFilter["lang"] = bson.M{"$in": strings.Split(query.Get("lang"), ",")}
+	if query.Has("dt") {
+		if t, err := time.Parse(time.RFC3339, query.Get("dt")); err == nil {
+			articlesFilter["pub_date"] = bson.M{"$lte": t}
+		}
+	}
+
+	if query.Has("l") {
+		articlesFilter["lang"] = bson.M{"$in": strings.Split(query.Get("l"), ",")}
 	}
 
 	total, err := a.ArticleRepo.Count(c.Req().Context(), articlesFilter)

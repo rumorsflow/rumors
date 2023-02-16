@@ -48,20 +48,21 @@ const docTemplatefront = `{
                     },
                     {
                         "type": "string",
-                        "description": "Source Host",
-                        "name": "host",
+                        "description": "Source Hosts",
+                        "name": "h",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Source IDs",
-                        "name": "source_id",
+                        "format": "date-time",
+                        "description": "From DateTime",
+                        "name": "dt",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Languages",
-                        "name": "lang",
+                        "name": "l",
                         "in": "query"
                     }
                 ],
@@ -228,6 +229,9 @@ const docTemplatefront = `{
                 "id": {
                     "type": "string"
                 },
+                "image": {
+                    "type": "string"
+                },
                 "lang": {
                     "type": "string"
                 },
@@ -250,9 +254,6 @@ const docTemplatefront = `{
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
-                },
-                "url": {
                     "type": "string"
                 }
             }
