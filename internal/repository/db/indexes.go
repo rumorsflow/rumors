@@ -9,10 +9,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func SiteIndexes(indexView mongo.IndexView) error {
+	if _, err := indexView.CreateMany(context.Background(), []mongo.IndexModel{
+		{Keys: bson.D{{"domain", 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{
+			{"languages", 1},
+			{"title", 1},
+			{"enabled", 1},
+		}},
+	}); err != nil {
+		return errs.E(repository.OpIndexes, err)
+	}
+	return nil
+}
+
 func ArticleIndexes(indexView mongo.IndexView) error {
 	if _, err := indexView.CreateMany(context.Background(), []mongo.IndexModel{
 		{Keys: bson.D{{"link", 1}}, Options: options.Index().SetUnique(true)},
 		{Keys: bson.D{{"pub_date", 1}}},
+		{Keys: bson.D{{"site_id", 1}, {"lang", 1}}},
 		{Keys: bson.D{
 			{"source_id", 1},
 			{"source", 1},
@@ -45,8 +60,7 @@ func FeedIndexes(indexView mongo.IndexView) error {
 	if _, err := indexView.CreateMany(context.Background(), []mongo.IndexModel{
 		{Keys: bson.D{{"link", 1}}, Options: options.Index().SetUnique(true)},
 		{Keys: bson.D{
-			{"languages", 1},
-			{"host", 1},
+			{"site_id", 1},
 			{"enabled", 1},
 		}},
 	}); err != nil {

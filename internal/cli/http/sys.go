@@ -26,6 +26,7 @@ func NewSysCommand() *cobra.Command {
 				rdb.UniversalClientActivator("redis"),
 
 				db.ArticleActivator(),
+				db.SiteActivator(),
 				db.ChatActivator(),
 				db.FeedActivator(),
 				db.JobActivator(),

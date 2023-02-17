@@ -25,11 +25,11 @@ type HandlerTgCmdRumors struct {
 
 func (h *HandlerTgCmdRumors) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	message := ctx.Value(ctxMsgKey{}).(tgbotapi.Message)
-	feeds := ctx.Value(ctxFeedsKey{}).([]*entity.Feed)
+	sites := ctx.Value(ctxSitesKey{}).([]*entity.Site)
 
-	ids := make([]string, len(feeds))
-	for i, feed := range feeds {
-		ids[i] = feed.ID.String()
+	ids := make([]string, len(sites))
+	for i, site := range sites {
+		ids[i] = site.ID.String()
 	}
 
 	grouped, err := h.articles(ctx, message.CommandArguments(), ids)
@@ -47,9 +47,9 @@ func (h *HandlerTgCmdRumors) ProcessTask(ctx context.Context, _ *asynq.Task) err
 	return nil
 }
 
-func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, feedIds []string) (map[string][]pubsub.Article, error) {
+func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs []string) (map[string][]pubsub.Article, error) {
 	index, size, search := pagination(args)
-	query := fmt.Sprintf("sort=-pub_date&field.0.0=source_id&cond.0.0=in&value.0.0=%s", strings.Join(feedIds, ","))
+	query := fmt.Sprintf("sort=-pub_date&field.0.0=site_id&cond.0.0=in&value.0.0=%s", strings.Join(siteIDs, ","))
 
 	if utf8.RuneCountInString(search) > 0 {
 		filters := []string{
@@ -61,7 +61,7 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, feedIds 
 		query += fmt.Sprintf(strings.Join(filters, "&"), search)
 	}
 
-	grouped := make(map[string][]pubsub.Article, len(feedIds))
+	grouped := make(map[string][]pubsub.Article, len(siteIDs))
 
 	criteria := db.BuildCriteria(query).SetIndex(int64(index)).SetSize(int64(size))
 

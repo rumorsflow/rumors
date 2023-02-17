@@ -25,6 +25,7 @@ func NewSubCommand() *cobra.Command {
 				rdb.UniversalClientActivator("redis"),
 				rdb.MakerActivator(),
 				mongodb.Activator("mongo"),
+				db.SiteActivator(),
 				db.ChatActivator(),
 
 				telegram.BotActivator(),

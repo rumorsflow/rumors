@@ -52,12 +52,17 @@ func SubActivator() *di.Activator {
 				return nil, nil, err
 			}
 
+			siteRepo, err := db.GetSiteRepository(ctx, c)
+			if err != nil {
+				return nil, nil, err
+			}
+
 			chatRepo, err := db.GetChatRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
 			}
 
-			return NewSubscriber(bot, sub, chatRepo), nil, nil
+			return NewSubscriber(bot, sub, siteRepo, chatRepo), nil, nil
 		}),
 	}
 }

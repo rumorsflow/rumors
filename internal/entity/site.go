@@ -2,28 +2,24 @@ package entity
 
 import (
 	"github.com/google/uuid"
-	"github.com/rumorsflow/rumors/v2/pkg/urlutil"
 	"time"
 )
 
-type Feed struct {
+type Site struct {
 	ID        uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
-	SiteID    uuid.UUID `json:"site_id,omitempty" bson:"site_id,omitempty"`
-	Link      string    `json:"link,omitempty" bson:"link,omitempty"`
+	Domain    string    `json:"domain,omitempty" bson:"domain,omitempty"`
+	Languages []string  `json:"languages,omitempty" bson:"languages,omitempty"`
+	Title     string    `json:"title,omitempty" bson:"title,omitempty"`
 	Enabled   *bool     `json:"enabled,omitempty" bson:"enabled,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
-func (e *Feed) EntityID() uuid.UUID {
+func (e *Site) EntityID() uuid.UUID {
 	return e.ID
 }
 
-func (e *Feed) Domain() string {
-	return urlutil.SafeDomain(e.Link)
-}
-
-func (e *Feed) SetEnabled(enabled bool) *Feed {
+func (e *Site) SetEnabled(enabled bool) *Site {
 	e.Enabled = &enabled
 	return e
 }

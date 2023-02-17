@@ -52,7 +52,7 @@ func FrontActivator(version string) *di.Activator {
 	return &di.Activator{
 		Key: FrontKey{},
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
-			feedRepo, err := db.GetFeedRepository(ctx, c)
+			siteRepo, err := db.GetSiteRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -75,8 +75,8 @@ func FrontActivator(version string) *di.Activator {
 				Logger:         log,
 				Sub:            sub,
 				SSE:            sse.New(sseCfg, log.WithGroup("sse")),
-				FeedActions:    &front.FeedActions{FeedRepo: feedRepo},
-				ArticleActions: &front.ArticleActions{ArticleRepo: articleRepo, FeedRepo: feedRepo},
+				SiteActions:    &front.SiteActions{SiteRepo: siteRepo},
+				ArticleActions: &front.ArticleActions{ArticleRepo: articleRepo, SiteRepo: siteRepo},
 			}, nil, nil
 		}),
 	}
@@ -86,6 +86,11 @@ func SysActivator() *di.Activator {
 	return &di.Activator{
 		Key: SysKey{},
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
+			siteRepo, err := db.GetSiteRepository(ctx, c)
+			if err != nil {
+				return nil, nil, err
+			}
+
 			feedRepo, err := db.GetFeedRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
@@ -137,6 +142,7 @@ func SysActivator() *di.Activator {
 				CfgJWT:         jwtCfg,
 				AuthActions:    sys.NewAuthActions(authService),
 				ArticleActions: sys.NewArticleActions(articleRepo, articleRepo),
+				SiteCRUD:       sys.NewSiteCRUD(siteRepo, siteRepo),
 				FeedCRUD:       sys.NewFeedCRUD(feedRepo, feedRepo),
 				ChatCRUD:       sys.NewChatCRUD(chatRepo, chatRepo),
 				JobCRUD:        sys.NewJobCRUD(jobRepo, jobRepo),

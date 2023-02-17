@@ -30,6 +30,7 @@ type Media struct {
 type Article struct {
 	ID         uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
 	Link       string    `json:"link,omitempty" bson:"link,omitempty"`
+	SiteID     uuid.UUID `json:"site_id,omitempty" bson:"site_id,omitempty"`
 	SourceID   uuid.UUID `json:"source_id,omitempty" bson:"source_id,omitempty"`
 	Source     Source    `json:"source,omitempty" bson:"source,omitempty"`
 	Lang       string    `json:"lang,omitempty" bson:"lang,omitempty"`
@@ -44,42 +45,42 @@ type Article struct {
 	Categories *[]string `json:"categories,omitempty" bson:"categories,omitempty"`
 }
 
-func (a *Article) EntityID() uuid.UUID {
-	return a.ID
+func (e *Article) EntityID() uuid.UUID {
+	return e.ID
 }
 
-func (a *Article) Domain() string {
-	return urlutil.SafeDomain(a.Link)
+func (e *Article) Domain() string {
+	return urlutil.SafeDomain(e.Link)
 }
 
-func (a *Article) SetShortDesc(shortDesc string) *Article {
-	a.ShortDesc = &shortDesc
-	return a
+func (e *Article) SetShortDesc(shortDesc string) *Article {
+	e.ShortDesc = &shortDesc
+	return e
 }
 
-func (a *Article) SetLongDesc(longDesc string) *Article {
-	a.LongDesc = &longDesc
-	return a
+func (e *Article) SetLongDesc(longDesc string) *Article {
+	e.LongDesc = &longDesc
+	return e
 }
 
-func (a *Article) SetAuthors(authors []string) *Article {
-	a.Authors = &authors
-	return a
+func (e *Article) SetAuthors(authors []string) *Article {
+	e.Authors = &authors
+	return e
 }
 
-func (a *Article) SetCategories(categories []string) *Article {
-	a.Categories = &categories
-	return a
+func (e *Article) SetCategories(categories []string) *Article {
+	e.Categories = &categories
+	return e
 }
 
-func (a *Article) SetMedia(media []Media) *Article {
-	a.Media = &media
-	return a
+func (e *Article) SetMedia(media []Media) *Article {
+	e.Media = &media
+	return e
 }
 
-func (a *Article) FirstMedia(t MediaType) (m Media) {
-	if a.Media != nil {
-		for _, m = range *a.Media {
+func (e *Article) FirstMedia(t MediaType) (m Media) {
+	if e.Media != nil {
+		for _, m = range *e.Media {
 			if m.Type == t {
 				return
 			}

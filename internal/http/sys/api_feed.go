@@ -8,34 +8,34 @@ import (
 )
 
 type CreateFeedDTO struct {
-	Languages []string `json:"languages,omitempty" validate:"required,min=1,dive,bcp47_language_tag"`
-	Title     string   `json:"title,omitempty" validate:"required,max=254"`
-	Link      string   `json:"link,omitempty" validate:"required,url"`
-	Enabled   bool     `json:"enabled,omitempty"`
+	SiteID  string `json:"site_id,omitempty" validate:"required,uuid4"`
+	Link    string `json:"link,omitempty" validate:"required,url"`
+	Enabled bool   `json:"enabled,omitempty"`
 }
 
 func (dto CreateFeedDTO) toEntity(id uuid.UUID) *entity.Feed {
 	return (&entity.Feed{
-		ID:        id,
-		Languages: dto.Languages,
-		Title:     dto.Title,
-	}).SetLink(dto.Link).SetEnabled(dto.Enabled)
+		ID:     id,
+		SiteID: uuid.MustParse(dto.SiteID),
+		Link:   dto.Link,
+	}).SetEnabled(dto.Enabled)
 }
 
 type UpdateFeedDTO struct {
-	Languages []string `json:"languages,omitempty" validate:"omitempty,dive,bcp47_language_tag"`
-	Title     string   `json:"title,omitempty" validate:"omitempty,max=254"`
-	Link      string   `json:"link,omitempty" validate:"omitempty,url"`
-	Enabled   *bool    `json:"enabled,omitempty"`
+	SiteID  string `json:"site_id,omitempty" validate:"omitempty,uuid4"`
+	Link    string `json:"link,omitempty" validate:"omitempty,url"`
+	Enabled *bool  `json:"enabled,omitempty"`
 }
 
 func (dto UpdateFeedDTO) toEntity(id uuid.UUID) *entity.Feed {
-	return (&entity.Feed{
-		ID:        id,
-		Languages: dto.Languages,
-		Title:     dto.Title,
-		Enabled:   dto.Enabled,
-	}).SetLink(dto.Link)
+	siteID, _ := uuid.Parse(dto.SiteID)
+
+	return &entity.Feed{
+		ID:      id,
+		SiteID:  siteID,
+		Link:    dto.Link,
+		Enabled: dto.Enabled,
+	}
 }
 
 func NewFeedCRUD(

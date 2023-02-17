@@ -21,25 +21,25 @@ type HandlerTgCmdOff struct {
 
 func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	message := ctx.Value(ctxMsgKey{}).(tgbotapi.Message)
-	feeds := ctx.Value(ctxFeedsKey{}).([]*entity.Feed)
+	sites := ctx.Value(ctxSitesKey{}).([]*entity.Site)
 	chat := ctx.Value(ctxChatKey{}).(*entity.Chat)
 
 	if message.CommandArguments() == "" {
 		h.publisher.Telegram(ctx, telegram.Message{
 			ChatID: message.Chat.ID,
 			View:   telegram.ViewError,
-			Data:   TgErrMsgRequiredSource,
+			Data:   TgErrMsgRequiredSite,
 		})
 		return nil
 	}
 
-	feeds = filterFeedsByHost(feeds, message.CommandArguments())
+	sites = filterSitesByDomain(sites, message.CommandArguments())
 
-	if len(feeds) == 0 {
+	if len(sites) == 0 {
 		h.publisher.Telegram(ctx, telegram.Message{
 			ChatID: message.Chat.ID,
 			View:   telegram.ViewError,
-			Data:   fmt.Sprintf(TgErrMsgNotFoundSource, message.CommandArguments()),
+			Data:   fmt.Sprintf(TgErrMsgNotFoundSite, message.CommandArguments()),
 		})
 		return nil
 	}
@@ -53,10 +53,10 @@ func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error 
 	}
 
 	ids := make([]uuid.UUID, 0, len(*chat.Broadcast))
-	seen := make(map[uuid.UUID]struct{}, len(feeds))
+	seen := make(map[uuid.UUID]struct{}, len(sites))
 
-	for _, feed := range feeds {
-		seen[feed.ID] = struct{}{}
+	for _, site := range sites {
+		seen[site.ID] = struct{}{}
 	}
 
 	for _, id := range *chat.Broadcast {

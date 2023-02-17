@@ -22,6 +22,7 @@ const (
 	OpUnmarshalMessage  errs.Op = "telegram sub: unmarshal message"
 	OpPrepareMessage    errs.Op = "telegram sub: prepare message"
 	OpUnmarshalArticles errs.Op = "telegram sub: unmarshal articles"
+	OpFindSite          errs.Op = "telegram sub: find site"
 	OpFindChats         errs.Op = "telegram sub: find chats"
 	OpProcessor         errs.Op = "telegram sub: processor"
 
@@ -33,16 +34,23 @@ type Subscriber struct {
 	bot      *Bot
 	sub      *pubsub.Subscriber
 	logger   *slog.Logger
+	siteRepo repository.ReadRepository[*entity.Site]
 	chatRepo repository.ReadRepository[*entity.Chat]
 }
 
-func NewSubscriber(bot *Bot, sub *pubsub.Subscriber, chatRepo repository.ReadRepository[*entity.Chat]) *Subscriber {
+func NewSubscriber(
+	bot *Bot,
+	sub *pubsub.Subscriber,
+	siteRepo repository.ReadRepository[*entity.Site],
+	chatRepo repository.ReadRepository[*entity.Chat],
+) *Subscriber {
 	log := logger.WithGroup("telegram").WithGroup("subscriber")
 
 	s := &Subscriber{
 		bot:      bot,
 		sub:      sub,
 		logger:   log,
+		siteRepo: siteRepo,
 		chatRepo: chatRepo,
 	}
 	s.pool = newPool(s.processor, log.WithGroup("pool"))
@@ -96,16 +104,29 @@ func (s *Subscriber) Run(ctx context.Context) error {
 			for i := len(articles) - 1; i >= 0; i-- {
 				article := articles[i]
 
-				chats, err := s.chatRepo.Find(ctx, db.BuildCriteria(fmt.Sprintf(chatQuery, article.SourceID)))
+				site, err := s.siteRepo.FindByID(ctx, article.SiteID)
+				if err != nil {
+					err = errs.E(OpFindSite, err)
+					s.logger.Error("error due to find site", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
+					continue
+				}
+
+				if !*site.Enabled {
+					err = errs.E(OpFindSite, "site not found")
+					s.logger.Debug("error due to find site", "err", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
+					continue
+				}
+
+				chats, err := s.chatRepo.Find(ctx, db.BuildCriteria(fmt.Sprintf(chatQuery, article.SiteID)))
 				if err != nil {
 					err = errs.E(OpFindChats, err)
-					s.logger.Error("error due to find chats", err, "channel", data.Channel, "article", article.ID, "source", article.SourceID)
+					s.logger.Error("error due to find chats", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
 					continue
 				}
 
 				if len(chats) == 0 {
 					err = errs.E(OpFindChats, "chats not found")
-					s.logger.Debug("error due to find chats", "err", err, "channel", data.Channel, "article", article.ID, "source", article.SourceID)
+					s.logger.Debug("error due to find chats", "err", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
 					continue
 				}
 

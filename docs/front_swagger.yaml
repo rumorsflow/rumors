@@ -1,32 +1,24 @@
 basePath: /api/v1
 definitions:
-  entity.Feed:
+  entity.Site:
     properties:
       created_at:
         type: string
+      domain:
+        type: string
       enabled:
         type: boolean
-      host:
-        type: string
       id:
         type: string
       languages:
         items:
           type: string
         type: array
-      link:
-        type: string
       title:
         type: string
       updated_at:
         type: string
     type: object
-  entity.Source:
-    enum:
-    - feed
-    type: string
-    x-enum-varnames:
-    - FeedSource
   pubsub.Article:
     properties:
       categories:
@@ -47,9 +39,7 @@ definitions:
         type: string
       short_desc:
         type: string
-      source:
-        $ref: '#/definitions/entity.Source'
-      source_id:
+      site_id:
         type: string
       title:
         type: string
@@ -88,18 +78,18 @@ paths:
         minimum: 1
         name: size
         type: integer
-      - description: Source Hosts
+      - description: Sites
         in: query
-        name: h
+        name: sites
+        type: string
+      - description: Languages
+        in: query
+        name: langs
         type: string
       - description: From DateTime
         format: date-time
         in: query
         name: dt
-        type: string
-      - description: Languages
-        in: query
-        name: l
         type: string
       produces:
       - application/json
@@ -121,11 +111,28 @@ paths:
       summary: List articles
       tags:
       - articles
-  /feeds:
+  /realtime:
+    get:
+      description: sse stream
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+        default:
+          description: ""
+      summary: Realtime
+      tags:
+      - sse
+  /sites:
     get:
       consumes:
       - application/json
-      description: get feeds
+      description: get sites
       parameters:
       - default: 0
         description: Page Index
@@ -147,7 +154,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/entity.Feed'
+              $ref: '#/definitions/entity.Site'
             type: array
         "400":
           description: Bad Request
@@ -157,24 +164,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/wool.Error'
-      summary: List feeds
+      summary: List sites
       tags:
-      - feeds
-  /realtime:
-    get:
-      description: sse stream
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-        default:
-          description: ""
-      summary: Realtime
-      tags:
-      - sse
+      - sites
 swagger: "2.0"

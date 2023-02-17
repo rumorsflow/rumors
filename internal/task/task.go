@@ -30,28 +30,28 @@ const (
 )
 
 const (
-	TgCmdStart   = "start"
-	TgCmdRumors  = "rumors"
-	TgCmdSources = "sources"
-	TgCmdSub     = "sub"
-	TgCmdOn      = "on"
-	TgCmdOff     = "off"
+	TgCmdStart  = "start"
+	TgCmdRumors = "rumors"
+	TgCmdSites  = "sites"
+	TgCmdSub    = "sub"
+	TgCmdOn     = "on"
+	TgCmdOff    = "off"
 )
 
 const (
 	JobPrefix = "job:"
 	JobFeed   = JobPrefix + "feed"
 
-	TelegramPrefix     = "telegram:"
-	TelegramCmd        = TelegramPrefix + "cmd:"
-	TelegramCmdRumors  = TelegramCmd + TgCmdRumors
-	TelegramCmdSources = TelegramCmd + TgCmdSources
-	TelegramCmdSub     = TelegramCmd + TgCmdSub
-	TelegramCmdOn      = TelegramCmd + TgCmdOn
-	TelegramCmdOff     = TelegramCmd + TgCmdOff
-	TelegramChat       = TelegramPrefix + "chat:"
-	TelegramChatNew    = TelegramChat + "new"
-	TelegramChatEdit   = TelegramChat + "edit"
+	TelegramPrefix    = "telegram:"
+	TelegramCmd       = TelegramPrefix + "cmd:"
+	TelegramCmdRumors = TelegramCmd + TgCmdRumors
+	TelegramCmdSites  = TelegramCmd + TgCmdSites
+	TelegramCmdSub    = TelegramCmd + TgCmdSub
+	TelegramCmdOn     = TelegramCmd + TgCmdOn
+	TelegramCmdOff    = TelegramCmd + TgCmdOff
+	TelegramChat      = TelegramPrefix + "chat:"
+	TelegramChatNew   = TelegramChat + "new"
+	TelegramChatEdit  = TelegramChat + "edit"
 )
 
 func level(log *slog.Logger) asynq.LogLevel {

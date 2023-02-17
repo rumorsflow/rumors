@@ -134,7 +134,7 @@ func (p *TelegramPoller) message(ctx context.Context, message *tgbotapi.Message,
 	switch message.Command() {
 	case task.TgCmdStart:
 		p.client.EnqueueTgMemberNew(ctx, message.Chat, updateID)
-	case task.TgCmdRumors, task.TgCmdSources, task.TgCmdSub, task.TgCmdOn, task.TgCmdOff:
+	case task.TgCmdRumors, task.TgCmdSites, task.TgCmdSub, task.TgCmdOn, task.TgCmdOff:
 		if p.cfg.OnlyOwner && !(message.Chat.ID == p.bot.OwnerID() || (message.From != nil && message.From.ID == p.bot.OwnerID())) {
 			p.logger.Warn("access denied", "message", message)
 			return

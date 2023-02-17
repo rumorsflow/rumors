@@ -23,40 +23,40 @@ type SysUser struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
-func (u *SysUser) EntityID() uuid.UUID {
-	return u.ID
+func (e *SysUser) EntityID() uuid.UUID {
+	return e.ID
 }
 
-func (u *SysUser) Secret() string {
-	return b32NoPadding.EncodeToString(u.OTPSecret)
+func (e *SysUser) Secret() string {
+	return b32NoPadding.EncodeToString(e.OTPSecret)
 }
 
-func (u *SysUser) CheckPassword(password string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+func (e *SysUser) CheckPassword(password string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(e.Password), []byte(password))
 	if err != nil {
 		return errors.New("password does not match")
 	}
 	return nil
 }
 
-func (u *SysUser) CheckTOTP(password string) error {
-	if totp.Validate(password, u.Secret()) {
+func (e *SysUser) CheckTOTP(password string) error {
+	if totp.Validate(password, e.Secret()) {
 		return nil
 	}
 	return errors.New("otp is not valid")
 }
 
-func (u *SysUser) GenerateOTPSecret(size uint) (err error) {
-	u.OTPSecret, err = generateSecret(size)
+func (e *SysUser) GenerateOTPSecret(size uint) (err error) {
+	e.OTPSecret, err = generateSecret(size)
 	return err
 }
 
-func (u *SysUser) GeneratePasswordHash() error {
-	pwd, err := generatePasswordHash(u.Password)
+func (e *SysUser) GeneratePasswordHash() error {
+	pwd, err := generatePasswordHash(e.Password)
 	if err != nil {
 		return err
 	}
-	u.Password = pwd
+	e.Password = pwd
 	return nil
 }
 

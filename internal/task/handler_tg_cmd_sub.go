@@ -16,9 +16,9 @@ type HandlerTgCmdSub struct {
 	publisher *pubsub.Publisher
 }
 
-func (h *HandlerTgCmdSub) ProcessTask(ctx context.Context, task *asynq.Task) error {
+func (h *HandlerTgCmdSub) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	message := ctx.Value(ctxMsgKey{}).(tgbotapi.Message)
-	feeds := ctx.Value(ctxFeedsKey{}).([]*entity.Feed)
+	sites := ctx.Value(ctxSitesKey{}).([]*entity.Site)
 	chat := ctx.Value(ctxChatKey{}).(*entity.Chat)
 
 	if chat.Broadcast == nil || len(*chat.Broadcast) == 0 {
@@ -34,21 +34,17 @@ func (h *HandlerTgCmdSub) ProcessTask(ctx context.Context, task *asynq.Task) err
 		b[id] = struct{}{}
 	}
 
-	hosts := make([]string, 0, len(*chat.Broadcast))
-	seen := make(map[string]struct{}, len(*chat.Broadcast))
-	for _, feed := range feeds {
-		if _, ok := b[feed.ID]; ok {
-			if _, ok := seen[feed.Host]; !ok {
-				seen[feed.Host] = struct{}{}
-				hosts = append(hosts, feed.Host)
-			}
+	domains := make([]string, 0, len(b))
+	for _, site := range sites {
+		if _, ok := b[site.ID]; ok {
+			domains = append(domains, site.Domain)
 		}
 	}
 
 	h.publisher.Telegram(ctx, telegram.Message{
 		ChatID: message.Chat.ID,
 		View:   telegram.ViewSub,
-		Data:   hosts,
+		Data:   domains,
 	})
 
 	return nil

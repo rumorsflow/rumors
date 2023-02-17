@@ -48,8 +48,14 @@ const docTemplatefront = `{
                     },
                     {
                         "type": "string",
-                        "description": "Source Hosts",
-                        "name": "h",
+                        "description": "Sites",
+                        "name": "sites",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Languages",
+                        "name": "langs",
                         "in": "query"
                     },
                     {
@@ -57,12 +63,6 @@ const docTemplatefront = `{
                         "format": "date-time",
                         "description": "From DateTime",
                         "name": "dt",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Languages",
-                        "name": "l",
                         "in": "query"
                     }
                 ],
@@ -73,63 +73,6 @@ const docTemplatefront = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/pubsub.Article"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/feeds": {
-            "get": {
-                "description": "get feeds",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "List feeds",
-                "parameters": [
-                    {
-                        "minimum": 0,
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Page Index",
-                        "name": "index",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Page Size",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Feed"
                             }
                         }
                     },
@@ -173,20 +116,77 @@ const docTemplatefront = `{
                     }
                 }
             }
+        },
+        "/sites": {
+            "get": {
+                "description": "get sites",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "List sites",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Page Index",
+                        "name": "index",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page Size",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Site"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "entity.Feed": {
+        "entity.Site": {
             "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
                 },
+                "domain": {
+                    "type": "string"
+                },
                 "enabled": {
                     "type": "boolean"
-                },
-                "host": {
-                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -197,9 +197,6 @@ const docTemplatefront = `{
                         "type": "string"
                     }
                 },
-                "link": {
-                    "type": "string"
-                },
                 "title": {
                     "type": "string"
                 },
@@ -207,15 +204,6 @@ const docTemplatefront = `{
                     "type": "string"
                 }
             }
-        },
-        "entity.Source": {
-            "type": "string",
-            "enum": [
-                "feed"
-            ],
-            "x-enum-varnames": [
-                "FeedSource"
-            ]
         },
         "pubsub.Article": {
             "type": "object",
@@ -247,10 +235,7 @@ const docTemplatefront = `{
                 "short_desc": {
                     "type": "string"
                 },
-                "source": {
-                    "$ref": "#/definitions/entity.Source"
-                },
-                "source_id": {
+                "site_id": {
                     "type": "string"
                 },
                 "title": {

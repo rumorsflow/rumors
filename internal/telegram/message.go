@@ -17,7 +17,7 @@ const (
 	ViewArticles View = "articles.html"
 	ViewArticle  View = "article.html"
 	ViewChat     View = "chat.html"
-	ViewSources  View = "sources.html"
+	ViewSites    View = "sites.html"
 	ViewSub      View = "sub.html"
 	ViewSuccess  View = "success.html"
 	ViewError    View = "error.html"
@@ -70,7 +70,7 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		m.Data = tmp
-	case ViewSources, ViewSub:
+	case ViewSites, ViewSub:
 		var tmp []string
 		if err := json.Unmarshal(msg.Data, &tmp); err != nil {
 			return err

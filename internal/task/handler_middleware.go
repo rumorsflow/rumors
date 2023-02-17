@@ -19,14 +19,14 @@ const (
 	TgSuccessMsgSubscribed   = "Subscribed successfully."
 	TgSuccessMsgUnsubscribed = "Unsubscribed successfully."
 
-	TgErrMsgRequiredSource = "Source (host) is required."
-	TgErrMsgNotFoundSource = "Source `%s` not found."
+	TgErrMsgRequiredSite = "Site (domain) is required."
+	TgErrMsgNotFoundSite = "Site `%s` not found."
 )
 
 type (
 	ctxMsgKey   struct{}
 	ctxChatKey  struct{}
-	ctxFeedsKey struct{}
+	ctxSitesKey struct{}
 )
 
 func LoggingMiddleware(log *slog.Logger) asynq.MiddlewareFunc {
@@ -42,7 +42,7 @@ func LoggingMiddleware(log *slog.Logger) asynq.MiddlewareFunc {
 }
 
 func TgCmdMiddleware(
-	feedRepo repository.ReadRepository[*entity.Feed],
+	siteRepo repository.ReadRepository[*entity.Site],
 	chatRepo repository.ReadWriteRepository[*entity.Chat],
 	publisher *pubsub.Publisher,
 	logger *slog.Logger,
@@ -72,22 +72,22 @@ func TgCmdMiddleware(
 				return nil
 			}
 
-			feeds, err := feedRepo.Find(ctx, db.BuildCriteria("sort=host&field.0.0=enabled&value.0.0=true"))
+			sites, err := siteRepo.Find(ctx, db.BuildCriteria("sort=domain&field.0.0=enabled&value.0.0=true"))
 			if err != nil {
 				err = errs.E(OpServerProcessTask, err)
-				logger.Error("error due to find feeds", err, "command", message.Command())
+				logger.Error("error due to find sites", err, "command", message.Command())
 				return err
 			}
 
-			if len(feeds) == 0 {
-				logger.Warn("task processing was stopped, because no feeds found", "command", message.Command(), "args", message.CommandArguments())
+			if len(sites) == 0 {
+				logger.Warn("task processing was stopped, because no sites found", "command", message.Command(), "args", message.CommandArguments())
 				publisher.Telegram(ctx, telegram.Message{ChatID: message.Chat.ID, View: telegram.ViewError})
 				return nil
 			}
 
 			ctx = context.WithValue(ctx, ctxMsgKey{}, message)
 			ctx = context.WithValue(ctx, ctxChatKey{}, chats[0])
-			ctx = context.WithValue(ctx, ctxFeedsKey{}, feeds)
+			ctx = context.WithValue(ctx, ctxSitesKey{}, sites)
 
 			return handler.ProcessTask(ctx, task)
 		})

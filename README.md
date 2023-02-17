@@ -10,10 +10,10 @@ go run . --dotenv=.env
 
 ```shell
 rumors - <index> <size> <search>
-sources - List of available sources
-sub - List of subscribed sources
-on - subscribe <source>
-off - unsubscribe <source>
+sites - List of available sites
+sub - List of subscribed sites
+on - subscribe <site>
+off - unsubscribe <site>
 ```
 
 ### Generate Swagger Documentation 2.0

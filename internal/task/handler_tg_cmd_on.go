@@ -11,6 +11,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
 	"golang.org/x/exp/slog"
+	"strings"
 )
 
 type HandlerTgCmdOn struct {
@@ -21,30 +22,30 @@ type HandlerTgCmdOn struct {
 
 func (h *HandlerTgCmdOn) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	message := ctx.Value(ctxMsgKey{}).(tgbotapi.Message)
-	feeds := ctx.Value(ctxFeedsKey{}).([]*entity.Feed)
+	sites := ctx.Value(ctxSitesKey{}).([]*entity.Site)
 	chat := ctx.Value(ctxChatKey{}).(*entity.Chat)
 
 	if message.CommandArguments() == "" {
 		h.publisher.Telegram(ctx, telegram.Message{
 			ChatID: message.Chat.ID,
 			View:   telegram.ViewError,
-			Data:   TgErrMsgRequiredSource,
+			Data:   TgErrMsgRequiredSite,
 		})
 		return nil
 	}
 
-	feeds = filterFeedsByHost(feeds, message.CommandArguments())
+	sites = filterSitesByDomain(sites, message.CommandArguments())
 
-	if len(feeds) == 0 {
+	if len(sites) == 0 {
 		h.publisher.Telegram(ctx, telegram.Message{
 			ChatID: message.Chat.ID,
 			View:   telegram.ViewError,
-			Data:   fmt.Sprintf(TgErrMsgNotFoundSource, message.CommandArguments()),
+			Data:   fmt.Sprintf(TgErrMsgNotFoundSite, message.CommandArguments()),
 		})
 		return nil
 	}
 
-	size := len(feeds)
+	size := len(sites)
 	if chat.Broadcast != nil {
 		size += len(*chat.Broadcast)
 	}
@@ -52,9 +53,9 @@ func (h *HandlerTgCmdOn) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	ids := make([]uuid.UUID, 0, size)
 	seen := make(map[uuid.UUID]struct{}, size)
 
-	for _, feed := range feeds {
-		ids = append(ids, feed.ID)
-		seen[feed.ID] = struct{}{}
+	for _, site := range sites {
+		ids = append(ids, site.ID)
+		seen[site.ID] = struct{}{}
 	}
 
 	if chat.Broadcast != nil {
@@ -87,17 +88,17 @@ func (h *HandlerTgCmdOn) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	return nil
 }
 
-func filterFeedsByHost(feeds []*entity.Feed, host string) []*entity.Feed {
-	return filterFeeds(feeds, func(feed *entity.Feed) bool {
-		return feed.Host == host
+func filterSitesByDomain(sites []*entity.Site, domain string) []*entity.Site {
+	return filterSites(sites, func(site *entity.Site) bool {
+		return strings.Contains(site.Domain, domain)
 	})
 }
 
-func filterFeeds(feeds []*entity.Feed, condition func(feed *entity.Feed) bool) []*entity.Feed {
-	items := make([]*entity.Feed, 0, len(feeds))
-	for _, feed := range feeds {
-		if condition(feed) {
-			items = append(items, feed)
+func filterSites(sites []*entity.Site, condition func(site *entity.Site) bool) []*entity.Site {
+	items := make([]*entity.Site, 0, len(sites))
+	for _, site := range sites {
+		if condition(site) {
+			items = append(items, site)
 		}
 	}
 	return items

@@ -17,29 +17,47 @@ import (
 
 type ArticleActions struct {
 	ArticleRepo repository.ReadRepository[*entity.Article]
-	FeedRepo    repository.ReadRepository[*entity.Feed]
+	SiteRepo    repository.ReadRepository[*entity.Site]
 }
 
 func (a *ArticleActions) List(c wool.Ctx) error {
 	query := c.Req().URL.Query()
 
-	feedsFilter := bson.M{"enabled": true}
+	sitesFilter := bson.M{"enabled": true}
 
-	if query.Has("h") {
-		feedsFilter["host"] = bson.M{"$in": strings.Split(query.Get("h"), ",")}
+	var (
+		ids     []uuid.UUID
+		domains []string
+	)
+
+	if query.Has("sites") {
+		for _, item := range strings.Split(query.Get("sites"), ",") {
+			if siteID, err := uuid.Parse(item); err == nil {
+				ids = append(ids, siteID)
+			} else {
+				domains = append(domains, item)
+			}
+		}
 	}
 
-	feeds, err := a.FeedRepo.Find(c.Req().Context(), &repository.Criteria{Filter: feedsFilter})
+	if len(ids) > 0 {
+		sitesFilter["_id"] = bson.M{"$in": ids}
+	}
+	if len(domains) > 0 {
+		sitesFilter["domain"] = bson.M{"$in": domains}
+	}
+
+	sites, err := a.SiteRepo.Find(c.Req().Context(), &repository.Criteria{Filter: sitesFilter})
 	if err != nil {
 		return nil
 	}
 
-	sources := make([]uuid.UUID, len(feeds))
-	for i, f := range feeds {
-		sources[i] = f.ID
+	siteIDs := make([]uuid.UUID, len(sites))
+	for i, s := range sites {
+		siteIDs[i] = s.ID
 	}
 
-	articlesFilter := bson.M{"source_id": bson.M{"$in": sources}}
+	articlesFilter := bson.M{"site_id": bson.M{"$in": siteIDs}}
 
 	if query.Has("dt") {
 		if t, err := time.Parse(time.RFC3339, query.Get("dt")); err == nil {
@@ -47,8 +65,8 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 		}
 	}
 
-	if query.Has("l") {
-		articlesFilter["lang"] = bson.M{"$in": strings.Split(query.Get("l"), ",")}
+	if query.Has("langs") {
+		articlesFilter["lang"] = bson.M{"$in": strings.Split(query.Get("langs"), ",")}
 	}
 
 	total, err := a.ArticleRepo.Count(c.Req().Context(), articlesFilter)

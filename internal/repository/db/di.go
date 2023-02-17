@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	SiteKey    struct{}
 	ArticleKey struct{}
 	ChatKey    struct{}
 	FeedKey    struct{}
@@ -17,24 +18,8 @@ type (
 	SysUserKey struct{}
 )
 
-func NewArticleRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Article], error) {
-	return di.New[*Repository[*entity.Article]](ctx, ArticleKey{}, c...)
-}
-
-func NewChatRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Chat], error) {
-	return di.New[*Repository[*entity.Chat]](ctx, ChatKey{}, c...)
-}
-
-func NewFeedRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Feed], error) {
-	return di.New[*Repository[*entity.Feed]](ctx, FeedKey{}, c...)
-}
-
-func NewJobRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Job], error) {
-	return di.New[*Repository[*entity.Job]](ctx, JobKey{}, c...)
-}
-
-func NewSysUserRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.SysUser], error) {
-	return di.New[*Repository[*entity.SysUser]](ctx, SysUserKey{}, c...)
+func GetSiteRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Site], error) {
+	return di.Get[*Repository[*entity.Site]](ctx, SiteKey{}, c...)
 }
 
 func GetArticleRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Article], error) {
@@ -55,6 +40,27 @@ func GetJobRepository(ctx context.Context, c ...di.Container) (*Repository[*enti
 
 func GetSysUserRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.SysUser], error) {
 	return di.Get[*Repository[*entity.SysUser]](ctx, SysUserKey{}, c...)
+}
+
+func SiteActivator() *di.Activator {
+	return &di.Activator{
+		Key: SiteKey{},
+		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
+			database, err := mongodb.Get(ctx, c)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			return ToNilCloser(NewRepository[*entity.Site](
+				database,
+				"sites",
+				WithEntityFactory(repository.Factory[*entity.Site]()),
+				WithBeforeSave(BeforeSave[*entity.Site]),
+				WithAfterSave(AfterSave[*entity.Site]),
+				WithIndexes[*entity.Site](SiteIndexes),
+			))
+		}),
+	}
 }
 
 func ArticleActivator() *di.Activator {

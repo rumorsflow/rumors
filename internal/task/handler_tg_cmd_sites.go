@@ -10,28 +10,24 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type HandlerTgCmdSources struct {
+type HandlerTgCmdSites struct {
 	logger    *slog.Logger
 	publisher *pubsub.Publisher
 }
 
-func (h *HandlerTgCmdSources) ProcessTask(ctx context.Context, task *asynq.Task) error {
+func (h *HandlerTgCmdSites) ProcessTask(ctx context.Context, _ *asynq.Task) error {
 	message := ctx.Value(ctxMsgKey{}).(tgbotapi.Message)
-	feeds := ctx.Value(ctxFeedsKey{}).([]*entity.Feed)
+	sites := ctx.Value(ctxSitesKey{}).([]*entity.Site)
 
-	hosts := make([]string, 0, len(feeds))
-	seen := make(map[string]struct{}, len(feeds))
-	for _, feed := range feeds {
-		if _, ok := seen[feed.Host]; !ok {
-			seen[feed.Host] = struct{}{}
-			hosts = append(hosts, feed.Host)
-		}
+	domains := make([]string, len(sites))
+	for i, site := range sites {
+		domains[i] = site.Domain
 	}
 
 	h.publisher.Telegram(ctx, telegram.Message{
 		ChatID: message.Chat.ID,
-		View:   telegram.ViewSources,
-		Data:   hosts,
+		View:   telegram.ViewSites,
+		Data:   domains,
 	})
 	return nil
 }

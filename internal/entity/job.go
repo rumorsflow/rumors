@@ -36,29 +36,29 @@ type Job struct {
 	UpdatedAt time.Time    `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
-func (j *Job) EntityID() uuid.UUID {
-	return j.ID
+func (e *Job) EntityID() uuid.UUID {
+	return e.ID
 }
 
-func (j *Job) SetPayload(payload string) *Job {
-	j.Payload = &payload
-	return j
+func (e *Job) SetPayload(payload string) *Job {
+	e.Payload = &payload
+	return e
 }
 
-func (j *Job) SetOptions(options []JobOption) *Job {
-	j.Options = &options
-	return j
+func (e *Job) SetOptions(options []JobOption) *Job {
+	e.Options = &options
+	return e
 }
 
-func (j *Job) SetEnabled(enabled bool) *Job {
-	j.Enabled = &enabled
-	return j
+func (e *Job) SetEnabled(enabled bool) *Job {
+	e.Enabled = &enabled
+	return e
 }
 
-func (j *Job) HasOptions() bool {
-	return j.Options != nil
+func (e *Job) HasOptions() bool {
+	return e.Options != nil
 }
 
-func (j *Job) Active() bool {
-	return j.Enabled != nil && *j.Enabled
+func (e *Job) Active() bool {
+	return e.Enabled != nil && *e.Enabled
 }

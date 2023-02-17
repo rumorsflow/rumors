@@ -34,6 +34,7 @@ type HandlerJobFeed struct {
 	logger      *slog.Logger
 	publisher   *pubsub.Publisher
 	feedRepo    repository.ReadRepository[*entity.Feed]
+	siteRepo    repository.ReadRepository[*entity.Site]
 	articleRepo repository.ReadWriteRepository[*entity.Article]
 }
 
@@ -84,6 +85,15 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		}
 	}
 
+	site, err := h.siteRepo.FindByID(ctx, feed.SiteID)
+	if err != nil {
+		if errs.Is(err, repository.ErrEntityNotFound) {
+			h.logger.Error("error due to find site", err, "id", feed.SiteID)
+			return nil
+		}
+		return errs.E(OpServerProcessTask, id, "error due to find feed", err)
+	}
+
 	for _, item := range parsed.Items {
 		select {
 		case <-ctx.Done():
@@ -91,13 +101,13 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		default:
 		}
 
-		h.processItem(ctx, feed, item)
+		h.processItem(ctx, feed, site, item)
 	}
 
 	return nil
 }
 
-func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, item *gofeed.Item) {
+func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, site *entity.Site, item *gofeed.Item) {
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
@@ -135,8 +145,8 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, ite
 	}
 
 	if lang = whatlanggo.DetectLang(item.Title + " " + shortDesc + " " + item.Description).Iso6391(); lang == "" || lang == "xx" {
-		if len(feed.Languages) > 0 {
-			lang = feed.Languages[0]
+		if len(site.Languages) > 0 {
+			lang = site.Languages[0]
 		} else {
 			h.logger.Warn("feed item's lang not detected", "item", item)
 			return
@@ -145,6 +155,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, ite
 
 	article := &entity.Article{
 		ID:       uuid.New(),
+		SiteID:   site.ID,
 		SourceID: feed.ID,
 		Source:   entity.FeedSource,
 		Lang:     lang,

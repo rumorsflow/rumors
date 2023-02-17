@@ -1497,6 +1497,356 @@
                     }
                 }
             }
+        },
+        "/sites": {
+            "get": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "get sites",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "List sites",
+                "parameters": [
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Page Index",
+                        "name": "index",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page Size",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entity.Site"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "add new site",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "Create site",
+                "parameters": [
+                    {
+                        "description": "Create Site DTO",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sys.CreateSiteDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/sites/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "get site by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "Show a site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Site ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Site"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "delete site",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "Delete site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Site ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "edit site",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sites"
+                ],
+                "summary": "Update site",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Site ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Site DTO",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/sys.UpdateSiteDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1516,9 +1866,6 @@
                     }
                 },
                 "created_at": {
-                    "type": "string"
-                },
-                "guid": {
                     "type": "string"
                 },
                 "id": {
@@ -1543,6 +1890,9 @@
                     "type": "string"
                 },
                 "short_desc": {
+                    "type": "string"
+                },
+                "site_id": {
                     "type": "string"
                 },
                 "source": {
@@ -1692,22 +2042,13 @@
                 "enabled": {
                     "type": "boolean"
                 },
-                "host": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
-                },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "link": {
                     "type": "string"
                 },
-                "title": {
+                "site_id": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -1813,6 +2154,35 @@
                 "AudioType"
             ]
         },
+        "entity.Site": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Source": {
             "type": "string",
             "enum": [
@@ -1878,27 +2248,18 @@
         "sys.CreateFeedDTO": {
             "type": "object",
             "required": [
-                "languages",
                 "link",
-                "title"
+                "site_id"
             ],
             "properties": {
                 "enabled": {
                     "type": "boolean"
                 },
-                "languages": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "link": {
                     "type": "string"
                 },
-                "title": {
-                    "type": "string",
-                    "maxLength": 254
+                "site_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1929,6 +2290,33 @@
                 },
                 "payload": {
                     "type": "string"
+                }
+            }
+        },
+        "sys.CreateSiteDTO": {
+            "type": "object",
+            "required": [
+                "domain",
+                "languages",
+                "title"
+            ],
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "languages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 254
                 }
             }
         },
@@ -2043,9 +2431,6 @@
                         "type": "string"
                     }
                 },
-                "link": {
-                    "type": "string"
-                },
                 "long_desc": {
                     "type": "string"
                 },
@@ -2084,18 +2469,11 @@
                 "enabled": {
                     "type": "boolean"
                 },
-                "languages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "link": {
                     "type": "string"
                 },
-                "title": {
-                    "type": "string",
-                    "maxLength": 254
+                "site_id": {
+                    "type": "string"
                 }
             }
         },
@@ -2122,6 +2500,27 @@
                 },
                 "payload": {
                     "type": "string"
+                }
+            }
+        },
+        "sys.UpdateSiteDTO": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 254
                 }
             }
         },

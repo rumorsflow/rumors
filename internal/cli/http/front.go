@@ -34,7 +34,7 @@ func NewFrontCommand() *cobra.Command {
 				pubsub.SubscriberActivator(),
 
 				db.ArticleActivator(),
-				db.FeedActivator(),
+				db.SiteActivator(),
 
 				http.FrontActivator(cmd.Version),
 				http.WoolActivator(cmd.Version),

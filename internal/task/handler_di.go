@@ -24,6 +24,11 @@ func ServerMuxActivator() *di.Activator {
 			mux := asynq.NewServeMux()
 			mux.Use(LoggingMiddleware(log))
 
+			siteRepo, err := db.GetSiteRepository(ctx, c)
+			if err != nil {
+				return nil, nil, err
+			}
+
 			feedRepo, err := db.GetFeedRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
@@ -64,14 +69,14 @@ func ServerMuxActivator() *di.Activator {
 			cmdLog := tgLog.WithGroup("cmd")
 
 			cmd := asynq.NewServeMux()
-			cmd.Use(TgCmdMiddleware(feedRepo, chatRepo, publisher, cmdLog))
+			cmd.Use(TgCmdMiddleware(siteRepo, chatRepo, publisher, cmdLog))
 			cmd.Handle(TelegramCmdRumors, &HandlerTgCmdRumors{
 				logger:      cmdLog.WithGroup("rumors"),
 				publisher:   publisher,
 				articleRepo: articleRepo,
 			})
-			cmd.Handle(TelegramCmdSources, &HandlerTgCmdSources{
-				logger:    cmdLog.WithGroup("sources"),
+			cmd.Handle(TelegramCmdSites, &HandlerTgCmdSites{
+				logger:    cmdLog.WithGroup("sites"),
 				publisher: publisher,
 			})
 			cmd.Handle(TelegramCmdSub, &HandlerTgCmdSub{

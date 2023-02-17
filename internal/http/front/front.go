@@ -15,13 +15,13 @@ type Front struct {
 	Logger         *slog.Logger
 	Sub            *pubsub.Subscriber
 	SSE            *sse.Event
-	FeedActions    *FeedActions
+	SiteActions    *SiteActions
 	ArticleActions *ArticleActions
 }
 
 func (front *Front) Register(mux *wool.Wool) {
 	mux.Group("/api/v1", func(w *wool.Wool) {
-		w.GET("/feeds", front.FeedActions.List)
+		w.GET("/sites", front.SiteActions.List)
 		w.GET("/articles", front.ArticleActions.List)
 
 		w.Group("", func(sw *wool.Wool) {

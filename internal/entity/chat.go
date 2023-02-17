@@ -60,34 +60,34 @@ type Chat struct {
 	UpdatedAt  time.Time    `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
-func (c *Chat) EntityID() uuid.UUID {
-	return c.ID
+func (e *Chat) EntityID() uuid.UUID {
+	return e.ID
 }
 
-func (c *Chat) SetBroadcast(broadcast []uuid.UUID) *Chat {
-	c.Broadcast = &broadcast
-	return c
+func (e *Chat) SetBroadcast(broadcast []uuid.UUID) *Chat {
+	e.Broadcast = &broadcast
+	return e
 }
 
-func (c *Chat) SetRights(rights ChatRights) *Chat {
-	c.Rights = &rights
-	return c
+func (e *Chat) SetRights(rights ChatRights) *Chat {
+	e.Rights = &rights
+	return e
 }
 
-func (c *Chat) SetBlocked(blocked bool) *Chat {
-	c.Blocked = &blocked
-	return c
+func (e *Chat) SetBlocked(blocked bool) *Chat {
+	e.Blocked = &blocked
+	return e
 }
 
-func (c *Chat) IsBlocked() bool {
-	return c.Blocked != nil && *c.Blocked
+func (e *Chat) IsBlocked() bool {
+	return e.Blocked != nil && *e.Blocked
 }
 
-func (c *Chat) SetDeleted(deleted bool) *Chat {
-	c.Deleted = &deleted
-	return c
+func (e *Chat) SetDeleted(deleted bool) *Chat {
+	e.Deleted = &deleted
+	return e
 }
 
-func (c *Chat) IsDeleted() bool {
-	return c.Deleted != nil && *c.Deleted
+func (e *Chat) IsDeleted() bool {
+	return e.Deleted != nil && *e.Deleted
 }
