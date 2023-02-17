@@ -55,6 +55,7 @@ func ServerMuxActivator() *di.Activator {
 				logger:      hLog.WithGroup("job").WithGroup("feed"),
 				publisher:   publisher,
 				feedRepo:    feedRepo,
+				siteRepo:    siteRepo,
 				articleRepo: articleRepo,
 			})
 
