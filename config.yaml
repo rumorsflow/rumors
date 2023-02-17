@@ -27,6 +27,9 @@ http:
     private_key: ${RUMORS_JWT_PRIVATE_KEY}
     access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL}
     refresh_token_ttl: ${RUMORS_JWT_REFRESH_TOKEN_TTL}
+  after:
+    serve:
+      exclude_endpoint: "^/(metrics|favicon.ico)"
   middleware:
     metrics:
       exclude_endpoint: "^/(metrics|favicon.ico)"

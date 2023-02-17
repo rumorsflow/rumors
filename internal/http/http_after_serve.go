@@ -18,6 +18,10 @@ type AfterServeConfig struct {
 }
 
 func (cfg *AfterServeConfig) Init() {
+	if cfg.ExcludeRegexEndpoint == "" {
+		cfg.ExcludeRegexEndpoint = "^/(metrics|favicon.ico)"
+	}
+
 	if cfg.ExcludeRegexStatus != "" {
 		cfg.rxStatus, _ = regexp.Compile(cfg.ExcludeRegexStatus)
 	}

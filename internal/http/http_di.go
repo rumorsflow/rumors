@@ -27,10 +27,11 @@ import (
 )
 
 const (
-	ConfigServerKey   = "http"
-	ConfigCORSKey     = "http.middleware.cors"
-	ConfigMetricsKey  = "http.middleware.metrics"
-	ConfigCompressKey = "http.middleware.compress"
+	ConfigServerKey     = "http"
+	ConfigAfterServeKey = "http.after.serve"
+	ConfigCORSKey       = "http.middleware.cors"
+	ConfigMetricsKey    = "http.middleware.metrics"
+	ConfigCompressKey   = "http.middleware.compress"
 )
 
 type (
@@ -165,11 +166,16 @@ func WoolActivator(version string) *di.Activator {
 				return nil, nil, errs.E(di.OpFactory, err)
 			}
 
+			afterServeConfig, err := config.UnmarshalKey[*AfterServeConfig](c.Configurer(), ConfigAfterServeKey)
+			if err != nil {
+				return nil, nil, errs.E(di.OpFactory, err)
+			}
+
 			wool.SetLogger(logger.WithGroup("http"))
 
 			w := wool.New(
 				wool.WithErrorTransform(ErrorTransform),
-				wool.WithAfterServe(AfterServe(nil)),
+				wool.WithAfterServe(AfterServe(afterServeConfig)),
 			)
 
 			if metricsConfig, err := config.UnmarshalKeyE[*prometheus.Config](c.Configurer(), ConfigMetricsKey); err == nil {
