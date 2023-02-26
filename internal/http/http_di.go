@@ -138,10 +138,12 @@ func SysActivator() *di.Activator {
 
 			authService := sys.NewAuthService(userRepo, client, signer, jwtCfg)
 
+			log := logger.WithGroup("http").WithGroup("sys")
+
 			return &sys.Sys{
-				Logger:         logger.WithGroup("http").WithGroup("sys"),
+				Logger:         log,
 				CfgJWT:         jwtCfg,
-				AuthActions:    sys.NewAuthActions(authService),
+				AuthActions:    sys.NewAuthActions(authService, log.WithGroup("auth")),
 				ArticleActions: sys.NewArticleActions(articleRepo, articleRepo),
 				SiteCRUD:       sys.NewSiteCRUD(siteRepo, siteRepo),
 				FeedCRUD:       sys.NewFeedCRUD(feedRepo, feedRepo),

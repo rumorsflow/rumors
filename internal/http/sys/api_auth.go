@@ -2,6 +2,7 @@ package sys
 
 import (
 	"github.com/gowool/wool"
+	"golang.org/x/exp/slog"
 	"net/http"
 )
 
@@ -20,10 +21,11 @@ type RefreshTokenDTO struct {
 
 type AuthActions struct {
 	AuthService AuthService
+	logger      *slog.Logger
 }
 
-func NewAuthActions(authService AuthService) *AuthActions {
-	return &AuthActions{AuthService: authService}
+func NewAuthActions(authService AuthService, logger *slog.Logger) *AuthActions {
+	return &AuthActions{AuthService: authService, logger: logger}
 }
 
 func (a *AuthActions) SignIn(c wool.Ctx) error {
@@ -34,7 +36,9 @@ func (a *AuthActions) SignIn(c wool.Ctx) error {
 
 	session, err := a.AuthService.SignInByCredentials(c.Req().Context(), dto.Username, dto.Password)
 	if err != nil {
-		return wool.NewErrBadRequest(err)
+		a.logger.Warn("sign in error", "err", err)
+
+		return wool.NewErrBadRequest(nil)
 	}
 
 	return c.JSON(http.StatusOK, session)
@@ -50,7 +54,9 @@ func (a *AuthActions) OTP(c wool.Ctx) error {
 
 	session, err := a.AuthService.SignInByOTP(c.Req().Context(), claims.Username, dto.Password)
 	if err != nil {
-		return wool.NewErrBadRequest(err)
+		a.logger.Warn("two factor auth error", "err", err)
+
+		return wool.NewErrBadRequest(nil)
 	}
 
 	return c.JSON(http.StatusOK, session)
@@ -64,7 +70,9 @@ func (a *AuthActions) Refresh(c wool.Ctx) error {
 
 	session, err := a.AuthService.SignInByRefreshToken(c.Req().Context(), dto.RefreshToken)
 	if err != nil {
-		return wool.NewErrBadRequest(err)
+		a.logger.Warn("refresh token error", "err", err)
+
+		return wool.NewErrBadRequest(nil)
 	}
 
 	return c.JSON(http.StatusOK, session)
