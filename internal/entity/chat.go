@@ -49,7 +49,7 @@ type Chat struct {
 	TelegramID int64        `json:"telegram_id,omitempty" bson:"telegram_id,omitempty"`
 	Type       ChatType     `json:"type,omitempty" bson:"type,omitempty"`
 	Title      string       `json:"title,omitempty" bson:"title,omitempty"`
-	UserName   string       `json:"username,omitempty" bson:"username,omitempty"`
+	Username   string       `json:"username,omitempty" bson:"username,omitempty"`
 	FirstName  string       `json:"first_name,omitempty" bson:"first_name,omitempty"`
 	LastName   string       `json:"last_name,omitempty" bson:"last_name,omitempty"`
 	Broadcast  *[]uuid.UUID `json:"broadcast,omitempty" bson:"broadcast,omitempty"`

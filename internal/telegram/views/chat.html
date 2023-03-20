@@ -1,10 +1,10 @@
-<b>Chat:</b> {{.Id}}
+<b>Chat:</b> {{.TelegramID}}
 
 {{if .Title -}}
 <b>{{.Type}} - {{.Title}}</b>
 {{- end}}
-{{- if .UserName -}}
-<b>{{.Type}} - {{.UserName}}</b>
+{{- if .Username -}}
+<b>{{.Type}} - {{.Username}}</b>
 {{- end}}
 {{- if or .FirstName .LastName}}
 {{.FirstName}} - {{.LastName}}

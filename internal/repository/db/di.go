@@ -13,7 +13,6 @@ type (
 	SiteKey    struct{}
 	ArticleKey struct{}
 	ChatKey    struct{}
-	FeedKey    struct{}
 	JobKey     struct{}
 	SysUserKey struct{}
 )
@@ -28,10 +27,6 @@ func GetArticleRepository(ctx context.Context, c ...di.Container) (*Repository[*
 
 func GetChatRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Chat], error) {
 	return di.Get[*Repository[*entity.Chat]](ctx, ChatKey{}, c...)
-}
-
-func GetFeedRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Feed], error) {
-	return di.Get[*Repository[*entity.Feed]](ctx, FeedKey{}, c...)
 }
 
 func GetJobRepository(ctx context.Context, c ...di.Container) (*Repository[*entity.Job], error) {
@@ -100,27 +95,6 @@ func ChatActivator() *di.Activator {
 				WithBeforeSave(ChatBeforeSave),
 				WithAfterSave(AfterSave[*entity.Chat]),
 				WithIndexes[*entity.Chat](ChatIndexes),
-			))
-		}),
-	}
-}
-
-func FeedActivator() *di.Activator {
-	return &di.Activator{
-		Key: FeedKey{},
-		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
-			database, err := mongodb.Get(ctx, c)
-			if err != nil {
-				return nil, nil, err
-			}
-
-			return ToNilCloser(NewRepository[*entity.Feed](
-				database,
-				"feeds",
-				WithEntityFactory(repository.Factory[*entity.Feed]()),
-				WithBeforeSave(BeforeSave[*entity.Feed]),
-				WithAfterSave(AfterSave[*entity.Feed]),
-				WithIndexes[*entity.Feed](FeedIndexes),
 			))
 		}),
 	}

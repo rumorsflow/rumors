@@ -62,13 +62,11 @@ func ArticleBeforeSave(entity *entity.Article) (bson.M, error) {
 	}
 
 	set := data["$set"].(bson.M)
-	delete(set, "source_id")
 	delete(set, "source")
 	delete(set, "link")
 	delete(set, "pub_date")
 
 	insert := data["$setOnInsert"].(bson.M)
-	insert["source_id"] = entity.SourceID
 	insert["source"] = entity.Source
 	insert["link"] = entity.Link
 	insert["pub_date"] = entity.PubDate

@@ -31,7 +31,6 @@ type Article struct {
 	ID         uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
 	Link       string    `json:"link,omitempty" bson:"link,omitempty"`
 	SiteID     uuid.UUID `json:"site_id,omitempty" bson:"site_id,omitempty"`
-	SourceID   uuid.UUID `json:"source_id,omitempty" bson:"source_id,omitempty"`
 	Source     Source    `json:"source,omitempty" bson:"source,omitempty"`
 	Lang       string    `json:"lang,omitempty" bson:"lang,omitempty"`
 	Title      string    `json:"title,omitempty" bson:"title,omitempty"`
@@ -41,7 +40,6 @@ type Article struct {
 	PubDate    time.Time `json:"pub_date,omitempty" bson:"pub_date,omitempty"`
 	CreatedAt  time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt  time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	Authors    *[]string `json:"authors,omitempty" bson:"authors,omitempty"`
 	Categories *[]string `json:"categories,omitempty" bson:"categories,omitempty"`
 }
 
@@ -60,11 +58,6 @@ func (e *Article) SetShortDesc(shortDesc string) *Article {
 
 func (e *Article) SetLongDesc(longDesc string) *Article {
 	e.LongDesc = &longDesc
-	return e
-}
-
-func (e *Article) SetAuthors(authors []string) *Article {
-	e.Authors = &authors
 	return e
 }
 

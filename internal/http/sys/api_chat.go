@@ -11,7 +11,7 @@ type CreateChatDTO struct {
 	TelegramID int64           `json:"telegram_id,omitempty" validate:"required"`
 	Type       entity.ChatType `json:"type,omitempty" validate:"required,oneof=private group supergroup channel"`
 	Title      string          `json:"title,omitempty" validate:"omitempty,max=254"`
-	UserName   string          `json:"user_name,omitempty" validate:"omitempty,max=254"`
+	Username   string          `json:"username,omitempty" validate:"omitempty,max=254"`
 	FirstName  string          `json:"first_name,omitempty" validate:"omitempty,max=254"`
 	LastName   string          `json:"last_name,omitempty" validate:"omitempty,max=254"`
 	Broadcast  []string        `json:"broadcast,omitempty" validate:"omitempty,dive,uuid4"`
@@ -30,7 +30,7 @@ func (dto CreateChatDTO) toEntity(id uuid.UUID) *entity.Chat {
 		TelegramID: dto.TelegramID,
 		Type:       dto.Type,
 		Title:      dto.Title,
-		UserName:   dto.UserName,
+		Username:   dto.Username,
 		FirstName:  dto.FirstName,
 		LastName:   dto.LastName,
 		Broadcast:  &broadcast,

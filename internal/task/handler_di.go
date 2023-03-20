@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/pubsub"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
@@ -29,11 +30,6 @@ func ServerMuxActivator() *di.Activator {
 				return nil, nil, err
 			}
 
-			feedRepo, err := db.GetFeedRepository(ctx, c)
-			if err != nil {
-				return nil, nil, err
-			}
-
 			chatRepo, err := db.GetChatRepository(ctx, c)
 			if err != nil {
 				return nil, nil, err
@@ -51,10 +47,9 @@ func ServerMuxActivator() *di.Activator {
 
 			hLog := log.WithGroup("handler")
 
-			mux.Handle(JobFeed, &HandlerJobFeed{
+			mux.Handle(string(entity.JobFeed), &HandlerJobFeed{
 				logger:      hLog.WithGroup("job").WithGroup("feed"),
 				publisher:   publisher,
-				feedRepo:    feedRepo,
 				siteRepo:    siteRepo,
 				articleRepo: articleRepo,
 			})

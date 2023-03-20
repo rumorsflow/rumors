@@ -39,9 +39,6 @@ const (
 )
 
 const (
-	JobPrefix = "job:"
-	JobFeed   = JobPrefix + "feed"
-
 	TelegramPrefix    = "telegram:"
 	TelegramCmd       = TelegramPrefix + "cmd:"
 	TelegramCmdRumors = TelegramCmd + TgCmdRumors

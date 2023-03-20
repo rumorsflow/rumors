@@ -103,7 +103,6 @@ func NewCommand(args []string, version string) *cobra.Command {
 				db.ArticleActivator(),
 				db.SiteActivator(),
 				db.ChatActivator(),
-				db.FeedActivator(),
 				db.JobActivator(),
 				db.SysUserActivator(),
 

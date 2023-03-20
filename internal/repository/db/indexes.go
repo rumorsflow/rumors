@@ -29,7 +29,6 @@ func ArticleIndexes(indexView mongo.IndexView) error {
 		{Keys: bson.D{{"pub_date", 1}}},
 		{Keys: bson.D{{"site_id", 1}, {"lang", 1}}},
 		{Keys: bson.D{
-			{"source_id", 1},
 			{"source", 1},
 			{"lang", 1},
 			{"categories", 1},
@@ -49,19 +48,6 @@ func ChatIndexes(indexView mongo.IndexView) error {
 			{"deleted", 1},
 			{"created_at", 1},
 			{"updated_at", 1},
-		}},
-	}); err != nil {
-		return errs.E(repository.OpIndexes, err)
-	}
-	return nil
-}
-
-func FeedIndexes(indexView mongo.IndexView) error {
-	if _, err := indexView.CreateMany(context.Background(), []mongo.IndexModel{
-		{Keys: bson.D{{"link", 1}}, Options: options.Index().SetUnique(true)},
-		{Keys: bson.D{
-			{"site_id", 1},
-			{"enabled", 1},
 		}},
 	}); err != nil {
 		return errs.E(repository.OpIndexes, err)

@@ -16,7 +16,6 @@ type Sys struct {
 	AuthActions    *AuthActions
 	ArticleActions *ArticleActions
 	SiteCRUD       action.CRUD
-	FeedCRUD       action.CRUD
 	ChatCRUD       action.CRUD
 	JobCRUD        action.CRUD
 }
@@ -35,7 +34,6 @@ func (s *Sys) Register(mux *wool.Wool) {
 			w.Use(JWTMiddleware(s.CfgJWT, true))
 			w.CRUD("/articles", s.ArticleActions)
 			w.CRUD("/sites", s.SiteCRUD)
-			w.CRUD("/feeds", s.FeedCRUD)
 			w.CRUD("/chats", s.ChatCRUD)
 			w.CRUD("/jobs", s.JobCRUD)
 		})

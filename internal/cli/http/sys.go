@@ -28,7 +28,6 @@ func NewSysCommand() *cobra.Command {
 				db.ArticleActivator(),
 				db.SiteActivator(),
 				db.ChatActivator(),
-				db.FeedActivator(),
 				db.JobActivator(),
 				db.SysUserActivator(),
 

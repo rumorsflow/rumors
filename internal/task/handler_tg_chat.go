@@ -108,7 +108,7 @@ func (h *HandlerTgChat) toEntityChat(ctx context.Context, tgChat tgbotapi.Chat) 
 
 	chat.Type = entity.ChatType(tgChat.Type)
 	chat.Title = tgChat.Title
-	chat.UserName = tgChat.UserName
+	chat.Username = tgChat.UserName
 	chat.FirstName = tgChat.FirstName
 	chat.LastName = tgChat.LastName
 

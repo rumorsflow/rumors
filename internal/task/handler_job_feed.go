@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/abadojack/whatlanggo"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"github.com/mmcdole/gofeed"
@@ -12,7 +13,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/pubsub"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/pkg/conv"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/strutil"
 	"golang.org/x/exp/slog"
@@ -33,7 +33,6 @@ const (
 type HandlerJobFeed struct {
 	logger      *slog.Logger
 	publisher   *pubsub.Publisher
-	feedRepo    repository.ReadRepository[*entity.Feed]
 	siteRepo    repository.ReadRepository[*entity.Site]
 	articleRepo repository.ReadWriteRepository[*entity.Article]
 }
@@ -44,25 +43,16 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		return nil
 	}
 
-	id, err := uuid.Parse(conv.BytesToString(task.Payload()))
-	if err != nil {
-		h.logger.Error("error due to parse uuid", err, "payload", task.Payload())
+	var payload entity.FeedPayload
+	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
+		h.logger.Error("error due to unmarshal feed job payload", err, "payload", task.Payload())
 		return nil
 	}
 
-	feed, err := h.feedRepo.FindByID(ctx, id)
-	if err != nil {
-		if errs.Is(err, repository.ErrEntityNotFound) {
-			h.logger.Error("error due to find feed", err, "id", id)
-			return nil
-		}
-		return errs.E(OpServerProcessTask, id, "error due to find feed", err)
-	}
-
-	parsed, err := h.parseFeed(ctx, feed.Link)
+	parsed, err := h.parseFeed(ctx, payload.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
-			h.logger.Error("error due to parse feed", err, "id", feed.ID)
+			h.logger.Error("error due to parse feed", err, "site_id", payload.SiteID, "feed_link", payload.Link)
 		}
 		return nil
 	}
@@ -85,13 +75,13 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		}
 	}
 
-	site, err := h.siteRepo.FindByID(ctx, feed.SiteID)
+	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
 	if err != nil {
 		if errs.Is(err, repository.ErrEntityNotFound) {
-			h.logger.Error("error due to find site", err, "id", feed.SiteID)
+			h.logger.Error("error due to find site", err, "id", payload.SiteID)
 			return nil
 		}
-		return errs.E(OpServerProcessTask, id, "error due to find feed", err)
+		return errs.E(OpServerProcessTask, payload.SiteID, "error due to find site", err)
 	}
 
 	for _, item := range parsed.Items {
@@ -101,13 +91,13 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		default:
 		}
 
-		h.processItem(ctx, feed, site, item)
+		h.processItem(ctx, site, item)
 	}
 
 	return nil
 }
 
-func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, site *entity.Site, item *gofeed.Item) {
+func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, item *gofeed.Item) {
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
@@ -154,14 +144,13 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, sit
 	}
 
 	article := &entity.Article{
-		ID:       uuid.New(),
-		SiteID:   site.ID,
-		SourceID: feed.ID,
-		Source:   entity.FeedSource,
-		Lang:     lang,
-		Title:    item.Title,
-		Link:     item.Link,
-		PubDate:  *item.PublishedParsed,
+		ID:      uuid.New(),
+		SiteID:  site.ID,
+		Source:  entity.FeedSource,
+		Lang:    lang,
+		Title:   item.Title,
+		Link:    item.Link,
+		PubDate: *item.PublishedParsed,
 	}
 
 	if utf8.RuneCountInString(shortDesc) >= 50 {
@@ -170,19 +159,6 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, feed *entity.Feed, sit
 
 	if utf8.RuneCountInString(item.Description) >= 50 {
 		article.SetLongDesc(item.Description)
-	}
-
-	authors := make([]string, 0, len(item.Authors))
-	for _, author := range item.Authors {
-		if author != nil {
-			if name := strutil.StripHTMLTags(author.Name); name != "" {
-				authors = append(authors, name)
-			}
-		}
-	}
-
-	if len(authors) > 0 {
-		article.SetAuthors(authors)
 	}
 
 	categories := make([]string, 0, len(item.Categories))

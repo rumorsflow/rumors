@@ -3,12 +3,12 @@ package task
 import (
 	"context"
 	"fmt"
+	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/pkg/conv"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
@@ -142,12 +142,19 @@ func (s *Scheduler) Remove(id uuid.UUID) error {
 	return s.remove(id)
 }
 
-func (s *Scheduler) add(job *entity.Job) error {
+func (s *Scheduler) add(job *entity.Job) (err error) {
 	var payload []byte
 	if job.Payload != nil {
-		payload = conv.StringToBytes(*job.Payload)
+		payload, err = json.Marshal(job.Payload)
+		if err != nil {
+			return errs.E(
+				OpSchedulerAdd,
+				job.ID,
+				fmt.Errorf("error due to marshal `%s` payload with expr `%s`: %w", job.Name, job.CronExpr, err),
+			)
+		}
 	}
-	task := asynq.NewTask(job.Name, payload)
+	task := asynq.NewTask(string(job.Name), payload)
 
 	entryID, err := s.s.Register(job.CronExpr, task, opts(job)...)
 	if err != nil {

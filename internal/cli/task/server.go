@@ -34,7 +34,6 @@ func NewServerCommand() *cobra.Command {
 
 				db.ArticleActivator(),
 				db.ChatActivator(),
-				db.FeedActivator(),
 
 				task.ServerMuxActivator(),
 				task.ServerActivator(),

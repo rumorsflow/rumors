@@ -2,10 +2,6 @@ basePath: /sys/api
 definitions:
   entity.Article:
     properties:
-      authors:
-        items:
-          type: string
-        type: array
       categories:
         items:
           type: string
@@ -32,8 +28,6 @@ definitions:
         type: string
       source:
         $ref: '#/definitions/entity.Source'
-      source_id:
-        type: string
       title:
         type: string
       updated_at:
@@ -123,21 +117,6 @@ definitions:
     - Group
     - SuperGroup
     - Channel
-  entity.Feed:
-    properties:
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      link:
-        type: string
-      site_id:
-        type: string
-      updated_at:
-        type: string
-    type: object
   entity.Job:
     properties:
       created_at:
@@ -149,16 +128,23 @@ definitions:
       id:
         type: string
       name:
-        type: string
+        $ref: '#/definitions/entity.JobName'
       opts:
         items:
           $ref: '#/definitions/entity.JobOption'
         type: array
-      payload:
-        type: string
+      payload: {}
       updated_at:
         type: string
     type: object
+  entity.JobName:
+    enum:
+    - job:feed
+    - job:sitemap
+    type: string
+    x-enum-varnames:
+    - JobFeed
+    - JobSitemap
   entity.JobOption:
     properties:
       type:
@@ -264,24 +250,12 @@ definitions:
         - group
         - supergroup
         - channel
-      user_name:
+      username:
         maxLength: 254
         type: string
     required:
     - telegram_id
     - type
-    type: object
-  sys.CreateFeedDTO:
-    properties:
-      enabled:
-        type: boolean
-      link:
-        type: string
-      site_id:
-        type: string
-    required:
-    - link
-    - site_id
     type: object
   sys.CreateJobDTO:
     properties:
@@ -292,17 +266,18 @@ definitions:
       enabled:
         type: boolean
       name:
+        allOf:
+        - $ref: '#/definitions/entity.JobName'
         maxLength: 254
-        type: string
       opts:
         items:
           $ref: '#/definitions/sys.JobOptionDTO'
         type: array
-      payload:
-        type: string
+      payload: {}
     required:
     - cron_expr
     - name
+    - payload
     type: object
   sys.CreateSiteDTO:
     properties:
@@ -387,14 +362,12 @@ definitions:
     type: object
   sys.UpdateArticleDTO:
     properties:
-      authors:
-        items:
-          type: string
-        type: array
       categories:
         items:
           type: string
         type: array
+      lang:
+        type: string
       long_desc:
         type: string
       media:
@@ -402,6 +375,7 @@ definitions:
           $ref: '#/definitions/sys.MediaDTO'
         type: array
       short_desc:
+        maxLength: 500
         type: string
       title:
         maxLength: 254
@@ -416,15 +390,6 @@ definitions:
           type: string
         type: array
     type: object
-  sys.UpdateFeedDTO:
-    properties:
-      enabled:
-        type: boolean
-      link:
-        type: string
-      site_id:
-        type: string
-    type: object
   sys.UpdateJobDTO:
     properties:
       cron_expr:
@@ -434,14 +399,14 @@ definitions:
       enabled:
         type: boolean
       name:
+        allOf:
+        - $ref: '#/definitions/entity.JobName'
         maxLength: 254
-        type: string
       opts:
         items:
           $ref: '#/definitions/sys.JobOptionDTO'
         type: array
-      payload:
-        type: string
+      payload: {}
     type: object
   sys.UpdateSiteDTO:
     properties:
@@ -987,234 +952,6 @@ paths:
       summary: Update chat
       tags:
       - chats
-  /feeds:
-    get:
-      consumes:
-      - application/json
-      description: get feeds
-      parameters:
-      - default: 0
-        description: Page Index
-        in: query
-        minimum: 0
-        name: index
-        type: integer
-      - default: 20
-        description: Page Size
-        in: query
-        maximum: 100
-        minimum: 1
-        name: size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/entity.Feed'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-      security:
-      - SysAuth: []
-      summary: List feeds
-      tags:
-      - feeds
-    post:
-      consumes:
-      - application/json
-      description: add new feed
-      parameters:
-      - description: Create Feed DTO
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/sys.CreateFeedDTO'
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-      security:
-      - SysAuth: []
-      summary: Create feed
-      tags:
-      - feeds
-  /feeds/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete feed
-      parameters:
-      - description: Feed ID
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-      security:
-      - SysAuth: []
-      summary: Delete feed
-      tags:
-      - feeds
-    get:
-      consumes:
-      - application/json
-      description: get feed by ID
-      parameters:
-      - description: Feed ID
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.Feed'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-      security:
-      - SysAuth: []
-      summary: Show a feed
-      tags:
-      - feeds
-    patch:
-      consumes:
-      - application/json
-      description: edit feed
-      parameters:
-      - description: Feed ID
-        format: uuid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Update Feed DTO
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/sys.UpdateFeedDTO'
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "422":
-          description: Unprocessable Entity
-          schema:
-            $ref: '#/definitions/wool.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/wool.Error'
-      security:
-      - SysAuth: []
-      summary: Update feed
-      tags:
-      - feeds
   /jobs:
     get:
       consumes:

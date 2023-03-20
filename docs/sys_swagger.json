@@ -798,356 +798,6 @@
                 }
             }
         },
-        "/feeds": {
-            "get": {
-                "security": [
-                    {
-                        "SysAuth": []
-                    }
-                ],
-                "description": "get feeds",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "List feeds",
-                "parameters": [
-                    {
-                        "minimum": 0,
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Page Index",
-                        "name": "index",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Page Size",
-                        "name": "size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entity.Feed"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "SysAuth": []
-                    }
-                ],
-                "description": "add new feed",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "Create feed",
-                "parameters": [
-                    {
-                        "description": "Create Feed DTO",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/sys.CreateFeedDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/feeds/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "SysAuth": []
-                    }
-                ],
-                "description": "get feed by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "Show a feed",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Feed ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.Feed"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "SysAuth": []
-                    }
-                ],
-                "description": "delete feed",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "Delete feed",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Feed ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "SysAuth": []
-                    }
-                ],
-                "description": "edit feed",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feeds"
-                ],
-                "summary": "Update feed",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Feed ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update Feed DTO",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/sys.UpdateFeedDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/wool.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/jobs": {
             "get": {
                 "security": [
@@ -1853,12 +1503,6 @@
         "entity.Article": {
             "type": "object",
             "properties": {
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "categories": {
                     "type": "array",
                     "items": {
@@ -1897,9 +1541,6 @@
                 },
                 "source": {
                     "$ref": "#/definitions/entity.Source"
-                },
-                "source_id": {
-                    "type": "string"
                 },
                 "title": {
                     "type": "string"
@@ -2033,29 +1674,6 @@
                 "Channel"
             ]
         },
-        "entity.Feed": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "site_id": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "entity.Job": {
             "type": "object",
             "properties": {
@@ -2072,7 +1690,7 @@
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
+                    "$ref": "#/definitions/entity.JobName"
                 },
                 "opts": {
                     "type": "array",
@@ -2080,13 +1698,22 @@
                         "$ref": "#/definitions/entity.JobOption"
                     }
                 },
-                "payload": {
-                    "type": "string"
-                },
+                "payload": {},
                 "updated_at": {
                     "type": "string"
                 }
             }
+        },
+        "entity.JobName": {
+            "type": "string",
+            "enum": [
+                "job:feed",
+                "job:sitemap"
+            ],
+            "x-enum-varnames": [
+                "JobFeed",
+                "JobSitemap"
+            ]
         },
         "entity.JobOption": {
             "type": "object",
@@ -2239,27 +1866,9 @@
                         }
                     ]
                 },
-                "user_name": {
+                "username": {
                     "type": "string",
                     "maxLength": 254
-                }
-            }
-        },
-        "sys.CreateFeedDTO": {
-            "type": "object",
-            "required": [
-                "link",
-                "site_id"
-            ],
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "site_id": {
-                    "type": "string"
                 }
             }
         },
@@ -2267,7 +1876,8 @@
             "type": "object",
             "required": [
                 "cron_expr",
-                "name"
+                "name",
+                "payload"
             ],
             "properties": {
                 "cron_expr": {
@@ -2279,8 +1889,12 @@
                     "type": "boolean"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 254
+                    "maxLength": 254,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.JobName"
+                        }
+                    ]
                 },
                 "opts": {
                     "type": "array",
@@ -2288,9 +1902,7 @@
                         "$ref": "#/definitions/sys.JobOptionDTO"
                     }
                 },
-                "payload": {
-                    "type": "string"
-                }
+                "payload": {}
             }
         },
         "sys.CreateSiteDTO": {
@@ -2419,17 +2031,14 @@
         "sys.UpdateArticleDTO": {
             "type": "object",
             "properties": {
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "categories": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
+                },
+                "lang": {
+                    "type": "string"
                 },
                 "long_desc": {
                     "type": "string"
@@ -2441,7 +2050,8 @@
                     }
                 },
                 "short_desc": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 500
                 },
                 "title": {
                     "type": "string",
@@ -2463,20 +2073,6 @@
                 }
             }
         },
-        "sys.UpdateFeedDTO": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "link": {
-                    "type": "string"
-                },
-                "site_id": {
-                    "type": "string"
-                }
-            }
-        },
         "sys.UpdateJobDTO": {
             "type": "object",
             "properties": {
@@ -2489,8 +2085,12 @@
                     "type": "boolean"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 254
+                    "maxLength": 254,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entity.JobName"
+                        }
+                    ]
                 },
                 "opts": {
                     "type": "array",
@@ -2498,9 +2098,7 @@
                         "$ref": "#/definitions/sys.JobOptionDTO"
                     }
                 },
-                "payload": {
-                    "type": "string"
-                }
+                "payload": {}
             }
         },
         "sys.UpdateSiteDTO": {
