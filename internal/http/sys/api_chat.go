@@ -46,7 +46,8 @@ type UpdateChatDTO struct {
 
 func (dto UpdateChatDTO) toEntity(id uuid.UUID) *entity.Chat {
 	m := &entity.Chat{
-		ID: id,
+		ID:      id,
+		Blocked: dto.Blocked,
 	}
 	if dto.Broadcast != nil {
 		broadcast := make([]uuid.UUID, len(*dto.Broadcast))
@@ -54,9 +55,6 @@ func (dto UpdateChatDTO) toEntity(id uuid.UUID) *entity.Chat {
 			broadcast[i] = uuid.MustParse(b)
 		}
 		m.SetBroadcast(broadcast)
-	}
-	if m.Blocked != nil {
-		m.SetBlocked(*m.Blocked)
 	}
 	return m
 }
