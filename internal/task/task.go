@@ -18,6 +18,7 @@ const (
 	OpServerStart        errs.Op = "task.server: start"
 	OpServerProcessTask  errs.Op = "task.server: process task"
 	OpServerParseFeed    errs.Op = "task.server: parse feed link"
+	OpServerParseSitemap errs.Op = "task.server: parse sitemap link"
 	OpServerParseArticle errs.Op = "task.server: parse article link"
 
 	OpSchedulerStart  errs.Op = "task.scheduler: start"

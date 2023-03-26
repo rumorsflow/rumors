@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"github.com/gowool/middleware/prometheus"
 	"github.com/gowool/swagger"
 	"github.com/rumorsflow/rumors/v2/internal/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func NewSysCommand() *cobra.Command {
@@ -22,8 +24,9 @@ func NewSysCommand() *cobra.Command {
 			ctx := cmd.Context()
 
 			if err := di.Activators(
-				mongodb.Activator("mongo"),
 				rdb.UniversalClientActivator("redis"),
+				rdb.MakerActivator(),
+				mongodb.Activator("mongo"),
 
 				db.ArticleActivator(),
 				db.SiteActivator(),
@@ -66,7 +69,25 @@ func NewSysCommand() *cobra.Command {
 				return err
 			}
 
-			return srv.StartC(ctx, w)
+			g, ctx := errgroup.WithContext(ctx)
+
+			g.Go(func() error {
+				return sysApi.Listen(ctx)
+			})
+
+			g.Go(func() error {
+				return srv.Start(w)
+			})
+
+			g.Go(func() error {
+				<-ctx.Done()
+
+				return srv.GracefulShutdown(context.Background())
+			})
+
+			logger.Debug("press Ctrl+C to stop")
+
+			return g.Wait()
 		},
 	}
 }

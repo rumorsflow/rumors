@@ -48,8 +48,10 @@ task:
   server:
     queues:
       tgmember: 9
-      tgcmd: 7
-      broadcast: 8
+      tgcmd: 5
+      jobfeed: 8
+      jobsitemap: 7
+      broadcast: 6
 
 telegram:
   token: ${RUMORS_TELEGRAM_TOKEN}

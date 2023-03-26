@@ -1156,6 +1156,168 @@ const docTemplatesys = `{
                 }
             }
         },
+        "/queues/{qname}": {
+            "delete": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "delete queue",
+                "tags": [
+                    "queues"
+                ],
+                "summary": "Delete queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Queue name",
+                        "name": "qname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/queues/{qname}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "pause queue",
+                "tags": [
+                    "queues"
+                ],
+                "summary": "Pause queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Queue name",
+                        "name": "qname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/queues/{qname}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "SysAuth": []
+                    }
+                ],
+                "description": "resume queue",
+                "tags": [
+                    "queues"
+                ],
+                "summary": "Resume queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Queue name",
+                        "name": "qname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/wool.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/sites": {
             "get": {
                 "security": [
@@ -1700,7 +1862,7 @@ const docTemplatesys = `{
                 "name": {
                     "$ref": "#/definitions/entity.JobName"
                 },
-                "opts": {
+                "options": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/entity.JobOption"
@@ -1821,10 +1983,12 @@ const docTemplatesys = `{
         "entity.Source": {
             "type": "string",
             "enum": [
-                "feed"
+                "feed",
+                "sitemap"
             ],
             "x-enum-varnames": [
-                "FeedSource"
+                "FeedSource",
+                "SitemapSource"
             ]
         },
         "sys.CreateChatDTO": {
@@ -1904,7 +2068,7 @@ const docTemplatesys = `{
                         }
                     ]
                 },
-                "opts": {
+                "options": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/sys.JobOptionDTO"
@@ -2100,7 +2264,7 @@ const docTemplatesys = `{
                         }
                     ]
                 },
-                "opts": {
+                "options": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/sys.JobOptionDTO"

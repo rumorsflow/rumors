@@ -203,6 +203,10 @@ func NewCommand(args []string, version string) *cobra.Command {
 			g, ctx := errgroup.WithContext(ctx)
 
 			g.Go(func() error {
+				return sysApi.Listen(ctx)
+			})
+
+			g.Go(func() error {
 				return frontApi.Listen(ctx)
 			})
 

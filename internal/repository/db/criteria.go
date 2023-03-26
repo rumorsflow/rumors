@@ -61,8 +61,12 @@ func (f field) m() bson.M {
 }
 
 func (f field) parse() any {
-	if f.value == "" || f.cond == "$regex" {
+	if f.value == "" {
 		return f.value
+	}
+
+	if f.cond == conditions[CondLike] {
+		return primitive.Regex{Pattern: f.value, Options: "mi"}
 	}
 
 	if strings.EqualFold(f.value, "null") || strings.EqualFold(f.value, "nil") {
@@ -70,7 +74,7 @@ func (f field) parse() any {
 	}
 
 	switch f.cond {
-	case "$in", "$nin":
+	case conditions[CondIn], conditions[CondNin]:
 		data := strings.Split(f.value, ",")
 		value := make([]any, 0, len(data))
 		for _, item := range data {

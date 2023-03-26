@@ -129,7 +129,7 @@ definitions:
         type: string
       name:
         $ref: '#/definitions/entity.JobName'
-      opts:
+      options:
         items:
           $ref: '#/definitions/entity.JobOption'
         type: array
@@ -218,9 +218,11 @@ definitions:
   entity.Source:
     enum:
     - feed
+    - sitemap
     type: string
     x-enum-varnames:
     - FeedSource
+    - SitemapSource
   sys.CreateChatDTO:
     properties:
       blocked:
@@ -269,7 +271,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/entity.JobName'
         maxLength: 254
-      opts:
+      options:
         items:
           $ref: '#/definitions/sys.JobOptionDTO'
         type: array
@@ -402,7 +404,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/entity.JobName'
         maxLength: 254
-      opts:
+      options:
         items:
           $ref: '#/definitions/sys.JobOptionDTO'
         type: array
@@ -1180,6 +1182,109 @@ paths:
       summary: Update job
       tags:
       - jobs
+  /queues/{qname}:
+    delete:
+      description: delete queue
+      parameters:
+      - description: Queue name
+        in: path
+        name: qname
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Delete queue
+      tags:
+      - queues
+  /queues/{qname}/pause:
+    post:
+      description: pause queue
+      parameters:
+      - description: Queue name
+        in: path
+        name: qname
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Pause queue
+      tags:
+      - queues
+  /queues/{qname}/resume:
+    post:
+      description: resume queue
+      parameters:
+      - description: Queue name
+        in: path
+        name: qname
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      security:
+      - SysAuth: []
+      summary: Resume queue
+      tags:
+      - queues
   /sites:
     get:
       consumes:

@@ -121,6 +121,8 @@ func (s *authService) SignInByRefreshToken(ctx context.Context, refreshToken str
 		return Session{}, fmt.Errorf("invalid refresh token: %w", err)
 	}
 
+	defer s.client.Del(ctx, refreshToken)
+
 	var data redisData
 	if err = json.Unmarshal(conv.StringToBytes(raw), &data); err != nil {
 		return Session{}, fmt.Errorf("invalid refresh token: %w", err)
@@ -135,8 +137,6 @@ func (s *authService) SignInByRefreshToken(ctx context.Context, refreshToken str
 }
 
 func (s *authService) sessionByUser(ctx context.Context, user *entity.SysUser, otp bool) (Session, error) {
-	refreshToken := uuid.NewString()
-
 	claims := UserClaims{
 		UserClaims: jwt.UserClaims{
 			RegisteredClaims: jwt.RegisteredClaims(
@@ -160,8 +160,13 @@ func (s *authService) sessionByUser(ctx context.Context, user *entity.SysUser, o
 		return Session{}, err
 	}
 
-	if err = s.client.Set(ctx, refreshToken, conv.BytesToString(data), s.cfgJWT.RefreshTokenTTL).Err(); err != nil {
-		return Session{}, fmt.Errorf("save refresh token error: %w", err)
+	refreshToken := "dummy"
+
+	if otp {
+		refreshToken = uuid.NewString()
+		if err = s.client.Set(ctx, refreshToken, conv.BytesToString(data), s.cfgJWT.RefreshTokenTTL).Err(); err != nil {
+			return Session{}, fmt.Errorf("save refresh token error: %w", err)
+		}
 	}
 
 	return Session{

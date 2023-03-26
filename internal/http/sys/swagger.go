@@ -386,3 +386,49 @@ func nopUpdateArticle() {}
 //	@Router			/articles/{id} [delete]
 //	@Security		SysAuth
 func nopDeleteArticle() {}
+
+//	@Summary		Delete queue
+//	@Description	delete queue
+//	@Tags			queues
+//
+//	@Param			qname	path	string	true	"Queue name"
+//
+//	@Success		204
+//	@Failure		400	{object}	wool.Error
+//	@Failure		401	{object}	wool.Error
+//	@Failure		403	{object}	wool.Error
+//	@Failure		404	{object}	wool.Error
+//	@Failure		500	{object}	wool.Error
+//	@Router			/queues/{qname} [delete]
+//	@Security		SysAuth
+func nopDeleteQueue() {}
+
+//	@Summary		Pause queue
+//	@Description	pause queue
+//	@Tags			queues
+//
+//	@Param			qname	path	string	true	"Queue name"
+//
+//	@Success		204
+//	@Failure		400	{object}	wool.Error
+//	@Failure		401	{object}	wool.Error
+//	@Failure		403	{object}	wool.Error
+//	@Failure		500	{object}	wool.Error
+//	@Router			/queues/{qname}/pause [post]
+//	@Security		SysAuth
+func nopPauseQueue() {}
+
+//	@Summary		Resume queue
+//	@Description	resume queue
+//	@Tags			queues
+//
+//	@Param			qname	path	string	true	"Queue name"
+//
+//	@Success		204
+//	@Failure		400	{object}	wool.Error
+//	@Failure		401	{object}	wool.Error
+//	@Failure		403	{object}	wool.Error
+//	@Failure		500	{object}	wool.Error
+//	@Router			/queues/{qname}/resume [post]
+//	@Security		SysAuth
+func nopResumeQueue() {}

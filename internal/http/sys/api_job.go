@@ -35,16 +35,28 @@ func (dto FeedPayloadDTO) toEntity() *entity.FeedPayload {
 }
 
 type SitemapPayloadDTO struct {
-	SiteID string `json:"site_id,omitempty" validate:"required,uuid4"`
-	Link   string `json:"link,omitempty" validate:"required,url"`
+	SiteID     string  `json:"site_id,omitempty" validate:"required,uuid4"`
+	Link       string  `json:"link,omitempty" validate:"required,url"`
+	Lang       *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag"`
+	MatchLoc   *string `json:"match_loc,omitempty" validate:"omitempty,max=500"`
+	SearchLoc  *string `json:"search_loc,omitempty" validate:"omitempty,max=500"`
+	SearchLink *string `json:"search_link,omitempty" validate:"omitempty,max=500"`
+	Index      *bool   `json:"index,omitempty"`
+	StopOnDup  *bool   `json:"stop_on_dup,omitempty"`
 }
 
 func (dto SitemapPayloadDTO) toEntity() *entity.SitemapPayload {
 	siteID, _ := uuid.Parse(dto.SiteID)
 
 	return &entity.SitemapPayload{
-		SiteID: siteID,
-		Link:   dto.Link,
+		SiteID:     siteID,
+		Link:       dto.Link,
+		Lang:       dto.Lang,
+		MatchLoc:   dto.MatchLoc,
+		SearchLoc:  dto.SearchLoc,
+		SearchLink: dto.SearchLink,
+		Index:      dto.Index,
+		StopOnDup:  dto.StopOnDup,
 	}
 }
 

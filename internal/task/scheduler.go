@@ -143,8 +143,17 @@ func (s *Scheduler) Remove(id uuid.UUID) error {
 }
 
 func (s *Scheduler) add(job *entity.Job) (err error) {
+	id := job.ID
+
 	var payload []byte
 	if job.Payload != nil {
+		switch p := job.Payload.(type) {
+		case *entity.FeedPayload:
+			p.JobID = &id
+		case *entity.SitemapPayload:
+			p.JobID = &id
+		}
+
 		payload, err = json.Marshal(job.Payload)
 		if err != nil {
 			return errs.E(
@@ -160,14 +169,14 @@ func (s *Scheduler) add(job *entity.Job) (err error) {
 	if err != nil {
 		return errs.E(
 			OpSchedulerAdd,
-			job.ID,
+			id,
 			fmt.Errorf("failed to register job `%s` with expr `%s`: %w", job.Name, job.CronExpr, err),
 		)
 	}
 
-	s.m[job.ID] = running{entryID: entryID, updatedAt: job.UpdatedAt}
+	s.m[id] = running{entryID: entryID, updatedAt: job.UpdatedAt}
 
-	s.log.Info("successfully registered job", "id", job.ID, "cron_expr", job.CronExpr, "job_name", job.Name)
+	s.log.Info("successfully registered job", "id", id, "cron_expr", job.CronExpr, "job_name", job.Name)
 
 	return nil
 }
@@ -242,6 +251,7 @@ func opts(job *entity.Job) []asynq.Option {
 		for i, o := range *job.Options {
 			options[i] = asynqOpt(o)
 		}
+		return options
 	}
 	return nil
 }

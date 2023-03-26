@@ -1,6 +1,7 @@
 package sys
 
 import (
+	"context"
 	"github.com/gowool/wool"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
@@ -13,7 +14,9 @@ var uiBuiltIn = true
 type Sys struct {
 	Logger         *slog.Logger
 	CfgJWT         *jwt.Config
+	SSE            *SSE
 	AuthActions    *AuthActions
+	QueueActions   *QueueActions
 	ArticleActions *ArticleActions
 	SiteCRUD       action.CRUD
 	ChatCRUD       action.CRUD
@@ -27,15 +30,34 @@ func (s *Sys) Register(mux *wool.Wool) {
 				a.POST("/sign-in", s.AuthActions.SignIn)
 				a.POST("/refresh", s.AuthActions.Refresh)
 
-				a.Use(JWTMiddleware(s.CfgJWT, false))
-				a.POST("/otp", s.AuthActions.OTP)
+				a.Group("", func(g *wool.Wool) {
+					g.Use(JWTMiddleware(s.CfgJWT, false))
+					g.POST("/otp", s.AuthActions.OTP)
+				})
+
+				a.Group("", func(g *wool.Wool) {
+					g.Use(JWTMiddleware(s.CfgJWT, true))
+					g.POST("/sse", s.SSE.Auth)
+				})
+			})
+
+			w.Group("", func(sw *wool.Wool) {
+				sw.Use(s.SSE.Middleware)
+				sw.GET("/realtime", s.SSE.Handler)
 			})
 
 			w.Use(JWTMiddleware(s.CfgJWT, true))
+
 			w.CRUD("/articles", s.ArticleActions)
 			w.CRUD("/sites", s.SiteCRUD)
 			w.CRUD("/chats", s.ChatCRUD)
 			w.CRUD("/jobs", s.JobCRUD)
+
+			w.Group("/queues", func(q *wool.Wool) {
+				q.DELETE("/:"+QNameParam, s.QueueActions.Delete)
+				q.POST("/:"+QNameParam+"/pause", s.QueueActions.Pause)
+				q.POST("/:"+QNameParam+"/resume", s.QueueActions.Resume)
+			})
 		})
 
 		s.Logger.WithGroup("api").Info("system APIs registered")
@@ -55,4 +77,8 @@ func (s *Sys) Register(mux *wool.Wool) {
 			s.Logger.WithGroup("ui").Info("system UI registered")
 		}
 	})
+}
+
+func (s *Sys) Listen(ctx context.Context) error {
+	return s.SSE.Listen(ctx)
 }

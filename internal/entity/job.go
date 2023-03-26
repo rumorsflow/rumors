@@ -35,13 +35,59 @@ type JobOption struct {
 }
 
 type FeedPayload struct {
-	SiteID uuid.UUID `json:"site_id,omitempty" bson:"site_id,omitempty"`
-	Link   string    `json:"link,omitempty" bson:"link,omitempty"`
+	JobID  *uuid.UUID `json:"job_id,omitempty" bson:"-"`
+	SiteID uuid.UUID  `json:"site_id,omitempty" bson:"site_id,omitempty"`
+	Link   string     `json:"link,omitempty" bson:"link,omitempty"`
 }
 
 type SitemapPayload struct {
-	SiteID uuid.UUID `json:"site_id,omitempty" bson:"site_id,omitempty"`
-	Link   string    `json:"link,omitempty" bson:"link,omitempty"`
+	JobID      *uuid.UUID `json:"job_id,omitempty" bson:"-"`
+	SiteID     uuid.UUID  `json:"site_id,omitempty" bson:"site_id,omitempty"`
+	Link       string     `json:"link,omitempty" bson:"link,omitempty"`
+	Lang       *string    `json:"lang,omitempty" bson:"lang,omitempty"`
+	MatchLoc   *string    `json:"match_loc,omitempty" bson:"match_loc,omitempty"`
+	SearchLoc  *string    `json:"search_loc,omitempty" bson:"search_loc,omitempty"`
+	SearchLink *string    `json:"search_link,omitempty" bson:"search_link,omitempty"`
+	Index      *bool      `json:"index,omitempty" bson:"index,omitempty"`
+	StopOnDup  *bool      `json:"stop_on_dup,omitempty" bson:"stop_on_dup,omitempty"`
+}
+
+func (p *SitemapPayload) SetLang(lang string) *SitemapPayload {
+	p.Lang = &lang
+	return p
+}
+
+func (p *SitemapPayload) SetSearchLoc(searchLoc string) *SitemapPayload {
+	p.SearchLoc = &searchLoc
+	return p
+}
+
+func (p *SitemapPayload) SetSearchLink(searchLink string) *SitemapPayload {
+	p.SearchLink = &searchLink
+	return p
+}
+
+func (p *SitemapPayload) SetMatchLoc(matchLoc string) *SitemapPayload {
+	p.MatchLoc = &matchLoc
+	return p
+}
+
+func (p *SitemapPayload) SetIndex(index bool) *SitemapPayload {
+	p.Index = &index
+	return p
+}
+
+func (p *SitemapPayload) IsIndex() bool {
+	return p.Index != nil && *p.Index
+}
+
+func (p *SitemapPayload) SetStopOnDup(stopOnDup bool) *SitemapPayload {
+	p.StopOnDup = &stopOnDup
+	return p
+}
+
+func (p *SitemapPayload) StoppingOnDup() bool {
+	return p.StopOnDup != nil && *p.StopOnDup
 }
 
 type Job struct {

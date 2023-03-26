@@ -11,7 +11,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
-	"github.com/spf13/cast"
 	"golang.org/x/exp/slog"
 	"strings"
 	"unicode/utf8"
@@ -87,31 +86,4 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs 
 	}
 
 	return grouped, nil
-}
-
-func pagination(args string) (i uint64, s uint64, search string) {
-	s = 10
-
-	if args == "" {
-		return
-	}
-
-	a := strings.Fields(args)
-	if len(a) > 0 {
-		i = cast.ToUint64(a[0])
-	}
-
-	if len(a) > 1 {
-		if s = cast.ToUint64(a[1]); s == 0 {
-			s = 10
-		}
-		if s > 20 {
-			s = 20
-		}
-	}
-
-	if len(a) > 2 {
-		search = strings.TrimSpace(strings.Join(a[2:], " "))
-	}
-	return
 }

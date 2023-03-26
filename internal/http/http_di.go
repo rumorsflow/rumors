@@ -20,6 +20,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
+	"go.uber.org/multierr"
 	"io/fs"
 	"net/http"
 	"net/http/pprof"
@@ -68,7 +69,13 @@ func FrontActivator(version string) *di.Activator {
 				return nil, nil, err
 			}
 
-			sseCfg := &sse.Config{Version: version, ClientIdle: time.Hour}
+			sseCfg := &sse.Config{
+				Metrics: &sse.MetricsConfig{
+					Enabled: true,
+					Version: version,
+				},
+				ClientIdle: time.Hour,
+			}
 
 			log := logger.WithGroup("http").WithGroup("front")
 
@@ -122,28 +129,32 @@ func SysActivator() *di.Activator {
 				return nil, nil, err
 			}
 
-			client, err := rdb.NewUniversalClient(ctx, c)
+			rdbMaker, err := rdb.GetMaker(ctx, c)
 			if err != nil {
 				return nil, nil, err
 			}
 
-			cl := di.CloserFunc(func(context.Context) error {
-				return client.Close()
-			})
+			client := rdbMaker.Make()
 
 			authService := sys.NewAuthService(userRepo, client, signer, jwtCfg)
 
 			log := logger.WithGroup("http").WithGroup("sys")
 
+			queueActions := sys.NewQueueActions(rdbMaker)
+
 			return &sys.Sys{
-				Logger:         log,
-				CfgJWT:         jwtCfg,
-				AuthActions:    sys.NewAuthActions(authService, log.WithGroup("auth")),
-				ArticleActions: sys.NewArticleActions(articleRepo, articleRepo),
-				SiteCRUD:       sys.NewSiteCRUD(siteRepo, siteRepo),
-				ChatCRUD:       sys.NewChatCRUD(chatRepo, chatRepo),
-				JobCRUD:        sys.NewJobCRUD(jobRepo, jobRepo),
-			}, cl, nil
+					Logger:         log,
+					CfgJWT:         jwtCfg,
+					SSE:            sys.NewSSE(rdbMaker, log.WithGroup("sse")),
+					AuthActions:    sys.NewAuthActions(authService, log.WithGroup("auth")),
+					QueueActions:   queueActions,
+					ArticleActions: sys.NewArticleActions(articleRepo, articleRepo),
+					SiteCRUD:       sys.NewSiteCRUD(siteRepo, siteRepo),
+					ChatCRUD:       sys.NewChatCRUD(chatRepo, chatRepo),
+					JobCRUD:        sys.NewJobCRUD(jobRepo, jobRepo),
+				}, di.CloserFunc(func(context.Context) error {
+					return multierr.Append(client.Close(), queueActions.Close())
+				}), nil
 		}),
 	}
 }

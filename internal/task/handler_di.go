@@ -54,6 +54,13 @@ func ServerMuxActivator() *di.Activator {
 				articleRepo: articleRepo,
 			})
 
+			mux.Handle(string(entity.JobSitemap), &HandlerJobSitemap{
+				logger:      hLog.WithGroup("job").WithGroup("sitemap"),
+				publisher:   publisher,
+				siteRepo:    siteRepo,
+				articleRepo: articleRepo,
+			})
+
 			tgLog := hLog.WithGroup("telegram")
 
 			mux.Handle(TelegramChat, &HandlerTgChat{

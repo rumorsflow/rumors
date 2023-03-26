@@ -18,7 +18,8 @@ const (
 )
 
 const (
-	FeedSource Source = "feed"
+	FeedSource    Source = "feed"
+	SitemapSource Source = "sitemap"
 )
 
 type Media struct {

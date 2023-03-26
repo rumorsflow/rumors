@@ -16,7 +16,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/strutil"
 	"golang.org/x/exp/slog"
-	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -27,7 +26,6 @@ import (
 const (
 	minShortDesc = 20
 	maxShortDesc = 500
-	userAgent    = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/109.0"
 )
 
 type HandlerJobFeed struct {
@@ -45,8 +43,17 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 
 	var payload entity.FeedPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
-		h.logger.Error("error due to unmarshal feed job payload", err, "payload", task.Payload())
+		h.logger.Error("error due to unmarshal feed payload", err, "payload", task.Payload())
 		return nil
+	}
+
+	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
+	if err != nil {
+		if errs.Is(err, repository.ErrEntityNotFound) {
+			h.logger.Error("error due to find site", err, "id", payload.SiteID)
+			return nil
+		}
+		return errs.E(OpServerProcessTask, payload.SiteID, "error due to find site", err)
 	}
 
 	parsed, err := h.parseFeed(ctx, payload.Link)
@@ -73,15 +80,6 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 		} else {
 			return nil
 		}
-	}
-
-	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
-	if err != nil {
-		if errs.Is(err, repository.ErrEntityNotFound) {
-			h.logger.Error("error due to find site", err, "id", payload.SiteID)
-			return nil
-		}
-		return errs.E(OpServerProcessTask, payload.SiteID, "error due to find site", err)
 	}
 
 	for _, item := range parsed.Items {
@@ -112,7 +110,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 		}
 	}
 
-	var lang, shortDesc string
+	var shortDesc string
 
 	if shortDesc = strutil.StripHTMLTags(og.Description); utf8.RuneCountInString(shortDesc) < minShortDesc {
 		if shortDesc = strutil.StripHTMLTags(item.Description); utf8.RuneCountInString(shortDesc) > maxShortDesc {
@@ -134,7 +132,8 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 		return
 	}
 
-	if lang = whatlanggo.DetectLang(item.Title + " " + shortDesc + " " + item.Description).Iso6391(); lang == "" || lang == "xx" {
+	lang := whatlanggo.DetectLang(item.Title + " " + shortDesc + " " + item.Description).Iso6391()
+	if !contains(site.Languages, lang) {
 		if len(site.Languages) > 0 {
 			lang = site.Languages[0]
 		} else {
@@ -172,25 +171,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 		article.SetCategories(categories)
 	}
 
-	media := make([]entity.Media, 0, len(og.Image)+len(og.Video)+len(og.Audio))
-	for _, i := range og.Image {
-		media = append(media, entity.Media{URL: i.URL, Type: entity.ImageType, Meta: map[string]any{
-			"width":  i.Width,
-			"height": i.Height,
-			"alt":    i.Alt,
-		}})
-	}
-	for _, i := range og.Video {
-		media = append(media, entity.Media{URL: i.URL, Type: entity.VideoType, Meta: map[string]any{
-			"width":    i.Width,
-			"height":   i.Height,
-			"duration": i.Duration,
-		}})
-	}
-	for _, i := range og.Audio {
-		media = append(media, entity.Media{URL: i.URL, Type: entity.AudioType})
-	}
-
+	media := toMedia(og)
 	if len(media) > 0 {
 		article.SetMedia(media)
 	}
@@ -216,18 +197,29 @@ func (h *HandlerJobFeed) parseFeed(ctx context.Context, link string) (*gofeed.Fe
 			continue
 		}
 
-		if _, err = url.ParseRequestURI(item.GUID); err == nil {
-			item.Link = item.GUID
-		} else {
-			if item.Link == "" && len(item.Links) > 0 {
-				item.Link = item.Links[0]
-			}
+		var address string
 
+		if len(item.Links) > 0 {
+			for _, tmp := range item.Links {
+				if _, err = url.ParseRequestURI(tmp); err == nil {
+					address = tmp
+					break
+				}
+			}
+		}
+
+		if address == "" {
 			if _, err = url.ParseRequestURI(item.Link); err != nil {
+				address = item.Link
+			} else if _, err = url.ParseRequestURI(item.GUID); err == nil {
+				address = item.GUID
+			} else {
 				parsed.Items[i] = nil
 				continue
 			}
 		}
+
+		item.Link = address
 
 		if item.PublishedParsed == nil {
 			if item.UpdatedParsed != nil {
@@ -313,36 +305,6 @@ func (h *HandlerJobFeed) parseOpengraphMeta(ctx context.Context, link string) (*
 	}
 
 	h.logger.Debug("article link parsed", "article", og)
-
-	return og, nil
-}
-
-func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", userAgent)
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if !strings.HasPrefix(res.Header.Get("Content-Type"), "text/html") {
-		return nil, errs.New("content type must be text/html")
-	}
-
-	if res.StatusCode >= 400 {
-		return nil, fmt.Errorf("open graph error due to request %s with response status code %d", url, res.StatusCode)
-	}
-
-	og := opengraph.New(url)
-
-	if err = og.Parse(res.Body); err != nil {
-		return nil, err
-	}
 
 	return og, nil
 }
