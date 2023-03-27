@@ -16,16 +16,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      working-directory: ./app
       with:
+        working-directory: ./app
         fetch-depth: 0
 
     - name: Checkout
       uses: actions/checkout@v3
-      working-directory: ./app/sys-ui
       with:
         repository: rumorsflow/sys-ui
         token: ${{ secrets.ACCESS_TOKEN }}
+        working-directory: ./app/sys-ui
         fetch-depth: 0
 
     - name: Set up Node.js
@@ -47,10 +47,10 @@ jobs:
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v4
-      working-directory: ./app
       with:
         distribution: goreleaser
         version: latest
         args: release --rm-dist
+        working-directory: ./app
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
