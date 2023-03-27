@@ -18,6 +18,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        path: app
 
     - name: Checkout
       uses: actions/checkout@v3
@@ -42,13 +43,14 @@ jobs:
       run: |
         npm ci
         go mod tidy
-        BASE_URL=/sys VITE_APP_API_URL=/sys/api go run . -dst ../internal/http/sys/ui
+        BASE_URL=/sys VITE_APP_API_URL=/sys/api go run . -dst ../app/internal/http/sys/ui
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v4
       with:
+        working-directory: ./app
         distribution: goreleaser
         version: latest
-        args: release --rm-dist
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
