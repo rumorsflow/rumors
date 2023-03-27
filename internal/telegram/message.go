@@ -97,7 +97,7 @@ func (m *Message) unmarshalData(data json.RawMessage, i any) error {
 
 func (m *Message) chattable(bot *Bot) ([]tgbotapi.Chattable, error) {
 	if m.ChatID == 0 {
-		m.ChatID = bot.cfg.OwnerID
+		m.ChatID = bot.OwnerID()
 	}
 
 	if m.View == "" {
