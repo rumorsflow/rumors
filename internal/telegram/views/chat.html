@@ -1,0 +1,26 @@
+<b>Chat:</b> {{.TelegramID}}
+
+{{if .Title -}}
+<b>{{.Type}} - {{.Title}}</b>
+{{- end}}
+{{- if .Username -}}
+<b>{{.Type}} - {{.Username}}</b>
+{{- end}}
+{{- if or .FirstName .LastName}}
+{{.FirstName}} - {{.LastName}}
+{{- end}}
+
+Deleted: {{.Blocked}}
+Deleted: {{.Deleted}}
+Created at: {{.CreatedAt}}
+Updated at: {{.UpdatedAt}}
+{{- if .Broadcast }}
+{{- with $broadcast := join .Broadcast ", "}}
+Broadcast: {{$broadcast}}
+{{- end}}
+{{- end}}
+{{- if .Rights}}
+{{- with $rights := json .Rights}}
+Rights: <pre language="json">{{$rights}}</pre>
+{{- end}}
+{{- end}}

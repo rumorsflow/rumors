@@ -20,8 +20,13 @@
 /release/
 /rumors
 .env
-rumors.error.log
 rumors.log
 cert.pem
 key.pem
 rsa_prv.pem
+
+/internal/http/sys/ui
+!/internal/http/sys/ui/.gitkeep
+
+/internal/http/front/ui
+!/internal/http/front/ui/.gitkeep

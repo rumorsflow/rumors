@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
@@ -15,16 +16,38 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      working-directory: ./app
       with:
         fetch-depth: 0
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
+    - name: Checkout
+      uses: actions/checkout@v3
+      working-directory: ./app/sys-ui
       with:
-        go-version: '>=1.19.0'
+        repository: rumorsflow/sys-ui
+        token: ${{ secrets.ACCESS_TOKEN }}
+        fetch-depth: 0
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: latest
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '>=1.20.0'
+
+    - name: Build System dashboard UI
+      working-directory: ./app/sys-ui
+      run: |
+        npm ci
+        go mod tidy
+        BASE_URL=/sys VITE_APP_API_URL=/sys/api go run . -dst ../internal/http/sys/ui
 
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v3
+      uses: goreleaser/goreleaser-action@v4
+      working-directory: ./app
       with:
         distribution: goreleaser
         version: latest

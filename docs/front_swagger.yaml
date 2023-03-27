@@ -1,0 +1,170 @@
+basePath: /api/v1
+definitions:
+  entity.Site:
+    properties:
+      created_at:
+        type: string
+      domain:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      languages:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  pubsub.Article:
+    properties:
+      categories:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      image:
+        type: string
+      lang:
+        type: string
+      link:
+        type: string
+      long_desc:
+        type: string
+      pub_date:
+        type: string
+      short_desc:
+        type: string
+      site_id:
+        type: string
+      title:
+        type: string
+    type: object
+  wool.Error:
+    properties:
+      code:
+        type: integer
+      data: {}
+      developer_message:
+        type: string
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: Rumors Frontend API
+  version: "1.0"
+paths:
+  /articles:
+    get:
+      consumes:
+      - application/json
+      description: get articles
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      - description: Sites
+        in: query
+        name: sites
+        type: string
+      - description: Languages
+        in: query
+        name: langs
+        type: string
+      - description: From DateTime
+        format: date-time
+        in: query
+        name: dt
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/pubsub.Article'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: List articles
+      tags:
+      - articles
+  /realtime:
+    get:
+      description: sse stream
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+        default:
+          description: ""
+      summary: Realtime
+      tags:
+      - sse
+  /sites:
+    get:
+      consumes:
+      - application/json
+      description: get sites
+      parameters:
+      - default: 0
+        description: Page Index
+        in: query
+        minimum: 0
+        name: index
+        type: integer
+      - default: 20
+        description: Page Size
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Site'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/wool.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/wool.Error'
+      summary: List sites
+      tags:
+      - sites
+swagger: "2.0"

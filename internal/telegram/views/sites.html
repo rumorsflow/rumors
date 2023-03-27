@@ -1,0 +1,5 @@
+{{range $i, $domain := .}}
+<b>{{inc $i}}.</b> <a href="{{$domain}}">{{$domain}}</a>
+{{- else}}
+<b>No Sites❗</b>
+{{end}}

@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine as build
+FROM golang:1.20-alpine as build
 
 ARG VERSION=(untracked)
 
@@ -21,4 +21,4 @@ COPY --from=build /app/release /
 COPY --from=build /app/config.yaml /config.yaml
 COPY --from=build /app/.env.example /.env
 
-CMD ["/rumors", "--dotenv=.env", "serve"]
+CMD ["/rumors", "--dotenv=.env"]

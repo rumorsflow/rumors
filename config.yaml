@@ -1,99 +1,70 @@
-endure:
-  print_graph: ${RUMORS_ENDURE_PRINT_GRAPH}
-  grace_period: 10s
-
-logs:
-  mode: ${RUMORS_LOG_MODE}
-  level: ${RUMORS_LOG_LEVEL}
-  encoding: ${RUMORS_LOG_ENCODING}
-  output:
-    - ${RUMORS_LOG_OUTPUT}
-  error_output:
-    - ${RUMORS_LOG_ERROR_OUTPUT}
+logger:
+  development: ${RUMORS_LOGGER_DEVELOPMENT}
+  add_source: ${RUMORS_LOGGER_ADD_SOURCE}
+  level: ${RUMORS_LOGGER_LEVEL}
+  encoding: ${RUMORS_LOGGER_ENCODING}
+  output_paths:
+    - ${RUMORS_LOGGER_OUTPUT_PATH}
 
 mongo:
+  ping: ${RUMORS_MONGO_PING}
   uri: ${RUMORS_MONGO_URI}
 
-tgbotapi:
-  token: ${RUMORS_TELEGRAM_BOT_TOKEN}
-
-tgbotsender:
-  owner: ${RUMORS_TELEGRAM_OWNER_ID}
-
-tgbotserver:
-  mode: "polling"
-  timeout: 30
-  allowed_updates:
-    - "message"
-    - "edited_message"
-    - "channel_post"
-    - "edited_channel_post"
-    - "my_chat_member"
-
-jobs:
-  redis:
-    addrs:
-      - ${RUMORS_REDIS_ADDRESS}
-  middleware: []
-  group_max_size: 50
-  group_max_delay: 10m
-  group_grace_period: 2m
-  queues:
-    default: 1
-    aggregate: 5
-    feeditems: 4
-
-scheduler:
-  enable: ${RUMORS_SCHEDULER_ENABLE}
-  sync: ${RUMORS_SCHEDULER_SYNC}
-  redis:
-    addrs:
-      - ${RUMORS_REDIS_ADDRESS}
-
-jobs_client:
-  redis:
-    addrs:
-      - ${RUMORS_REDIS_ADDRESS}
-
-token:
-  redis:
-    addrs:
-      - ${RUMORS_REDIS_ADDRESS}
-  private_key: ${RUMORS_TOKEN_PRIVATE_KEY}
-  ttl:
-    jwt: ${RUMORS_TOKEN_TTL_JWT}
-    refresh: ${RUMORS_TOKEN_TTL_REFRESH}
+redis:
+  ping: ${RUMORS_REDIS_PING}
+  username: ${RUMORS_REDIS_USERNAME}
+  password: ${RUMORS_REDIS_PASSWORD}
+  addrs:
+    - ${RUMORS_REDIS_ADDRESS}
 
 http:
   address: ${RUMORS_HTTP_ADDRESS}
+  cert_path: ${RUMORS_HTTP_CERT_PATH}
   cert_file: ${RUMORS_HTTP_CERT_FILE}
   key_file: ${RUMORS_HTTP_KEY_FILE}
-  dir_cache: ${RUMORS_HTTP_TLS_DIR_CACHE}
-  host_whitelist:
-    - ${RUMORS_HTTP_TLS_HOST_WHITE}
-  parallel_requests:
-    max_allowed: ${RUMORS_HTTP_MAX_PARALLEL_REQUESTS_ALLOWED}
+  graceful_timeout: 5s
+  jwt:
+    private_key: ${RUMORS_JWT_PRIVATE_KEY}
+    access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL}
+    refresh_token_ttl: ${RUMORS_JWT_REFRESH_TOKEN_TTL}
+  after:
+    serve:
+      exclude_endpoint: "^/(metrics|favicon.ico)"
   middleware:
-    - gzip
-    - proxy_headers
-    - logging
-    - www
-    - headers
-    - recovery
-    - jwt
-    - forward
-  headers:
+    metrics:
+      exclude_endpoint: "^/(metrics|favicon.ico)"
+    compress: { }
     cors:
-      allowed_origin: ${RUMORS_HTTP_CORS_ALLOWED_ORIGIN}
-      allowed_headers: ${RUMORS_HTTP_CORS_ALLOWED_HEADERS}
-      allowed_methods: ${RUMORS_HTTP_CORS_ALLOWED_METHODS}
-      allow_credentials: ${RUMORS_HTTP_CORS_ALLOWED_CREDENTIALS}
-      exposed_headers: ${RUMORS_HTTP_CORS_EXPOSED_HEADERS}
-  static:
-    - dir: ui
-      pattern: /...
-      methods:
-        - GET
+      allowed_origin: ${RUMORS_CORS_ALLOWED_ORIGIN}
+      allowed_headers: ${RUMORS_CORS_ALLOWED_HEADERS}
+      allowed_methods: ${RUMORS_CORS_ALLOWED_METHODS}
+      allow_credentials: ${RUMORS_CORS_ALLOW_CREDENTIALS}
+      exposed_headers: ${RUMORS_CORS_EXPOSED_HEADERS}
+      max_age: ${RUMORS_CORS_MAX_AGE}
 
-storage:
-  admins:
+task:
+  scheduler:
+    sync_interval: ${RUMORS_SCHEDULER_SYNC_INTERVAL}
+  server:
+    queues:
+      tgmember: 9
+      tgcmd: 5
+      jobfeed: 8
+      jobsitemap: 7
+      broadcast: 6
+
+telegram:
+  token: ${RUMORS_TELEGRAM_TOKEN}
+  owner: ${RUMORS_TELEGRAM_OWNER}
+  retry: ${RUMORS_TELEGRAM_RETRY}
+  poller:
+    only_owner: true
+    buffer: 50
+    limit: 50
+    allowed_updates:
+      - "message"
+      - "edited_message"
+      - "channel_post"
+      - "edited_channel_post"
+      - "my_chat_member"
+      - "chat_member"
