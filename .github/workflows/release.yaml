@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
@@ -48,7 +47,6 @@ jobs:
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v4
       with:
-        tag_name: ${{ github.ref }}
         workdir: app
         distribution: goreleaser
         version: latest
