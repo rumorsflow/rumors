@@ -47,8 +47,8 @@ jobs:
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v4
-      working-directory: ./app
       with:
+        workdir: app
         distribution: goreleaser
         version: latest
         args: release --clean
