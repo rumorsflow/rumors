@@ -1,13 +1,9 @@
 basePath: /api/v1
 definitions:
-  entity.Site:
+  front.Site:
     properties:
-      created_at:
-        type: string
       domain:
         type: string
-      enabled:
-        type: boolean
       id:
         type: string
       languages:
@@ -15,8 +11,6 @@ definitions:
           type: string
         type: array
       title:
-        type: string
-      updated_at:
         type: string
     type: object
   pubsub.Article:
@@ -154,7 +148,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/entity.Site'
+              $ref: '#/definitions/front.Site'
             type: array
         "400":
           description: Bad Request

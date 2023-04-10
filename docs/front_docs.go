@@ -155,7 +155,7 @@ const docTemplatefront = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entity.Site"
+                                "$ref": "#/definitions/front.Site"
                             }
                         }
                     },
@@ -176,17 +176,11 @@ const docTemplatefront = `{
         }
     },
     "definitions": {
-        "entity.Site": {
+        "front.Site": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "domain": {
                     "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"
@@ -198,9 +192,6 @@ const docTemplatefront = `{
                     }
                 },
                 "title": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 }
             }

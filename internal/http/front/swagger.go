@@ -11,9 +11,9 @@ package front
 //	@Tags			sites
 //	@Accept			json
 //	@Produce		json
-//	@Param			index	query		int			false	"Page Index"	default(0)	minimum(0)
-//	@Param			size	query		int			false	"Page Size"		default(20)	minimum(1)	maximum(100)
-//	@Success		200		{array}		entity.Site	"OK"
+//	@Param			index	query		int		false	"Page Index"	default(0)	minimum(0)
+//	@Param			size	query		int		false	"Page Size"		default(20)	minimum(1)	maximum(100)
+//	@Success		200		{array}		Site	"OK"
 //	@Failure		400		{object}	wool.Error
 //	@Failure		500		{object}	wool.Error
 //	@Router			/sites [get]

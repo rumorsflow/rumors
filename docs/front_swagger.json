@@ -147,7 +147,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entity.Site"
+                                "$ref": "#/definitions/front.Site"
                             }
                         }
                     },
@@ -168,17 +168,11 @@
         }
     },
     "definitions": {
-        "entity.Site": {
+        "front.Site": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
                 "domain": {
                     "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"
@@ -190,9 +184,6 @@
                     }
                 },
                 "title": {
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 }
             }

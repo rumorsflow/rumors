@@ -1,6 +1,7 @@
 package front
 
 import (
+	"github.com/google/uuid"
 	"github.com/gowool/wool"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
@@ -10,6 +11,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
 )
+
+type Site struct {
+	ID        uuid.UUID `json:"id,omitempty"`
+	Domain    string    `json:"domain,omitempty"`
+	Languages []string  `json:"languages,omitempty"`
+	Title     string    `json:"title,omitempty"`
+}
 
 type SiteActions struct {
 	SiteRepo repository.ReadRepository[*entity.Site]
@@ -36,10 +44,20 @@ func (a *SiteActions) List(c wool.Ctx) error {
 	}
 
 	if total > 0 {
-		response.Data, err = a.SiteRepo.Find(c.Req().Context(), criteria)
+		sites, err := a.SiteRepo.Find(c.Req().Context(), criteria)
 		if err != nil {
 			return err
 		}
+		data := make([]Site, len(sites))
+		for i, site := range sites {
+			data[i] = Site{
+				ID:        site.ID,
+				Domain:    site.Domain,
+				Languages: site.Languages,
+				Title:     site.Title,
+			}
+		}
+		response.Data = data
 	}
 
 	return c.JSON(http.StatusOK, response)
