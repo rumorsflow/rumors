@@ -223,6 +223,9 @@ const docTemplatefront = `{
                 "pub_date": {
                     "type": "string"
                 },
+                "relative_pub_date": {
+                    "type": "string"
+                },
                 "short_desc": {
                     "type": "string"
                 },
