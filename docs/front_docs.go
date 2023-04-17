@@ -217,13 +217,10 @@ const docTemplatefront = `{
                 "link": {
                     "type": "string"
                 },
-                "long_desc": {
-                    "type": "string"
-                },
                 "pub_date": {
                     "type": "string"
                 },
-                "relative_pub_date": {
+                "pub_diff": {
                     "type": "string"
                 },
                 "short_desc": {

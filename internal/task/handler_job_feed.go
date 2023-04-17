@@ -272,7 +272,7 @@ func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item
 		links[i] = item.Link
 	}
 
-	query := fmt.Sprintf("sort=-pub_date&field.0.0=link&cond.0.0=in&value.0.0=%s", strings.Join(links, ","))
+	query := fmt.Sprintf("sort=-created_at&field.0.0=link&cond.0.0=in&value.0.0=%s", strings.Join(links, ","))
 	criteria := db.BuildCriteria(query).SetSize(int64(len(links)))
 
 	iter, err := h.articleRepo.FindIter(ctx, criteria)

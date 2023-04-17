@@ -27,6 +27,8 @@ func ArticleIndexes(indexView mongo.IndexView) error {
 	if _, err := indexView.CreateMany(context.Background(), []mongo.IndexModel{
 		{Keys: bson.D{{"link", 1}}, Options: options.Index().SetUnique(true)},
 		{Keys: bson.D{{"pub_date", 1}}},
+		{Keys: bson.D{{"created_at", 1}}},
+		{Keys: bson.D{{"updated_at", 1}}},
 		{Keys: bson.D{{"site_id", 1}, {"lang", 1}}},
 		{Keys: bson.D{
 			{"source", 1},

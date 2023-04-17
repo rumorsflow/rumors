@@ -8,6 +8,7 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/spf13/cast"
+	"golang.org/x/net/html"
 	"net/http"
 	"strings"
 	"sync"
@@ -69,12 +70,44 @@ func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, erro
 	}
 
 	og := opengraph.New(url)
-
-	if err = og.Parse(res.Body); err != nil {
+	og.Intent.TrustedTags = []string{opengraph.HTMLMetaTag, opengraph.HTMLTitleTag, opengraph.HTMLLinkTag}
+	node, err := html.Parse(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err = walk(og, node); err != nil {
 		return nil, err
 	}
 
 	return og, nil
+}
+
+func walk(og *opengraph.OpenGraph, node *html.Node) error {
+	if node.Type == html.ElementNode {
+		switch {
+		case node.Data == opengraph.HTMLMetaTag && trust(og, node.Data):
+			return MetaTag(node).Contribute(og)
+		case node.Data == opengraph.HTMLTitleTag && trust(og, node.Data):
+			return opengraph.TitleTag(node).Contribute(og)
+		case node.Data == opengraph.HTMLLinkTag && trust(og, node.Data):
+			return opengraph.LinkTag(node).Contribute(og)
+		}
+	}
+
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		walk(og, child)
+	}
+
+	return nil
+}
+
+func trust(og *opengraph.OpenGraph, tagName string) bool {
+	for _, name := range og.Intent.TrustedTags {
+		if name == tagName {
+			return true
+		}
+	}
+	return false
 }
 
 func toMedia(og *opengraph.OpenGraph) []entity.Media {
@@ -133,4 +166,39 @@ func contains(data []string, el string) bool {
 		}
 	}
 	return false
+}
+
+type Meta struct {
+	*opengraph.Meta
+}
+
+func MetaTag(node *html.Node) *Meta {
+	meta := new(opengraph.Meta)
+	for _, attr := range node.Attr {
+		switch attr.Key {
+		case "property":
+			meta.Property = attr.Val
+		case "content":
+			meta.Content = attr.Val
+		case "name":
+			meta.Name = attr.Val
+		}
+	}
+	return &Meta{Meta: meta}
+}
+
+func (meta *Meta) Contribute(og *opengraph.OpenGraph) (err error) {
+	switch meta.Name {
+	case "parsely-title":
+		og.Title = meta.Content
+	case "parsely-link":
+		og.URL = meta.Content
+	case "parsely-image-url":
+		if len(og.Image) == 0 || og.Image[len(og.Image)-1].URL != meta.Content {
+			og.Image = append(og.Image, opengraph.Image{URL: meta.Content})
+		}
+	default:
+		return meta.Meta.Contribute(og)
+	}
+	return nil
 }

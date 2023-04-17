@@ -61,7 +61,7 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 
 	if query.Has("dt") {
 		if t, err := time.Parse(time.RFC3339, query.Get("dt")); err == nil {
-			articlesFilter["pub_date"] = bson.M{"$lte": t}
+			articlesFilter["created_at"] = bson.M{"$lte": t}
 		}
 	}
 
@@ -75,7 +75,7 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 	}
 
 	criteria := &repository.Criteria{
-		Sort:   bson.D{{Key: "pub_date", Value: -1}},
+		Sort:   bson.D{{Key: "created_at", Value: -1}},
 		Filter: articlesFilter,
 	}
 	criteria.SetIndex(cast.ToInt64(query.Get(db.QueryIndex)))

@@ -13,7 +13,6 @@ type Article struct {
 	Lang       string    `json:"lang,omitempty"`
 	Title      string    `json:"title,omitempty"`
 	ShortDesc  string    `json:"short_desc,omitempty"`
-	LongDesc   string    `json:"long_desc,omitempty"`
 	Link       string    `json:"link,omitempty"`
 	Image      string    `json:"image,omitempty"`
 	PubDate    time.Time `json:"pub_date,omitempty"`
@@ -29,16 +28,12 @@ func FromEntity(e *entity.Article) Article {
 		Title:   e.Title,
 		Link:    e.Link,
 		Image:   e.FirstMedia(entity.ImageType).URL,
-		PubDate: e.PubDate,
-		PubDiff: timediff.TimeDiff(e.PubDate, timediff.WithStartTime(time.Now().UTC())),
+		PubDate: e.CreatedAt,
+		PubDiff: timediff.TimeDiff(e.CreatedAt, timediff.WithStartTime(time.Now().UTC())),
 	}
 
 	if e.ShortDesc != nil {
 		a.ShortDesc = *e.ShortDesc
-	}
-
-	if e.LongDesc != nil {
-		a.LongDesc = *e.LongDesc
 	}
 
 	if e.Categories != nil {
