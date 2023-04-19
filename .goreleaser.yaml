@@ -9,7 +9,7 @@ builds:
     binary: rumors
     flags:
       - -trimpath
-      - -tags=sys_ui
+      - -tags=sys_ui,ui
     ldflags:
       - -s -w -X main.version={{ .Version }}
     env:
