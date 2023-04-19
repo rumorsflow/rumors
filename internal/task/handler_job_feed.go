@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/abadojack/whatlanggo"
 	"github.com/goccy/go-json"
@@ -49,11 +50,11 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 
 	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
 	if err != nil {
-		if errs.Is(err, repository.ErrEntityNotFound) {
+		if errors.Is(err, repository.ErrEntityNotFound) {
 			h.logger.Error("error due to find site", err, "id", payload.SiteID)
 			return nil
 		}
-		return errs.E(OpServerProcessTask, payload.SiteID, "error due to find site", err)
+		return fmt.Errorf("%s find site %v error: %w", OpServerProcessTask, payload.SiteID, err)
 	}
 
 	parsed, err := h.parseFeed(ctx, payload.Link)
@@ -99,7 +100,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
-			h.logger.Error("error due to parse feed item's link", errs.E(OpServerProcessTask, err), "item", item)
+			h.logger.Error("error due to parse feed item's link", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "item", item)
 		}
 		return
 	}
@@ -187,7 +188,7 @@ func (h *HandlerJobFeed) parseFeed(ctx context.Context, link string) (*gofeed.Fe
 	p.UserAgent = userAgent
 	parsed, err := p.ParseURLWithContext(link, ctx)
 	if err != nil {
-		return nil, errs.E(OpServerParseFeed, err)
+		return nil, fmt.Errorf("%s error: %w", OpServerParseFeed, err)
 	}
 
 	items := make([]*gofeed.Item, 0, len(parsed.Items))
@@ -250,7 +251,7 @@ func (h *HandlerJobFeed) saveArticle(ctx context.Context, article *entity.Articl
 			return
 		}
 
-		if errs.Is(err, repository.ErrDuplicateKey) {
+		if errors.Is(err, repository.ErrDuplicateKey) {
 			h.logger.Debug("error due to save article, duplicate key", "article", article)
 		} else {
 			h.logger.Error("error due to save article", err, "article", article)
@@ -277,7 +278,7 @@ func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item
 
 	iter, err := h.articleRepo.FindIter(ctx, criteria)
 	if err != nil {
-		return -1, errs.E(OpServerProcessTask, "error due to find article last index", err)
+		return -1, fmt.Errorf("%s find article last index error: %w", OpServerProcessTask, err)
 	}
 
 	defer func() {
@@ -301,7 +302,7 @@ func (h *HandlerJobFeed) parseOpengraphMeta(ctx context.Context, link string) (*
 
 	og, err := openGraphFetch(ctx, link)
 	if err != nil {
-		return nil, errs.E(OpServerParseArticle, err)
+		return nil, fmt.Errorf("%s error: %w", OpServerParseArticle, err)
 	}
 
 	h.logger.Debug("article link parsed", "article", og)

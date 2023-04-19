@@ -21,12 +21,12 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/telegram/poller"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
+	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"github.com/spf13/cobra"
-	"go.uber.org/multierr"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
@@ -86,7 +86,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 			err1 := di.Close(context.Background())
 			err2 := logger.Sync()
 
-			return multierr.Append(err1, err2)
+			return errs.Append(err1, err2)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := signal.NotifyContext(cmd.Context(), wool.StopSignals...)

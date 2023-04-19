@@ -11,7 +11,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"golang.org/x/exp/slog"
 )
 
@@ -53,7 +52,7 @@ func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *
 	chat, err := h.toEntityChat(ctx, tgChat)
 	if err != nil {
 		h.logger.Error("error due to find chat", err, "chat", tgChat, "telegram_id", tgChat.ID)
-		return errs.E(OpServerProcessTask, err)
+		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 
 	if member != nil {
@@ -83,7 +82,7 @@ func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *
 
 	if err = h.chatRepo.Save(ctx, chat); err != nil {
 		h.logger.Error("error due to save chat", err, "chat", tgChat, "telegram_id", tgChat.ID)
-		return errs.E(OpServerProcessTask, err)
+		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 
 	h.publisher.Telegram(ctx, telegram.Message{View: telegram.ViewChat, Data: chat})

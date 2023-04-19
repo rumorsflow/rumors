@@ -2,11 +2,11 @@ package poller
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/internal/task"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 )
 
 const ConfigKey = "telegram.poller"
@@ -23,7 +23,7 @@ func TelegramPollerActivator() *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*Config](c.Configurer(), ConfigKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			bot, err := telegram.GetBot(ctx, c)

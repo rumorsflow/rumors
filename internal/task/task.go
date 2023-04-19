@@ -4,30 +4,29 @@ import (
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"golang.org/x/exp/slog"
 	"os"
 )
 
 const (
-	OpClientEnqueue errs.Op = "task.client: enqueue"
+	OpClientEnqueue = "task.client: enqueue ->"
 
-	OpMetricsRegister errs.Op = "task.metrics: register"
-	OpMetricsClose    errs.Op = "task.metrics: close"
+	OpMetricsRegister = "task.metrics: register ->"
+	OpMetricsClose    = "task.metrics: close ->"
 
-	OpServerStart        errs.Op = "task.server: start"
-	OpServerProcessTask  errs.Op = "task.server: process task"
-	OpServerParseFeed    errs.Op = "task.server: parse feed link"
-	OpServerParseSitemap errs.Op = "task.server: parse sitemap link"
-	OpServerParseArticle errs.Op = "task.server: parse article link"
+	OpServerStart        = "task.server: start ->"
+	OpServerProcessTask  = "task.server: process task ->"
+	OpServerParseFeed    = "task.server: parse feed link ->"
+	OpServerParseSitemap = "task.server: parse sitemap link ->"
+	OpServerParseArticle = "task.server: parse article link ->"
 
-	OpSchedulerStart  errs.Op = "task.scheduler: start"
-	OpSchedulerSync   errs.Op = "task.scheduler: sync"
-	OpSchedulerAdd    errs.Op = "task.scheduler: add"
-	OpSchedulerRemove errs.Op = "task.scheduler: remove"
+	OpSchedulerStart  = "task.scheduler: start ->"
+	OpSchedulerSync   = "task.scheduler: sync ->"
+	OpSchedulerAdd    = "task.scheduler: add ->"
+	OpSchedulerRemove = "task.scheduler: remove ->"
 
-	OpMarshal   errs.Op = "task: marshal payload"
-	OpUnmarshal errs.Op = "task: unmarshal payload"
+	OpMarshal   = "task: marshal payload ->"
+	OpUnmarshal = "task: unmarshal payload ->"
 )
 
 const (
@@ -69,14 +68,14 @@ func level(log *slog.Logger) asynq.LogLevel {
 func marshal(v any) ([]byte, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		return nil, errs.E(OpMarshal, err)
+		return nil, fmt.Errorf("%s error: %w", OpMarshal, err)
 	}
 	return data, nil
 }
 
 func unmarshal(data []byte, v any) error {
 	if err := json.Unmarshal(data, v); err != nil {
-		return errs.E(OpUnmarshal, err)
+		return fmt.Errorf("%s error: %w", OpUnmarshal, err)
 	}
 	return nil
 }

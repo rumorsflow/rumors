@@ -5,7 +5,6 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
@@ -56,7 +55,7 @@ func (c *Client) EnqueueTgMemberEdit(ctx context.Context, member *tgbotapi.ChatM
 
 func (c *Client) Enqueue(ctx context.Context, name string, data any, opts ...asynq.Option) error {
 	if err := c.enqueue(ctx, name, data, opts...); err != nil {
-		return errs.E(OpClientEnqueue, err)
+		return fmt.Errorf("%s error: %w", OpClientEnqueue, err)
 	}
 	return nil
 }

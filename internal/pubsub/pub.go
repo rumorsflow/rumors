@@ -2,9 +2,9 @@ package pubsub
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/goccy/go-json"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
@@ -51,12 +51,12 @@ func (p *Publisher) publish(ctx context.Context, channel string, message any) (e
 	default:
 		message, err = json.Marshal(message)
 		if err != nil {
-			return errs.E(OpMarshal, err)
+			return fmt.Errorf("%s error: %w", OpMarshal, err)
 		}
 	}
 
 	if err = p.client.Publish(ctx, channel, message).Err(); err != nil {
-		return errs.E(OpPublish, err)
+		return fmt.Errorf("%s error: %w", OpPublish, err)
 	}
 
 	p.logger.Debug("pubsub published a message", "channel", channel, "message", message)
@@ -66,7 +66,7 @@ func (p *Publisher) publish(ctx context.Context, channel string, message any) (e
 
 func (p *Publisher) Close() error {
 	if err := p.client.Close(); err != nil {
-		return errs.E(OpClose, err)
+		return fmt.Errorf("%s error: %w", OpClose, err)
 	}
 	return nil
 }

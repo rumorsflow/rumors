@@ -1,11 +1,11 @@
 package telegram
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/goccy/go-json"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/strutil"
 )
 
@@ -23,8 +23,8 @@ const (
 	ViewError    View = "error.html"
 	ViewNotFound View = "notfound.html"
 
-	OpBotNew  errs.Op = "bot: new"
-	OpBotSend errs.Op = "bot: send"
+	OpBotNew  = "bot: new ->"
+	OpBotSend = "bot: send ->"
 )
 
 type Message struct {
@@ -101,17 +101,17 @@ func (m *Message) chattable(bot *Bot) ([]tgbotapi.Chattable, error) {
 	}
 
 	if m.View == "" {
-		return nil, errs.E(OpBotSend, "message view is required")
+		return nil, fmt.Errorf("%s error: message view is required", OpBotSend)
 	}
 
 	text, err := view(m.View, m.Data)
 	if err != nil {
-		return nil, errs.E(OpBotSend, "error due to execute template", err)
+		return nil, fmt.Errorf("%s execute template error: %w", OpBotSend, err)
 	}
 
 	chunks := strutil.SplitMax(text, "\n", 4096)
 	if len(chunks) == 0 {
-		return nil, errs.E(OpBotSend, "error due to split text in chunks")
+		return nil, fmt.Errorf("%s error: split text in chunks", OpBotSend)
 	}
 
 	messages := make([]tgbotapi.Chattable, len(chunks))

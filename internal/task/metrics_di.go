@@ -2,8 +2,8 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 )
 
@@ -24,7 +24,7 @@ func MetricsActivator() *di.Activator {
 
 			metrics := NewMetrics(rdbMaker)
 			if err = metrics.Register(); err != nil {
-				return nil, nil, errs.E(di.OpFactory, err, metrics.Close())
+				return nil, nil, fmt.Errorf("%s error: %w. close error: %w", di.OpFactory, err, metrics.Close())
 			}
 
 			return metrics, di.CloserFunc(func(context.Context) error {

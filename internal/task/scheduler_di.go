@@ -2,10 +2,10 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 )
 
@@ -23,7 +23,7 @@ func SchedulerActivator() *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*SchedulerConfig](c.Configurer(), ConfigSchedulerKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 			cfg.Init()
 

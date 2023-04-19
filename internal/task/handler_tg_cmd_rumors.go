@@ -10,7 +10,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"golang.org/x/exp/slog"
 	"strings"
 	"unicode/utf8"
@@ -66,7 +65,7 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs 
 
 	iter, err := h.articleRepo.FindIter(ctx, criteria)
 	if err != nil {
-		return nil, errs.E(OpServerProcessTask, err)
+		return nil, fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 
 	for iter.Next(ctx) {
@@ -82,7 +81,7 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs 
 	}
 
 	if err = iter.Close(context.Background()); err != nil {
-		return nil, errs.E(OpServerProcessTask, err)
+		return nil, fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 
 	return grouped, nil

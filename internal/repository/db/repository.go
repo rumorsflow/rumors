@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,8 +19,8 @@ var (
 )
 
 var (
-	ErrMissingDB         = errs.New("missing *mongo.Database")
-	ErrMissingCollection = errs.New("missing collection name")
+	ErrMissingDB         = errors.New("missing *mongo.Database")
+	ErrMissingCollection = errors.New("missing collection name")
 )
 
 type Option[T repository.Entity] func(*Repository[T]) error
@@ -69,17 +69,17 @@ func WithIndexes[T repository.Entity](indexes func(indexView mongo.IndexView) er
 
 func NewRepository[T repository.Entity](database *mongodb.Database, collection string, options ...Option[T]) (*Repository[T], error) {
 	if database == nil {
-		return nil, errs.E(repository.OpNew, ErrMissingDB)
+		return nil, fmt.Errorf("%s error: %w", repository.OpNew, ErrMissingDB)
 	}
 	if collection == "" {
-		return nil, errs.E(repository.OpNew, ErrMissingCollection)
+		return nil, fmt.Errorf("%s error: %w", repository.OpNew, ErrMissingCollection)
 	}
 
 	r := &Repository[T]{collection: database.Collection(collection)}
 
 	for _, option := range options {
 		if err := option(r); err != nil {
-			return nil, errs.Errorf(repository.OpNew, "error while applying option: %w", err)
+			return nil, fmt.Errorf("%s while applying option error: %w", repository.OpNew, err)
 		}
 	}
 
@@ -89,7 +89,7 @@ func NewRepository[T repository.Entity](database *mongodb.Database, collection s
 func (r *Repository[T]) Count(ctx context.Context, filter any) (count int64, err error) {
 	count, err = mongodb.Count(ctx, r.collection, filter)
 	if err != nil {
-		err = errs.E(repository.OpCount, err)
+		err = fmt.Errorf("%s error: %w", repository.OpCount, err)
 	}
 	return
 }
@@ -100,7 +100,7 @@ func (r *Repository[T]) Find(ctx context.Context, criteria *repository.Criteria)
 
 	iter, err := r.FindIter(ctx, criteria)
 	if err != nil {
-		return nil, errs.E(repository.OpFind, err)
+		return nil, fmt.Errorf("%s error: %w", repository.OpFind, err)
 	}
 
 	var result []T
@@ -110,7 +110,7 @@ func (r *Repository[T]) Find(ctx context.Context, criteria *repository.Criteria)
 	}
 
 	if err = iter.Close(ctx); err != nil {
-		return nil, errs.E(repository.OpFind, err)
+		return nil, fmt.Errorf("%s error: %w", repository.OpFind, err)
 	}
 
 	return result, nil
@@ -118,7 +118,7 @@ func (r *Repository[T]) Find(ctx context.Context, criteria *repository.Criteria)
 
 func (r *Repository[T]) FindIter(ctx context.Context, criteria *repository.Criteria) (repository.Iter[T], error) {
 	if r.entityFactory == nil {
-		return nil, errs.E(repository.OpFindIter, repository.ErrMissingEntityFactory)
+		return nil, fmt.Errorf("%s error: %w", repository.OpFindIter, repository.ErrMissingEntityFactory)
 	}
 
 	var filter any
@@ -133,7 +133,7 @@ func (r *Repository[T]) FindIter(ctx context.Context, criteria *repository.Crite
 
 	cursor, err := r.collection.Find(ctx, filter, o)
 	if err != nil {
-		return nil, errs.Errorf(repository.OpFindIter, mongodb.ErrMsgQuery, err)
+		return nil, fmt.Errorf("%s "+mongodb.ErrMsgQuery, repository.OpFindIter, err)
 	}
 
 	return &repository.Iterator[T]{
@@ -145,7 +145,7 @@ func (r *Repository[T]) FindIter(ctx context.Context, criteria *repository.Crite
 
 func (r *Repository[T]) FindByID(ctx context.Context, id uuid.UUID) (value T, err error) {
 	if r.entityFactory == nil {
-		return value, errs.E(repository.OpFindByID, repository.ErrMissingEntityFactory)
+		return value, fmt.Errorf("%s error: %w", repository.OpFindByID, repository.ErrMissingEntityFactory)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, mongodb.Timeout)
@@ -160,7 +160,7 @@ func (r *Repository[T]) FindByID(ctx context.Context, id uuid.UUID) (value T, er
 
 	if r.afterFind != nil {
 		if err = r.afterFind(entity); err != nil {
-			return value, errs.E(repository.OpFindByID, id, fmt.Errorf(repository.ErrMsgAfterFind, err))
+			return value, fmt.Errorf("%s %v -> "+repository.ErrMsgAfterFind, repository.OpFindByID, id, err)
 		}
 	}
 
@@ -170,7 +170,7 @@ func (r *Repository[T]) FindByID(ctx context.Context, id uuid.UUID) (value T, er
 func (r *Repository[T]) Save(ctx context.Context, entity T) (err error) {
 	id := entity.EntityID()
 	if id == uuid.Nil {
-		return errs.E(repository.OpSave, repository.ErrMissingEntityID)
+		return fmt.Errorf("%s error: %w", repository.OpSave, repository.ErrMissingEntityID)
 	}
 
 	var update bson.M
@@ -201,12 +201,12 @@ func (r *Repository[T]) Remove(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func toRepoErr(op errs.Op, err error, id uuid.UUID) error {
-	if errs.Is(err, mongo.ErrNoDocuments) {
-		return errs.E(op, id, fmt.Errorf(mongodb.ErrMsgQuery, repository.ErrEntityNotFound))
+func toRepoErr(op string, err error, id uuid.UUID) error {
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return fmt.Errorf("%s %v -> "+mongodb.ErrMsgQuery, op, id, repository.ErrEntityNotFound)
 	}
 	if mongo.IsDuplicateKeyError(err) {
-		return errs.E(op, id, fmt.Errorf(mongodb.ErrMsgQuery, repository.ErrDuplicateKey))
+		return fmt.Errorf("%s %v -> "+mongodb.ErrMsgQuery, op, id, repository.ErrDuplicateKey)
 	}
-	return errs.E(op, id, err)
+	return fmt.Errorf("%s %v -> error: %w", op, id, err)
 }

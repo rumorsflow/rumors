@@ -10,7 +10,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/internal/telegram"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"golang.org/x/exp/slog"
 )
@@ -74,7 +73,7 @@ func TgCmdMiddleware(
 
 			sites, err := siteRepo.Find(ctx, db.BuildCriteria("sort=domain&field.0.0=enabled&value.0.0=true"))
 			if err != nil {
-				err = errs.E(OpServerProcessTask, err)
+				err = fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 				logger.Error("error due to find sites", err, "command", message.Command())
 				return err
 			}

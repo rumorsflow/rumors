@@ -2,11 +2,11 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/internal/pubsub"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 )
 
 const ConfigKey = "telegram"
@@ -30,7 +30,7 @@ func BotActivator() *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*Config](c.Configurer(), ConfigKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			return NewBot(cfg), nil, nil

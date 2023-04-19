@@ -11,8 +11,8 @@ import (
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"
 	"github.com/rumorsflow/rumors/v2/pkg/conv"
+	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
-	"go.uber.org/multierr"
 )
 
 var _ jwtv4.Claims = (*UserClaims)(nil)
@@ -36,12 +36,12 @@ func (c UserClaims) Valid() error {
 	}
 
 	if !c.VerifyIssuer(issuer, true) {
-		vErr.Inner = multierr.Append(vErr.Inner, jwtv4.ErrTokenInvalidIssuer)
+		vErr.Inner = errs.Append(vErr.Inner, jwtv4.ErrTokenInvalidIssuer)
 		vErr.Errors |= jwtv4.ValidationErrorIssuer
 	}
 
 	if !c.VerifyAudience(audience, true) {
-		vErr.Inner = multierr.Append(vErr.Inner, jwtv4.ErrTokenInvalidAudience)
+		vErr.Inner = errs.Append(vErr.Inner, jwtv4.ErrTokenInvalidAudience)
 		vErr.Errors |= jwtv4.ValidationErrorAudience
 	}
 

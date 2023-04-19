@@ -1,9 +1,9 @@
 package sys
 
 import (
+	"errors"
 	"github.com/gowool/wool"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 )
 
@@ -24,11 +24,11 @@ func (a *QueueActions) Close() error {
 func (a *QueueActions) Delete(c wool.Ctx) error {
 	qname := c.Req().PathParam(QNameParam)
 	if err := a.inspector.DeleteQueue(qname, false); err != nil {
-		if errs.Is(err, asynq.ErrQueueNotFound) {
+		if errors.Is(err, asynq.ErrQueueNotFound) {
 			return wool.NewErrNotFound(err)
 		}
 
-		if errs.Is(err, asynq.ErrQueueNotEmpty) {
+		if errors.Is(err, asynq.ErrQueueNotEmpty) {
 			return wool.NewErrBadRequest(err)
 		}
 

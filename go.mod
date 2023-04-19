@@ -41,7 +41,6 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/swaggo/swag v1.8.11-0.20230125210707-aa3e8d5fa2f6
 	go.mongodb.org/mongo-driver v1.11.3
-	go.uber.org/multierr v1.10.0
 	golang.org/x/crypto v0.5.0
 	golang.org/x/exp v0.0.0-20230125214544-b3c2aaf6208d
 	golang.org/x/net v0.8.0

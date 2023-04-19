@@ -2,28 +2,28 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"github.com/google/uuid"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 )
 
 var (
-	ErrEntityNotFound       = errs.New("could not find entity")
-	ErrDuplicateKey         = errs.New("entity duplicate key")
-	ErrMissingEntityID      = errs.New("missing entity ID")
-	ErrMissingCursor        = errs.New("missing iterator cursor")
-	ErrMissingEntityFactory = errs.New("missing entity factory")
+	ErrEntityNotFound       = errors.New("could not find entity")
+	ErrDuplicateKey         = errors.New("entity duplicate key")
+	ErrMissingEntityID      = errors.New("missing entity ID")
+	ErrMissingCursor        = errors.New("missing iterator cursor")
+	ErrMissingEntityFactory = errors.New("missing entity factory")
 )
 
 const (
-	OpNew      errs.Op = "repository: new"
-	OpIter     errs.Op = "repository: iter"
-	OpFind     errs.Op = "repository: find"
-	OpFindIter errs.Op = "repository: find iter"
-	OpFindByID errs.Op = "repository: find by ID"
-	OpCount    errs.Op = "repository: count"
-	OpSave     errs.Op = "repository: save"
-	OpRemove   errs.Op = "repository: remove"
-	OpIndexes  errs.Op = "repository: indexes"
+	OpNew      = "repository: new ->"
+	OpIter     = "repository: iter ->"
+	OpFind     = "repository: find ->"
+	OpFindIter = "repository: find iter ->"
+	OpFindByID = "repository: find by ID ->"
+	OpCount    = "repository: count ->"
+	OpSave     = "repository: save ->"
+	OpRemove   = "repository: remove ->"
+	OpIndexes  = "repository: indexes ->"
 
 	ErrMsgDecode    = "failed to decode entity due to error: %w"
 	ErrMsgAfterFind = "failed after find callback due to error: %w"

@@ -3,23 +3,21 @@ package di
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"go.uber.org/multierr"
 	"golang.org/x/exp/slog"
 	"reflect"
 	"sync"
 )
 
 const (
-	OpActivators errs.Op = "container: activators"
-	OpRegister   errs.Op = "container: register"
-	OpFactory    errs.Op = "container: factory"
-	OpNew        errs.Op = "container: new"
-	OpGet        errs.Op = "container: get"
-	OpClose      errs.Op = "container: close"
+	OpActivators = "container: activators ->"
+	OpRegister   = "container: register ->"
+	OpFactory    = "container: factory ->"
+	OpNew        = "container: new ->"
+	OpGet        = "container: get ->"
+	OpClose      = "container: close ->"
 )
 
 type Closer interface {
@@ -105,10 +103,10 @@ func (c *container) Activators(activators ...*Activator) error {
 
 	for i, activator := range activators {
 		if activator == nil {
-			return errs.Errorf(OpActivators, "Activator `%d` is nil", i)
+			return fmt.Errorf("%s Activator `%d` is nil", OpActivators, i)
 		}
 		if err := c.register(activator.Key, activator.Factory); err != nil {
-			return errs.E(OpActivators, err)
+			return fmt.Errorf("%s error: %w", OpActivators, err)
 		}
 	}
 	return nil
@@ -133,12 +131,12 @@ func (c *container) Close(ctx context.Context) (err error) {
 	for i := len(c.closers) - 1; i >= 0; i-- {
 		select {
 		case <-ctx.Done():
-			err = multierr.Append(err, ctx.Err())
+			err = errs.Append(err, ctx.Err())
 			break
 		default:
 		}
 
-		err = multierr.Append(err, c.closers[i].closer.Close(ctx))
+		err = errs.Append(err, c.closers[i].closer.Close(ctx))
 
 		c.info("`%s` Close called", str(c.closers[i].key))
 	}
@@ -146,14 +144,14 @@ func (c *container) Close(ctx context.Context) (err error) {
 	c.closers = nil
 
 	if err != nil {
-		err = errs.E(OpClose, err)
+		err = fmt.Errorf("%s error: %w", OpClose, err)
 	}
 	return
 }
 
 func (c *container) New(ctx context.Context, key any) (value any, err error) {
 	if err = checkKey(key); err != nil {
-		return nil, errs.E(OpNew, err)
+		return nil, fmt.Errorf("%s error: %w", OpNew, err)
 	}
 
 	var closer Closer
@@ -169,7 +167,7 @@ func (c *container) New(ctx context.Context, key any) (value any, err error) {
 
 func (c *container) Get(ctx context.Context, key any) (any, error) {
 	if err := checkKey(key); err != nil {
-		return nil, errs.E(OpGet, err)
+		return nil, fmt.Errorf("%s error: %w", OpGet, err)
 	}
 
 	c.mu.RLock()
@@ -184,7 +182,7 @@ func (c *container) Get(ctx context.Context, key any) (any, error) {
 
 	value, closer, err := c.new(ctx, key)
 	if err != nil {
-		return nil, errs.E(OpGet, err)
+		return nil, fmt.Errorf("%s error: %w", OpGet, err)
 	}
 
 	c.mu.Lock()
@@ -212,15 +210,15 @@ func (c *container) Has(key any) bool {
 
 func (c *container) register(key any, factory Factory) error {
 	if err := checkKey(key); err != nil {
-		return errs.E(OpRegister, err)
+		return fmt.Errorf("%s error: %w", OpRegister, err)
 	}
 
 	if factory == nil {
-		return errs.Errorf(OpRegister, "factory `%s` is nil", str(key))
+		return fmt.Errorf("%s factory `%s` is nil", OpRegister, str(key))
 	}
 
 	if _, ok := c.factories[key]; ok {
-		return errs.Errorf(OpRegister, "factory `%s` already exists", str(key))
+		return fmt.Errorf("%s factory `%s` already exists", OpRegister, str(key))
 	}
 
 	c.factories[key] = factory
@@ -241,12 +239,12 @@ func (c *container) new(ctx context.Context, key any) (any, Closer, error) {
 		c.debug("factory `%s` called", str(key))
 
 		if err != nil {
-			return nil, nil, errs.E(errs.Errorf(OpNew, "factory `%s`", str(key)), err)
+			return nil, nil, fmt.Errorf("%s factory `%s` error: %w", OpNew, str(key), err)
 		}
 		return value, closer, nil
 	}
 
-	return nil, nil, errs.Errorf(OpNew, "factory `%s` not found", str(key))
+	return nil, nil, fmt.Errorf("%s factory `%s` not found", OpNew, str(key))
 }
 
 func (c *container) info(format string, a ...any) {
@@ -259,7 +257,7 @@ func (c *container) debug(format string, a ...any) {
 
 func checkKey(key any) error {
 	if key == nil || !reflect.TypeOf(key).Comparable() {
-		return errors.Errorf("key `%s` is not comparable", str(key))
+		return fmt.Errorf("key `%s` is not comparable", str(key))
 	}
 	return nil
 }

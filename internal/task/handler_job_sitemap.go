@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/abadojack/whatlanggo"
 	"github.com/goccy/go-json"
@@ -43,11 +44,11 @@ func (h *HandlerJobSitemap) ProcessTask(ctx context.Context, task *asynq.Task) e
 
 	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
 	if err != nil {
-		if errs.Is(err, repository.ErrEntityNotFound) {
+		if errors.Is(err, repository.ErrEntityNotFound) {
 			h.logger.Error("error due to find site", err, "id", payload.SiteID)
 			return nil
 		}
-		return errs.E(OpServerProcessTask, payload.SiteID, "error due to find site", err)
+		return fmt.Errorf("%s find site %v error: %w", OpServerProcessTask, payload.SiteID, err)
 	}
 
 	if payload.Lang == nil || *payload.Lang == "" {
@@ -61,13 +62,13 @@ func (h *HandlerJobSitemap) ProcessTask(ctx context.Context, task *asynq.Task) e
 
 	if payload.MatchLoc != nil && *payload.MatchLoc != "" {
 		if err = addRegex(payload.MatchLoc); err != nil {
-			return errs.E(OpServerProcessTask, payload.SiteID, "error due to compile payload regex match location", err)
+			return fmt.Errorf("%s site %v -> compile payload regex match location error: %w", OpServerProcessTask, payload.SiteID, err)
 		}
 	}
 
 	if payload.SearchLoc != nil && *payload.SearchLoc != "" {
 		if err = addRegex(payload.SearchLoc); err != nil {
-			return errs.E(OpServerProcessTask, payload.SiteID, "error due to compile payload regex search location", err)
+			return fmt.Errorf("%s site %v -> compile payload regex search location error: %w", OpServerProcessTask, payload.SiteID, err)
 		}
 	}
 
@@ -75,14 +76,14 @@ func (h *HandlerJobSitemap) ProcessTask(ctx context.Context, task *asynq.Task) e
 		if err = sitemap.ParseIndexFromSite(ctx, payload.Link, func(e sitemap.IndexEntry) error {
 			payload.Link = e.GetLocation()
 			return h.process(ctx, payload, site)
-		}); !errs.IsCanceledOrDeadline(err) && !errs.Is(err, io.EOF) {
-			return errs.E(OpServerProcessTask, err)
+		}); !errs.IsCanceledOrDeadline(err) && !errors.Is(err, io.EOF) {
+			return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 		}
 		return nil
 	}
 
-	if err = h.process(ctx, payload, site); !errs.IsCanceledOrDeadline(err) && !errs.Is(err, io.EOF) {
-		return errs.E(OpServerProcessTask, err)
+	if err = h.process(ctx, payload, site); !errs.IsCanceledOrDeadline(err) && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 	return nil
 }
@@ -104,7 +105,7 @@ func (h *HandlerJobSitemap) process(ctx context.Context, payload entity.SitemapP
 			}
 
 			err := h.processEntry(ctx, e, site, *payload.Lang)
-			if errs.Is(err, io.EOF) && !payload.StoppingOnDup() {
+			if errors.Is(err, io.EOF) && !payload.StoppingOnDup() {
 				return nil
 			}
 
@@ -112,7 +113,7 @@ func (h *HandlerJobSitemap) process(ctx context.Context, payload entity.SitemapP
 		}
 		return nil
 	}); err != nil {
-		return errs.E(OpServerParseSitemap, err)
+		return fmt.Errorf("%s error: %w", OpServerParseSitemap, err)
 	}
 	return nil
 }
@@ -124,7 +125,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 			return err
 		}
 
-		h.logger.Error("error due to parse sitemap location", errs.E(OpServerProcessTask, err), "entry", entry)
+		h.logger.Error("error due to parse sitemap location", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "entry", entry)
 
 		return nil
 	}
@@ -210,7 +211,7 @@ func (h *HandlerJobSitemap) saveArticle(ctx context.Context, article *entity.Art
 			return err
 		}
 
-		if errs.Is(err, repository.ErrDuplicateKey) {
+		if errors.Is(err, repository.ErrDuplicateKey) {
 			h.logger.Debug("error due to save article, duplicate key", "article", article)
 
 			return io.EOF
@@ -234,7 +235,7 @@ func (h *HandlerJobSitemap) parseOpengraphMeta(ctx context.Context, link string)
 
 	og, err := openGraphFetch(ctx, link)
 	if err != nil {
-		return nil, errs.E(OpServerParseArticle, err)
+		return nil, fmt.Errorf("%s error: %w", OpServerParseArticle, err)
 	}
 
 	h.logger.Debug("article link parsed", "article", og)

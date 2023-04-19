@@ -5,7 +5,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"go.uber.org/multierr"
+	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"time"
 )
 
@@ -43,17 +43,17 @@ func (c UserClaims) Valid() error {
 
 	if !c.VerifyExpiresAt(now, true) {
 		delta := now.Sub(c.ExpiresAt.Time)
-		vErr.Inner = multierr.Append(vErr.Inner, fmt.Errorf("%s by %s", jwt.ErrTokenExpired, delta))
+		vErr.Inner = errs.Append(vErr.Inner, fmt.Errorf("%s by %s", jwt.ErrTokenExpired, delta))
 		vErr.Errors |= jwt.ValidationErrorExpired
 	}
 
 	if !c.VerifyIssuedAt(now, true) {
-		vErr.Inner = multierr.Append(vErr.Inner, jwt.ErrTokenUsedBeforeIssued)
+		vErr.Inner = errs.Append(vErr.Inner, jwt.ErrTokenUsedBeforeIssued)
 		vErr.Errors |= jwt.ValidationErrorIssuedAt
 	}
 
 	if !c.VerifyNotBefore(now, true) {
-		vErr.Inner = multierr.Append(vErr.Inner, jwt.ErrTokenNotValidYet)
+		vErr.Inner = errs.Append(vErr.Inner, jwt.ErrTokenNotValidYet)
 		vErr.Errors |= jwt.ValidationErrorNotValidYet
 	}
 

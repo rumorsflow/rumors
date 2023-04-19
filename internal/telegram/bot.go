@@ -1,9 +1,9 @@
 package telegram
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/goccy/go-json"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"golang.org/x/exp/slog"
 	"html/template"
@@ -34,7 +34,7 @@ func NewBot(cfg *Config) *Bot {
 
 	self, err := api.GetMe()
 	if err != nil {
-		panic(errs.E(OpBotNew, err))
+		panic(fmt.Errorf("%s error: %w", OpBotNew, err))
 	}
 	api.Self = self
 
@@ -89,7 +89,7 @@ func (b *Bot) chattable(c tgbotapi.Chattable, retry uint) error {
 
 		b.logger.Error("bot request error", err, "message", c, "res_err", string(res))
 
-		return errs.E(OpBotSend, err)
+		return fmt.Errorf("%s error: %w", OpBotSend, err)
 	}
 
 	return nil

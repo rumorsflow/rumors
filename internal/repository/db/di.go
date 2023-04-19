@@ -2,10 +2,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/mongodb"
 )
 
@@ -144,7 +144,7 @@ func SysUserActivator() *di.Activator {
 
 func ToNilCloser[T any](value T, err error) (T, di.Closer, error) {
 	if err != nil {
-		err = errs.E(di.OpFactory, err)
+		err = fmt.Errorf("%s error: %w", di.OpFactory, err)
 	}
 	return value, nil, err
 }

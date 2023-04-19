@@ -2,11 +2,11 @@ package task
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dlclark/regexp2"
 	"github.com/otiai10/opengraph/v2"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/spf13/cast"
 	"golang.org/x/net/html"
 	"net/http"
@@ -62,7 +62,7 @@ func openGraphFetch(ctx context.Context, url string) (*opengraph.OpenGraph, erro
 	defer res.Body.Close()
 
 	if !strings.HasPrefix(res.Header.Get("Content-Type"), "text/html") {
-		return nil, errs.New("content type must be text/html")
+		return nil, errors.New("content type must be text/html")
 	}
 
 	if res.StatusCode >= 400 {

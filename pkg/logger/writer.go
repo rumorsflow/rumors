@@ -22,7 +22,7 @@ package logger
 
 import (
 	"fmt"
-	"go.uber.org/multierr"
+	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"io"
 	"sync"
 )
@@ -96,7 +96,7 @@ func (ws multiWriteSyncer) Write(p []byte) (int, error) {
 	nWritten := 0
 	for _, w := range ws {
 		n, err := w.Write(p)
-		writeErr = multierr.Append(writeErr, err)
+		writeErr = errs.Append(writeErr, err)
 		if nWritten == 0 && n != 0 {
 			nWritten = n
 		} else if n < nWritten {
@@ -109,7 +109,7 @@ func (ws multiWriteSyncer) Write(p []byte) (int, error) {
 func (ws multiWriteSyncer) Sync() error {
 	var err error
 	for _, w := range ws {
-		err = multierr.Append(err, w.Sync())
+		err = errs.Append(err, w.Sync())
 	}
 	return err
 }
@@ -155,7 +155,7 @@ func open(paths []string) ([]WriteSyncer, func(), error) {
 	for _, path := range paths {
 		sink, err := _sinkRegistry.newSink(path)
 		if err != nil {
-			openErr = multierr.Append(openErr, fmt.Errorf("open sink %q: %w", path, err))
+			openErr = errs.Append(openErr, fmt.Errorf("open sink %q: %w", path, err))
 			continue
 		}
 		writers = append(writers, sink)

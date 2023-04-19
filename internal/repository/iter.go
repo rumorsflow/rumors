@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 )
 
 var _ Iter[Entity] = (*Iterator[Entity])(nil)
@@ -43,7 +42,7 @@ func (i *Iterator[T]) Next(ctx context.Context) bool {
 
 	if i.AfterFind != nil {
 		if i.decodeErr = i.AfterFind(i.entity); i.decodeErr != nil {
-			i.decodeErr = errs.E(i.entity.EntityID(), fmt.Errorf(ErrMsgAfterFind, i.decodeErr))
+			i.decodeErr = fmt.Errorf("%v -> "+ErrMsgAfterFind, i.entity.EntityID(), i.decodeErr)
 			return false
 		}
 	}
@@ -63,7 +62,7 @@ func (i *Iterator[T]) Close(ctx context.Context) (err error) {
 	}
 
 	if i.decodeErr != nil || err != nil {
-		err = errs.E(OpIter, i.decodeErr, err)
+		err = fmt.Errorf("%s error: %w. decode error: %w", OpIter, err, i.decodeErr)
 	}
 
 	return
@@ -75,12 +74,12 @@ func (i *Iterator[T]) valid() bool {
 	}
 
 	if i.Cursor == nil {
-		i.decodeErr = errs.E(OpFind, ErrMissingCursor)
+		i.decodeErr = fmt.Errorf("%s error: %w", OpFind, ErrMissingCursor)
 		return false
 	}
 
 	if i.Factory == nil {
-		i.decodeErr = errs.E(OpFind, ErrMissingEntityFactory)
+		i.decodeErr = fmt.Errorf("%s error: %w", OpFind, ErrMissingEntityFactory)
 		return false
 	}
 

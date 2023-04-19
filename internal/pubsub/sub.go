@@ -2,10 +2,10 @@ package pubsub
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
-	"go.uber.org/multierr"
 	"sync"
 )
 
@@ -58,11 +58,11 @@ func (s *Subscriber) Close() (err error) {
 	defer s.mu.Unlock()
 
 	for _, sub := range s.subs {
-		err = multierr.Append(err, sub.Close())
+		err = errs.Append(err, sub.Close())
 	}
 
-	if err = multierr.Append(err, s.client.Close()); err != nil {
-		return errs.E(OpClose, err)
+	if err = errs.Append(err, s.client.Close()); err != nil {
+		return fmt.Errorf("%s error: %w", OpClose, err)
 	}
 
 	return nil

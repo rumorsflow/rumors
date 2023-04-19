@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/gowool/middleware/cors"
 	"github.com/gowool/middleware/gzip"
 	"github.com/gowool/middleware/prometheus"
@@ -20,7 +21,6 @@ import (
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
-	"go.uber.org/multierr"
 	"io/fs"
 	"net/http"
 	"net/http/pprof"
@@ -153,7 +153,7 @@ func SysActivator() *di.Activator {
 					ChatCRUD:       sys.NewChatCRUD(chatRepo, chatRepo),
 					JobCRUD:        sys.NewJobCRUD(jobRepo, jobRepo),
 				}, di.CloserFunc(func(context.Context) error {
-					return multierr.Append(client.Close(), queueActions.Close())
+					return errs.Append(client.Close(), queueActions.Close())
 				}), nil
 		}),
 	}
@@ -165,17 +165,17 @@ func WoolActivator(version string) *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			compressConfig, err := config.UnmarshalKey[*gzip.Config](c.Configurer(), ConfigCompressKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			corsConfig, err := config.UnmarshalKey[*cors.Config](c.Configurer(), ConfigCORSKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			afterServeConfig, err := config.UnmarshalKey[*AfterServeConfig](c.Configurer(), ConfigAfterServeKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			wool.SetLogger(logger.WithGroup("http"))
@@ -217,7 +217,7 @@ func ServerActivator(certFS fs.FS, tls func(*tls.Config)) *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*wool.ServerConfig](c.Configurer(), ConfigServerKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			s := wool.NewServer(cfg)

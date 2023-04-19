@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
+	"fmt"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -10,14 +10,14 @@ import (
 )
 
 const (
-	OpUnmarshalKey errs.Op = "configurer: unmarshal key"
-	OpUnmarshal    errs.Op = "configurer: unmarshal"
-	OpOverwrite    errs.Op = "configurer: overwrite"
+	OpUnmarshalKey = "configurer: unmarshal key ->"
+	OpUnmarshal    = "configurer: unmarshal ->"
+	OpOverwrite    = "configurer: overwrite ->"
 )
 
 func UnmarshalKeyE[T any](cfg Configurer, key string) (value T, err error) {
 	if !cfg.Has(key) {
-		return value, errs.Errorf(OpUnmarshalKey, "config key `%s` is required", key)
+		return value, fmt.Errorf("%s config key `%s` is required", OpUnmarshalKey, key)
 	}
 
 	err = cfg.UnmarshalKey(key, &value)
@@ -106,14 +106,14 @@ func NewConfigurer(cfgFile, prefix string) Configurer {
 
 func (cfg *configurer) UnmarshalKey(name string, out any) error {
 	if err := cfg.viper.UnmarshalKey(name, out); err != nil {
-		return errs.E(OpUnmarshalKey, err)
+		return fmt.Errorf("%s error: %w", OpUnmarshalKey, err)
 	}
 	return nil
 }
 
 func (cfg *configurer) Unmarshal(out any) error {
 	if err := cfg.viper.Unmarshal(out); err != nil {
-		return errs.E(OpUnmarshal, err)
+		return fmt.Errorf("%s error: %w", OpUnmarshal, err)
 	}
 	return nil
 }

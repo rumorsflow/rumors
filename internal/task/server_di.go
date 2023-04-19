@@ -2,9 +2,9 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 )
 
@@ -22,7 +22,7 @@ func ServerActivator() *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*ServerConfig](c.Configurer(), ConfigServerKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			rdbMaker, err := rdb.GetMaker(ctx, c)

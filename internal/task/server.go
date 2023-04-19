@@ -2,8 +2,8 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/logger"
 	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
@@ -75,7 +75,7 @@ func (s *Server) Run(ctx context.Context, handler asynq.Handler) error {
 	srv := asynq.NewServer(s.rdbMaker, cfg)
 
 	if err := srv.Start(handler); err != nil {
-		return errs.E(OpServerStart, err)
+		return fmt.Errorf("%s error: %w", OpServerStart, err)
 	}
 
 	defer func() {

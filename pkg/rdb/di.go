@@ -2,10 +2,10 @@ package rdb
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/rumorsflow/rumors/v2/pkg/config"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 )
 
 type (
@@ -31,14 +31,14 @@ func UniversalClientActivator(configKey string) *di.Activator {
 		Factory: di.FactoryFunc(func(ctx context.Context, c di.Container) (any, di.Closer, error) {
 			cfg, err := config.UnmarshalKey[*Config](c.Configurer(), configKey)
 			if err != nil {
-				return nil, nil, errs.E(di.OpFactory, err)
+				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
 			client := New(cfg)
 
 			if cfg.Ping {
 				if res, err := client.Ping(ctx).Result(); err != nil || res != "PONG" {
-					return nil, nil, errs.E(di.OpFactory, "could not check Redis server", err)
+					return nil, nil, fmt.Errorf("%s could not check Redis server. error: %w", di.OpFactory, err)
 				}
 			}
 

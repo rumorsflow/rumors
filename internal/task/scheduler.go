@@ -87,11 +87,11 @@ func (s *Scheduler) Run(ctx context.Context) error {
 		if errs.IsCanceledOrDeadline(err) {
 			return nil
 		}
-		return errs.E(OpSchedulerStart, err)
+		return fmt.Errorf("%s error: %w", OpSchedulerStart, err)
 	}
 
 	if err := s.s.Start(); err != nil {
-		return errs.E(OpSchedulerStart, err)
+		return fmt.Errorf("%s error: %w", OpSchedulerStart, err)
 	}
 
 	ticker := time.NewTicker(s.interval)
@@ -124,12 +124,12 @@ func (s *Scheduler) Add(job *entity.Job) error {
 
 	if _, ok := s.m[job.ID]; ok {
 		if err := s.remove(job.ID); err != nil {
-			return errs.E(OpSchedulerSync, err)
+			return fmt.Errorf("%s error: %w", OpSchedulerSync, err)
 		}
 	}
 
 	if err := s.add(job); err != nil {
-		return errs.E(OpSchedulerSync, err)
+		return fmt.Errorf("%s error: %w", OpSchedulerSync, err)
 	}
 
 	return nil
@@ -156,10 +156,13 @@ func (s *Scheduler) add(job *entity.Job) (err error) {
 
 		payload, err = json.Marshal(job.Payload)
 		if err != nil {
-			return errs.E(
+			return fmt.Errorf(
+				"%s job %v -> marshal `%s` payload with expr `%s` error: %w",
 				OpSchedulerAdd,
 				job.ID,
-				fmt.Errorf("error due to marshal `%s` payload with expr `%s`: %w", job.Name, job.CronExpr, err),
+				job.Name,
+				job.CronExpr,
+				err,
 			)
 		}
 	}
@@ -167,10 +170,13 @@ func (s *Scheduler) add(job *entity.Job) (err error) {
 
 	entryID, err := s.s.Register(job.CronExpr, task, opts(job)...)
 	if err != nil {
-		return errs.E(
+		return fmt.Errorf(
+			"%s job %v -> failed to register job `%s` with expr `%s` error: %w",
 			OpSchedulerAdd,
 			id,
-			fmt.Errorf("failed to register job `%s` with expr `%s`: %w", job.Name, job.CronExpr, err),
+			job.Name,
+			job.CronExpr,
+			err,
 		)
 	}
 
@@ -183,7 +189,7 @@ func (s *Scheduler) add(job *entity.Job) (err error) {
 
 func (s *Scheduler) remove(id uuid.UUID) error {
 	if err := s.s.Unregister(s.m[id].entryID); err != nil {
-		return errs.E(OpSchedulerRemove, id, fmt.Errorf("failed to unregister job: %w", err))
+		return fmt.Errorf("%s -> job %v -> failed to unregister job error: %w", OpSchedulerRemove, id, err)
 	}
 
 	delete(s.m, id)
@@ -199,7 +205,7 @@ func (s *Scheduler) sync(ctx context.Context) error {
 	criteria := db.BuildCriteria("sort=-updated_at&field.0.0=enabled&value.0.0=true")
 	iter, err := s.repo.FindIter(ctx, criteria)
 	if err != nil {
-		return errs.E(OpSchedulerSync, err)
+		return fmt.Errorf("%s error: %w", OpSchedulerSync, err)
 	}
 
 	s.Lock()
@@ -219,7 +225,7 @@ func (s *Scheduler) sync(ctx context.Context) error {
 	}
 
 	if err = iter.Close(context.Background()); err != nil {
-		return errs.E(OpSchedulerSync, err)
+		return fmt.Errorf("%s error: %w", OpSchedulerSync, err)
 	}
 
 	failed := make(map[uuid.UUID]struct{})
@@ -229,7 +235,7 @@ func (s *Scheduler) sync(ctx context.Context) error {
 			if err = s.remove(id); err != nil {
 				failed[id] = struct{}{}
 
-				s.log.Warn("failed job remove", errs.E(OpSchedulerSync, err))
+				s.log.Warn("failed job remove", "id", id, "err", err)
 			}
 		}
 	}
@@ -238,7 +244,7 @@ func (s *Scheduler) sync(ctx context.Context) error {
 		if _, ok := failed[job.ID]; ok {
 			s.log.Warn("failed job sync", "id", job.ID)
 		} else if err = s.add(job); err != nil {
-			s.log.Warn("failed job sync", "id", job.ID)
+			s.log.Warn("failed job sync", "id", job.ID, "err", err)
 		}
 	}
 

@@ -2,8 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,7 +18,7 @@ func SiteIndexes(indexView mongo.IndexView) error {
 			{"enabled", 1},
 		}},
 	}); err != nil {
-		return errs.E(repository.OpIndexes, err)
+		return fmt.Errorf("%s error: %w", repository.OpIndexes, err)
 	}
 	return nil
 }
@@ -36,7 +36,7 @@ func ArticleIndexes(indexView mongo.IndexView) error {
 			{"categories", 1},
 		}},
 	}); err != nil {
-		return errs.E(repository.OpIndexes, err)
+		return fmt.Errorf("%s error: %w", repository.OpIndexes, err)
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func ChatIndexes(indexView mongo.IndexView) error {
 			{"updated_at", 1},
 		}},
 	}); err != nil {
-		return errs.E(repository.OpIndexes, err)
+		return fmt.Errorf("%s error: %w", repository.OpIndexes, err)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func JobIndexes(indexView mongo.IndexView) error {
 		{"created_at", 1},
 		{"updated_at", 1},
 	}}); err != nil {
-		return errs.E(repository.OpIndexes, err)
+		return fmt.Errorf("%s error: %w", repository.OpIndexes, err)
 	}
 	return nil
 }
@@ -78,7 +78,7 @@ func SysUserIndexes(indexView mongo.IndexView) error {
 			{"updated_at", 1},
 		}},
 	}); err != nil {
-		return errs.E(repository.OpIndexes, err)
+		return fmt.Errorf("%s error: %w", repository.OpIndexes, err)
 	}
 	return nil
 }
