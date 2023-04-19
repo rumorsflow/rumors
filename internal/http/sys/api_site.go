@@ -9,6 +9,7 @@ import (
 
 type CreateSiteDTO struct {
 	Domain    string   `json:"domain,omitempty" validate:"required,fqdn"`
+	Favicon   string   `json:"favicon,omitempty" validate:"required,url"`
 	Languages []string `json:"languages,omitempty" validate:"required,min=1,dive,bcp47_language_tag"`
 	Title     string   `json:"title,omitempty" validate:"required,max=254"`
 	Enabled   bool     `json:"enabled,omitempty"`
@@ -18,6 +19,7 @@ func (dto CreateSiteDTO) toEntity(id uuid.UUID) *entity.Site {
 	return (&entity.Site{
 		ID:        id,
 		Domain:    dto.Domain,
+		Favicon:   dto.Favicon,
 		Languages: dto.Languages,
 		Title:     dto.Title,
 	}).SetEnabled(dto.Enabled)
@@ -25,6 +27,7 @@ func (dto CreateSiteDTO) toEntity(id uuid.UUID) *entity.Site {
 
 type UpdateSiteDTO struct {
 	Domain    string   `json:"domain,omitempty" validate:"omitempty,fqdn"`
+	Favicon   string   `json:"favicon,omitempty" validate:"required,url"`
 	Languages []string `json:"languages,omitempty" validate:"omitempty,dive,bcp47_language_tag"`
 	Title     string   `json:"title,omitempty" validate:"omitempty,max=254"`
 	Enabled   *bool    `json:"enabled,omitempty"`
@@ -34,6 +37,7 @@ func (dto UpdateSiteDTO) toEntity(id uuid.UUID) *entity.Site {
 	return &entity.Site{
 		ID:        id,
 		Domain:    dto.Domain,
+		Favicon:   dto.Favicon,
 		Languages: dto.Languages,
 		Title:     dto.Title,
 		Enabled:   dto.Enabled,

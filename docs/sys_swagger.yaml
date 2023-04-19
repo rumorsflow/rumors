@@ -204,6 +204,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      favicon:
+        type: string
       id:
         type: string
       languages:
@@ -287,6 +289,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      favicon:
+        type: string
       languages:
         items:
           type: string
@@ -297,6 +301,7 @@ definitions:
         type: string
     required:
     - domain
+    - favicon
     - languages
     - title
     type: object
@@ -416,6 +421,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      favicon:
+        type: string
       languages:
         items:
           type: string
@@ -423,6 +430,8 @@ definitions:
       title:
         maxLength: 254
         type: string
+    required:
+    - favicon
     type: object
   wool.Error:
     properties:

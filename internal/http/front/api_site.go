@@ -15,6 +15,7 @@ import (
 type Site struct {
 	ID        uuid.UUID `json:"id,omitempty"`
 	Domain    string    `json:"domain,omitempty"`
+	Favicon   string    `json:"favicon,omitempty"`
 	Languages []string  `json:"languages,omitempty"`
 	Title     string    `json:"title,omitempty"`
 }
@@ -53,6 +54,7 @@ func (a *SiteActions) List(c wool.Ctx) error {
 			data[i] = Site{
 				ID:        site.ID,
 				Domain:    site.Domain,
+				Favicon:   site.Favicon,
 				Languages: site.Languages,
 				Title:     site.Title,
 			}

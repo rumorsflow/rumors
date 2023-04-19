@@ -182,6 +182,9 @@ const docTemplatefront = `{
                 "domain": {
                     "type": "string"
                 },
+                "favicon": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

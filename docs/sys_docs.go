@@ -1963,6 +1963,9 @@ const docTemplatesys = `{
                 "enabled": {
                     "type": "boolean"
                 },
+                "favicon": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -2081,6 +2084,7 @@ const docTemplatesys = `{
             "type": "object",
             "required": [
                 "domain",
+                "favicon",
                 "languages",
                 "title"
             ],
@@ -2090,6 +2094,9 @@ const docTemplatesys = `{
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
                 },
                 "languages": {
                     "type": "array",
@@ -2275,12 +2282,18 @@ const docTemplatesys = `{
         },
         "sys.UpdateSiteDTO": {
             "type": "object",
+            "required": [
+                "favicon"
+            ],
             "properties": {
                 "domain": {
                     "type": "string"
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
                 },
                 "languages": {
                     "type": "array",

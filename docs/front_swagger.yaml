@@ -4,6 +4,8 @@ definitions:
     properties:
       domain:
         type: string
+      favicon:
+        type: string
       id:
         type: string
       languages:

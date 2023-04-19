@@ -8,6 +8,7 @@ import (
 type Site struct {
 	ID        uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
 	Domain    string    `json:"domain,omitempty" bson:"domain,omitempty"`
+	Favicon   string    `json:"favicon,omitempty" bson:"favicon,omitempty"`
 	Languages []string  `json:"languages,omitempty" bson:"languages,omitempty"`
 	Title     string    `json:"title,omitempty" bson:"title,omitempty"`
 	Enabled   *bool     `json:"enabled,omitempty" bson:"enabled,omitempty"`

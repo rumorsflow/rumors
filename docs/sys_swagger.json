@@ -1955,6 +1955,9 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "favicon": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -2073,6 +2076,7 @@
             "type": "object",
             "required": [
                 "domain",
+                "favicon",
                 "languages",
                 "title"
             ],
@@ -2082,6 +2086,9 @@
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
                 },
                 "languages": {
                     "type": "array",
@@ -2267,12 +2274,18 @@
         },
         "sys.UpdateSiteDTO": {
             "type": "object",
+            "required": [
+                "favicon"
+            ],
             "properties": {
                 "domain": {
                     "type": "string"
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "favicon": {
+                    "type": "string"
                 },
                 "languages": {
                     "type": "array",
