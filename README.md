@@ -1,6 +1,14 @@
-# Rumors v2
+<p align="center">
+    <a href="https://www.rumorsflow.com/" target="_blank" rel="noopener">
+        <img src="https://i.imgur.com/4BAQDhD.png" alt="RumorsFlow" />
+    </a>
+</p>
 
-![License](https://img.shields.io/dub/l/vibe-d.svg)
+<p align="center">
+    <a href="https://github.com/rumorsflow/rumors/actions/workflows/release.yaml" target="_blank" rel="noopener"><img src="https://github.com/rumorsflow/rumors/actions/workflows/release.yaml/badge.svg" alt="build" /></a>
+    <a href="https://github.com/rumorsflow/rumors/releases" target="_blank" rel="noopener"><img src="https://img.shields.io/github/v/release/rumorsflow/rumors.svg" alt="Latest releases" /></a>
+    <a href="https://github.com/rumorsflow/rumors/blob/main/LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/dub/l/vibe-d.svg" alt="LICENSE" /></a>
+</p>
 
 ```shell
 go run . --dotenv=.env
