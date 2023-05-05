@@ -8,6 +8,7 @@ import (
 	"github.com/otiai10/opengraph/v2"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/spf13/cast"
+	"golang.org/x/exp/slices"
 	"golang.org/x/net/html"
 	"net/http"
 	"strings"
@@ -160,12 +161,9 @@ func pagination(args string) (i uint64, s uint64, search string) {
 }
 
 func contains(data []string, el string) bool {
-	for _, item := range data {
-		if strings.EqualFold(item, el) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(data, func(s string) bool {
+		return strings.EqualFold(s, el)
+	})
 }
 
 type Meta struct {

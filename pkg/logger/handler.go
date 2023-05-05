@@ -3,13 +3,13 @@ package logger
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"golang.org/x/exp/slices"
 	"golang.org/x/exp/slog"
 	"io"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -100,9 +100,7 @@ func (h *ConsoleHandler) Handle(_ context.Context, r slog.Record) error {
 	attrs += h.addSource(r, sep)
 
 	if attrs != "" {
-		_, _ = buf.WriteString(" {")
-		_, _ = buf.WriteString(attrs)
-		_ = buf.WriteByte('}')
+		_, _ = buf.WriteString(fmt.Sprintf(" {%s}", attrs))
 	}
 
 	if err := buf.WriteByte('\n'); err != nil {
@@ -114,26 +112,16 @@ func (h *ConsoleHandler) Handle(_ context.Context, r slog.Record) error {
 }
 
 func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
-	total := len(h.global) + r.NumAttrs()
-
-	if total == 0 {
-		return "", ""
-	}
-
-	sep := ""
-
-	var buf bytes.Buffer
-	var fn func(a slog.Attr) bool
+	var (
+		sep string
+		buf bytes.Buffer
+		fn  func(a slog.Attr) bool
+	)
 
 	fn = func(a slog.Attr) bool {
-		total--
-
 		v := a.Value.Resolve()
 
-		_, _ = buf.WriteString(sep)
-		_ = buf.WriteByte('"')
-		_, _ = buf.WriteString(a.Key)
-		_, _ = buf.WriteString("\": ")
+		_, _ = buf.WriteString(fmt.Sprintf("%s\"%s\": ", sep, a.Key))
 
 		if v.Kind() == slog.KindGroup {
 			sep = ""
@@ -158,50 +146,18 @@ func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
 	for _, attr := range h.global {
 		fn(attr)
 	}
-
 	r.Attrs(fn)
-
-	if h.opts.AddSource {
-		f := frame(r)
-		if f.File != "" {
-			_, _ = buf.WriteString(sep)
-			_ = buf.WriteByte('"')
-			_, _ = buf.WriteString(slog.SourceKey)
-			_, _ = buf.WriteString("\": ")
-			_ = buf.WriteByte('"')
-			_, _ = buf.WriteString(f.File)
-			_ = buf.WriteByte(':')
-			buf.WriteString(strconv.Itoa(f.Line))
-			_ = buf.WriteByte('"')
-		}
-	}
 
 	return buf.String(), sep
 }
 
 func (h *ConsoleHandler) addSource(r slog.Record, sep string) string {
-	if !h.opts.AddSource {
-		return ""
+	if h.opts.AddSource {
+		f := frame(r)
+		if f.File != "" {
+			return fmt.Sprintf("%s\"%s\": \"%s:%d\"", sep, slog.SourceKey, f.File, f.Line)
+		}
 	}
-
-	f := frame(r)
-
-	if f.File != "" {
-		var buf bytes.Buffer
-
-		_, _ = buf.WriteString(sep)
-		_ = buf.WriteByte('"')
-		_, _ = buf.WriteString(slog.SourceKey)
-		_, _ = buf.WriteString("\": ")
-		_ = buf.WriteByte('"')
-		_, _ = buf.WriteString(f.File)
-		_ = buf.WriteByte(':')
-		buf.WriteString(strconv.Itoa(f.Line))
-		_ = buf.WriteByte('"')
-
-		return buf.String()
-	}
-
 	return ""
 }
 
