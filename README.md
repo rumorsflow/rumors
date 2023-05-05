@@ -11,7 +11,7 @@
 </p>
 
 ```shell
-go run . --dotenv=.env
+go run .
 ```
 
 ### Bot commands

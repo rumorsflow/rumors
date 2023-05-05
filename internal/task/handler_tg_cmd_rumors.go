@@ -32,7 +32,7 @@ func (h *HandlerTgCmdRumors) ProcessTask(ctx context.Context, _ *asynq.Task) err
 
 	grouped, err := h.articles(ctx, message.CommandArguments(), ids)
 	if err != nil {
-		h.logger.Error("error due to find articles", err, "command", message.Command(), "args", message.CommandArguments(), "telegram_id", message.Chat.ID)
+		h.logger.Error("error due to find articles", "err", err, "command", message.Command(), "args", message.CommandArguments(), "telegram_id", message.Chat.ID)
 		return err
 	}
 

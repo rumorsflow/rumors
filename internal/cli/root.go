@@ -59,8 +59,8 @@ func NewCommand(args []string, version string) *cobra.Command {
 				dotenv = v
 			}
 
-			if dotenv != "" {
-				if err := godotenv.Load(dotenv); err != nil {
+			if _, err := os.Stat(dotenv); err == nil {
+				if err = godotenv.Load(dotenv); err != nil {
 					return err
 				}
 			}
@@ -237,7 +237,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 			})
 
 			if err = bot.Send(telegram.Message{View: telegram.ViewAppStart}); err != nil {
-				logger.Error("error due to send app start message to bot", err)
+				logger.Error("error due to send app start message to bot", "err", err)
 			}
 
 			logger.Debug("press Ctrl+C to stop")
@@ -245,7 +245,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 			err = g.Wait()
 
 			if err1 := bot.Send(telegram.Message{View: telegram.ViewAppStop}); err1 != nil {
-				logger.Error("error due to send app stop message to bot", err1)
+				logger.Error("error due to send app stop message to bot", "err", err1)
 			}
 
 			return err
@@ -254,7 +254,7 @@ func NewCommand(args []string, version string) *cobra.Command {
 
 	f := cmd.PersistentFlags()
 	f.StringVarP(&cfgFile, "config", "c", "config.yaml", "config file")
-	f.StringVar(&dotenv, "dotenv", "", fmt.Sprintf("dotenv file [$%s]", envDotenv))
+	f.StringVar(&dotenv, "dotenv", ".env", fmt.Sprintf("dotenv file [$%s]", envDotenv))
 
 	_ = f.Parse(args[1:])
 

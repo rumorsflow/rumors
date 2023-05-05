@@ -13,7 +13,7 @@ func (tl *telegramLogger) Println(v ...any) {
 	for _, item := range v {
 		switch val := item.(type) {
 		case error:
-			tl.logger.Error("request error", val)
+			tl.logger.Error("request error", "err", val)
 		case string:
 			tl.logger.Info(val)
 		default:

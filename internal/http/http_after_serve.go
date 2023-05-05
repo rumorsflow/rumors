@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/gowool/wool"
+	"golang.org/x/exp/slog"
 	"regexp"
 	"time"
 )
@@ -39,7 +40,7 @@ func (cfg *AfterServeConfig) isOK(status, method, endpoint string) bool {
 		(cfg.rxEndpoint == nil || !cfg.rxEndpoint.MatchString(endpoint))
 }
 
-func AfterServe(cfg *AfterServeConfig) wool.AfterServe {
+func AfterServe(cfg *AfterServeConfig, log *slog.Logger) wool.AfterServe {
 	if cfg == nil {
 		cfg = &AfterServeConfig{}
 	}
@@ -72,11 +73,15 @@ func AfterServe(cfg *AfterServeConfig) wool.AfterServe {
 		}
 
 		if err != nil {
-			wool.Logger().Error(c.Req().URL.String(), err, args...)
+			args = append(args, nil, nil)
+			copy(args[2:], args)
+			args[0] = "err"
+			args[1] = err
+			log.Error(c.Req().URL.String(), args...)
 		} else if status >= 400 {
-			wool.Logger().Warn(c.Req().URL.String(), args...)
+			log.Warn(c.Req().URL.String(), args...)
 		} else {
-			wool.Logger().Info(c.Req().URL.String(), args...)
+			log.Info(c.Req().URL.String(), args...)
 		}
 	}
 }

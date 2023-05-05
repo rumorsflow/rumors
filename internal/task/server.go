@@ -67,7 +67,7 @@ func (s *Server) Run(ctx context.Context, handler asynq.Handler) error {
 
 		if s.errorHandler == nil {
 			s.errorHandler = asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-				s.logger.Error("handle task error", err, "task", task.Type(), "payload", task.Payload())
+				s.logger.Error("handle task error", "err", err, "task", task.Type(), "payload", task.Payload())
 			})
 		}
 	}

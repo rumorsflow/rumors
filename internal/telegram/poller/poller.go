@@ -68,7 +68,7 @@ func (p *TelegramPoller) Poll(ctx context.Context) error {
 				retry = time.Duration(tge.RetryAfter)
 			}
 
-			p.logger.Error(fmt.Sprintf("failed to get updates, retrying in %d seconds...", retry), err)
+			p.logger.Error(fmt.Sprintf("failed to get updates, retrying in %d seconds...", retry), "err", err)
 			time.Sleep(retry * time.Second)
 
 			continue
@@ -104,7 +104,7 @@ func (p *TelegramPoller) listen() {
 			cancel()
 
 			if err := ctx.Err(); err != nil && !errs.IsCanceledOrDeadline(err) {
-				p.logger.Error("failed to enqueue update", ctx.Err())
+				p.logger.Error("failed to enqueue update", "err", ctx.Err())
 			}
 
 			return

@@ -2,7 +2,7 @@ package rdb
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/rumorsflow/rumors/v2/pkg/di"
 	"time"
 )
@@ -23,29 +23,32 @@ func (m *UniversalClientMaker) MakeRedisClient() any {
 }
 
 func New(cfg *Config) redis.UniversalClient {
-	cfg.Init()
-
 	return redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:              cfg.Addrs,
-		DB:                 cfg.DB,
-		Username:           cfg.Username,
-		Password:           cfg.Password,
-		SentinelPassword:   cfg.SentinelPassword,
-		MaxRetries:         cfg.MaxRetries,
-		MinRetryBackoff:    cfg.MaxRetryBackoff,
-		MaxRetryBackoff:    cfg.MaxRetryBackoff,
-		DialTimeout:        cfg.DialTimeout,
-		ReadTimeout:        cfg.ReadTimeout,
-		WriteTimeout:       cfg.WriteTimeout,
-		PoolSize:           cfg.PoolSize,
-		MinIdleConns:       cfg.MinIdleConns,
-		MaxConnAge:         cfg.MaxConnAge,
-		PoolTimeout:        cfg.PoolTimeout,
-		IdleTimeout:        cfg.IdleTimeout,
-		IdleCheckFrequency: cfg.IdleCheckFreq,
-		ReadOnly:           cfg.ReadOnly,
-		RouteByLatency:     cfg.RouteByLatency,
-		RouteRandomly:      cfg.RouteRandomly,
-		MasterName:         cfg.MasterName,
+		Addrs:                 cfg.Addrs,
+		ClientName:            cfg.ClientName,
+		DB:                    cfg.DB,
+		Username:              cfg.Username,
+		Password:              cfg.Password,
+		SentinelUsername:      cfg.SentinelUsername,
+		SentinelPassword:      cfg.SentinelPassword,
+		MaxRetries:            cfg.MaxRetries,
+		MinRetryBackoff:       cfg.MaxRetryBackoff,
+		MaxRetryBackoff:       cfg.MaxRetryBackoff,
+		DialTimeout:           cfg.DialTimeout,
+		ReadTimeout:           cfg.ReadTimeout,
+		WriteTimeout:          cfg.WriteTimeout,
+		ContextTimeoutEnabled: cfg.ContextTimeoutEnabled,
+		PoolFIFO:              cfg.PoolFIFO,
+		PoolSize:              cfg.PoolSize,
+		PoolTimeout:           cfg.PoolTimeout,
+		MinIdleConns:          cfg.MinIdleConns,
+		MaxIdleConns:          cfg.MaxIdleConns,
+		ConnMaxIdleTime:       cfg.ConnMaxIdleTime,
+		ConnMaxLifetime:       cfg.ConnMaxLifetime,
+		MaxRedirects:          cfg.MaxRedirects,
+		ReadOnly:              cfg.ReadOnly,
+		RouteByLatency:        cfg.RouteByLatency,
+		RouteRandomly:         cfg.RouteRandomly,
+		MasterName:            cfg.MasterName,
 	})
 }

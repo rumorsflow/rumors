@@ -31,7 +31,7 @@ func (c *Client) EnqueueTgCmd(ctx context.Context, message *tgbotapi.Message, up
 	taskID := asynq.TaskID(fmt.Sprintf("%s:%d", name, updateID))
 
 	if err := c.Enqueue(ctx, name, message, taskID, asynq.Queue("tgcmd")); err != nil {
-		c.logger.Error("error due to enqueue chat message command", err, "option_task_id", taskID, "message", message)
+		c.logger.Error("error due to enqueue chat message command", "err", err, "option_task_id", taskID, "message", message)
 	}
 }
 
@@ -40,7 +40,7 @@ func (c *Client) EnqueueTgMemberNew(ctx context.Context, member *tgbotapi.Chat, 
 	taskID := asynq.TaskID(fmt.Sprintf("%s:%d", name, updateID))
 
 	if err := c.Enqueue(ctx, name, member, taskID, asynq.Queue("tgmember")); err != nil {
-		c.logger.Error("error due to enqueue new chat member", err, "option_task_id", taskID, "member", member)
+		c.logger.Error("error due to enqueue new chat member", "err", err, "option_task_id", taskID, "member", member)
 	}
 }
 
@@ -49,7 +49,7 @@ func (c *Client) EnqueueTgMemberEdit(ctx context.Context, member *tgbotapi.ChatM
 	taskID := asynq.TaskID(fmt.Sprintf("%s:%d", name, updateID))
 
 	if err := c.Enqueue(ctx, name, member, taskID, asynq.Queue("tgmember")); err != nil {
-		c.logger.Error("error due to enqueue edit chat member", err, "option_task_id", taskID, "member", member)
+		c.logger.Error("error due to enqueue edit chat member", "err", err, "option_task_id", taskID, "member", member)
 	}
 }
 

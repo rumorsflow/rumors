@@ -3,32 +3,31 @@ package rdb
 import "time"
 
 type Config struct {
-	Addrs            []string      `mapstructure:"addrs"`
-	DB               int           `mapstructure:"db"`
-	Username         string        `mapstructure:"username"`
-	Password         string        `mapstructure:"password"`
-	MasterName       string        `mapstructure:"master_name"`
-	SentinelPassword string        `mapstructure:"sentinel_password"`
-	RouteByLatency   bool          `mapstructure:"route_by_latency"`
-	RouteRandomly    bool          `mapstructure:"route_randomly"`
-	MaxRetries       int           `mapstructure:"max_retries"`
-	DialTimeout      time.Duration `mapstructure:"dial_timeout"`
-	MinRetryBackoff  time.Duration `mapstructure:"min_retry_backoff"`
-	MaxRetryBackoff  time.Duration `mapstructure:"max_retry_backoff"`
-	PoolSize         int           `mapstructure:"pool_size"`
-	MinIdleConns     int           `mapstructure:"min_idle_conns"`
-	MaxConnAge       time.Duration `mapstructure:"max_conn_age"`
-	ReadTimeout      time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout     time.Duration `mapstructure:"write_timeout"`
-	PoolTimeout      time.Duration `mapstructure:"pool_timeout"`
-	IdleTimeout      time.Duration `mapstructure:"idle_timeout"`
-	IdleCheckFreq    time.Duration `mapstructure:"idle_check_freq"`
-	ReadOnly         bool          `mapstructure:"read_only"`
-	Ping             bool          `mapstructure:"ping"`
-}
-
-func (cfg *Config) Init() {
-	if cfg.Addrs == nil {
-		cfg.Addrs = []string{"0.0.0.0:6379"} // default addr is pointing to local storage
-	}
+	Addrs                 []string      `mapstructure:"addrs"`
+	ClientName            string        `mapstructure:"client_name"`
+	DB                    int           `mapstructure:"db"`
+	Username              string        `mapstructure:"username"`
+	Password              string        `mapstructure:"password"`
+	SentinelUsername      string        `mapstructure:"sentinel_username"`
+	SentinelPassword      string        `mapstructure:"sentinel_password"`
+	MaxRetries            int           `mapstructure:"max_retries"`
+	MinRetryBackoff       time.Duration `mapstructure:"min_retry_backoff"`
+	MaxRetryBackoff       time.Duration `mapstructure:"max_retry_backoff"`
+	DialTimeout           time.Duration `mapstructure:"dial_timeout"`
+	ReadTimeout           time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout          time.Duration `mapstructure:"write_timeout"`
+	ContextTimeoutEnabled bool          `mapstructure:"context_timeout_enabled"`
+	PoolFIFO              bool          `mapstructure:"pool_fifo"`
+	PoolSize              int           `mapstructure:"pool_size"`
+	PoolTimeout           time.Duration `mapstructure:"pool_timeout"`
+	MinIdleConns          int           `mapstructure:"min_idle_conns"`
+	MaxIdleConns          int           `mapstructure:"max_idle_conns"`
+	ConnMaxIdleTime       time.Duration `mapstructure:"conn_max_idle_time"`
+	ConnMaxLifetime       time.Duration `mapstructure:"conn_max_life_time"`
+	MaxRedirects          int           `mapstructure:"max_redirects"`
+	ReadOnly              bool          `mapstructure:"read_only"`
+	RouteByLatency        bool          `mapstructure:"route_by_latency"`
+	RouteRandomly         bool          `mapstructure:"route_randomly"`
+	MasterName            string        `mapstructure:"master_name"`
+	Ping                  bool          `mapstructure:"ping"`
 }

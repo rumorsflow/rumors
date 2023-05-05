@@ -1,5 +1,4 @@
 logger:
-  development: ${RUMORS_LOGGER_DEVELOPMENT}
   add_source: ${RUMORS_LOGGER_ADD_SOURCE}
   level: ${RUMORS_LOGGER_LEVEL}
   encoding: ${RUMORS_LOGGER_ENCODING}

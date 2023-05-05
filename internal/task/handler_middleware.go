@@ -50,7 +50,7 @@ func TgCmdMiddleware(
 		return asynq.HandlerFunc(func(ctx context.Context, task *asynq.Task) error {
 			var message tgbotapi.Message
 			if err := unmarshal(task.Payload(), &message); err != nil {
-				logger.Error("error due to unmarshal task payload", err)
+				logger.Error("error due to unmarshal task payload", "err", err)
 				return nil
 			}
 
@@ -59,7 +59,7 @@ func TgCmdMiddleware(
 			criteria := db.BuildCriteria(fmt.Sprintf("size=1&field.0.0=telegram_id&value.0.0=%d", message.Chat.ID))
 			chats, err := chatRepo.Find(ctx, criteria)
 			if err != nil {
-				logger.Error("error due to find chat", err, "command", message.Command(), "telegram_id", message.Chat.ID)
+				logger.Error("error due to find chat", "err", err, "command", message.Command(), "telegram_id", message.Chat.ID)
 				return err
 			}
 			if len(chats) == 0 {
@@ -74,7 +74,7 @@ func TgCmdMiddleware(
 			sites, err := siteRepo.Find(ctx, db.BuildCriteria("sort=domain&field.0.0=enabled&value.0.0=true"))
 			if err != nil {
 				err = fmt.Errorf("%s error: %w", OpServerProcessTask, err)
-				logger.Error("error due to find sites", err, "command", message.Command())
+				logger.Error("error due to find sites", "err", err, "command", message.Command())
 				return err
 			}
 

@@ -38,14 +38,14 @@ func (h *HandlerJobSitemap) ProcessTask(ctx context.Context, task *asynq.Task) e
 
 	var payload entity.SitemapPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
-		h.logger.Error("error due to unmarshal sitemap payload", err, "payload", task.Payload())
+		h.logger.Error("error due to unmarshal sitemap payload", "err", err, "payload", task.Payload())
 		return nil
 	}
 
 	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
 	if err != nil {
 		if errors.Is(err, repository.ErrEntityNotFound) {
-			h.logger.Error("error due to find site", err, "id", payload.SiteID)
+			h.logger.Error("error due to find site", "err", err, "id", payload.SiteID)
 			return nil
 		}
 		return fmt.Errorf("%s find site %v error: %w", OpServerProcessTask, payload.SiteID, err)
@@ -125,7 +125,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 			return err
 		}
 
-		h.logger.Error("error due to parse sitemap location", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "entry", entry)
+		h.logger.Error("error due to parse sitemap location", "err", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "entry", entry)
 
 		return nil
 	}
@@ -216,7 +216,7 @@ func (h *HandlerJobSitemap) saveArticle(ctx context.Context, article *entity.Art
 
 			return io.EOF
 		} else {
-			h.logger.Error("error due to save article", err, "article", article)
+			h.logger.Error("error due to save article", "err", err, "article", article)
 		}
 
 		return nil

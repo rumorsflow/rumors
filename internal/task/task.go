@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/hibiken/asynq"
@@ -58,7 +59,7 @@ func level(log *slog.Logger) asynq.LogLevel {
 		asynq.WarnLevel:  slog.LevelWarn,
 		asynq.ErrorLevel: slog.LevelError,
 	} {
-		if log.Enabled(l) {
+		if log.Enabled(context.Background(), l) {
 			return a
 		}
 	}
@@ -97,10 +98,10 @@ func (l *asynqLogger) Warn(args ...any) {
 }
 
 func (l *asynqLogger) Error(args ...any) {
-	l.logger.Error("asynq error", fmt.Errorf(args[0].(string), args[1:]...))
+	l.logger.Error("asynq error", "err", fmt.Errorf(args[0].(string), args[1:]...))
 }
 
 func (l *asynqLogger) Fatal(args ...any) {
-	l.logger.Error("asynq error", fmt.Errorf(args[0].(string), args[1:]...))
+	l.logger.Error("asynq error", "err", fmt.Errorf(args[0].(string), args[1:]...))
 	os.Exit(1)
 }

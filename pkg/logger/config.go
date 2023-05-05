@@ -1,13 +1,12 @@
 package logger
 
 import (
+	"golang.org/x/exp/slog"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 )
 
 type Config struct {
-	Development bool `mapstructure:"development"`
-
 	// When AddSource is true, the handler adds a ("source", "file:line")
 	// attribute to the output indicating the source code position of the log
 	// statement. AddSource is false by default to skip the cost of computing
@@ -31,25 +30,17 @@ type Config struct {
 	Attrs map[string]any `mapstructure:"attributes"`
 }
 
-func (cfg *Config) Init() {
-	if cfg.Level == "" {
-		cfg.Level = "debug"
-	}
-
-	if len(cfg.OutputPaths) == 0 {
-		cfg.OutputPaths = []string{"stdout"}
-	}
-
-	if cfg.FileLogger != nil {
-		cfg.FileLogger.Init()
-	}
-}
-
-func (cfg *Config) openSinks() (WriteSyncer, error) {
+func (cfg *Config) OpenSinks() (WriteSyncer, error) {
 	if cfg.FileLogger == nil {
+		if len(cfg.OutputPaths) == 0 {
+			cfg.OutputPaths = []string{"stderr"}
+		}
+
 		sink, _, err := Open(cfg.OutputPaths...)
 		return sink, err
 	}
+
+	cfg.FileLogger.Init()
 
 	return AddSync(&lumberjack.Logger{
 		Filename:   cfg.FileLogger.LogOutput,
@@ -58,6 +49,13 @@ func (cfg *Config) openSinks() (WriteSyncer, error) {
 		MaxBackups: cfg.FileLogger.MaxBackups,
 		Compress:   cfg.FileLogger.Compress,
 	}), nil
+}
+
+func (cfg *Config) Opts() HandlerOptions {
+	return HandlerOptions{HandlerOptions: slog.HandlerOptions{
+		Level:     ToLeveler(cfg.Level),
+		AddSource: cfg.AddSource,
+	}}
 }
 
 type FileConfig struct {

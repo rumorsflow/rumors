@@ -69,7 +69,7 @@ func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error 
 	if len(ids) != len(*chat.Broadcast) {
 		chat.SetBroadcast(ids)
 		if err := h.chatRepo.Save(ctx, chat); err != nil {
-			h.logger.Error("error due to save chat", err, "id", chat.ID, "telegram_id", chat.TelegramID)
+			h.logger.Error("error due to save chat", "err", err, "id", chat.ID, "telegram_id", chat.TelegramID)
 
 			h.publisher.Telegram(ctx, telegram.Message{
 				ChatID: chat.TelegramID,

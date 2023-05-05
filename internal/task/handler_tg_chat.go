@@ -33,7 +33,7 @@ func (h *HandlerTgChat) ProcessTask(ctx context.Context, task *asynq.Task) error
 func (h *HandlerTgChat) new(ctx context.Context, task *asynq.Task) error {
 	var chat tgbotapi.Chat
 	if err := unmarshal(task.Payload(), &chat); err != nil {
-		h.logger.Error("error due to unmarshal task payload", err)
+		h.logger.Error("error due to unmarshal task payload", "err", err)
 		return nil
 	}
 	return h.save(ctx, chat, nil)
@@ -42,7 +42,7 @@ func (h *HandlerTgChat) new(ctx context.Context, task *asynq.Task) error {
 func (h *HandlerTgChat) edit(ctx context.Context, task *asynq.Task) error {
 	var chat tgbotapi.ChatMemberUpdated
 	if err := unmarshal(task.Payload(), &chat); err != nil {
-		h.logger.Error("error due to unmarshal task payload", err)
+		h.logger.Error("error due to unmarshal task payload", "err", err)
 		return nil
 	}
 	return h.save(ctx, chat.Chat, &chat.NewChatMember)
@@ -51,7 +51,7 @@ func (h *HandlerTgChat) edit(ctx context.Context, task *asynq.Task) error {
 func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *tgbotapi.ChatMember) error {
 	chat, err := h.toEntityChat(ctx, tgChat)
 	if err != nil {
-		h.logger.Error("error due to find chat", err, "chat", tgChat, "telegram_id", tgChat.ID)
+		h.logger.Error("error due to find chat", "err", err, "chat", tgChat, "telegram_id", tgChat.ID)
 		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 
@@ -81,7 +81,7 @@ func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *
 	}
 
 	if err = h.chatRepo.Save(ctx, chat); err != nil {
-		h.logger.Error("error due to save chat", err, "chat", tgChat, "telegram_id", tgChat.ID)
+		h.logger.Error("error due to save chat", "err", err, "chat", tgChat, "telegram_id", tgChat.ID)
 		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
 	}
 

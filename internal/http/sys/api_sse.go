@@ -203,7 +203,7 @@ func (a *SSE) broadcast() {
 			if queues == nil {
 				queues, err = a.queues()
 				if err != nil {
-					a.logger.Error("error due to collect queues info", err)
+					a.logger.Error("error due to collect queues info", "err", err)
 					return true
 				}
 			}
@@ -214,7 +214,7 @@ func (a *SSE) broadcast() {
 			if dailyStats == nil {
 				dailyStats, err = a.dailyStats()
 				if err != nil {
-					a.logger.Error("error due to collect queues daily stats", err)
+					a.logger.Error("error due to collect queues daily stats", "err", err)
 					return true
 				}
 			}
@@ -225,7 +225,7 @@ func (a *SSE) broadcast() {
 			if schedulerEntries == nil {
 				schedulerEntries, err = a.schedulerEntries()
 				if err != nil {
-					a.logger.Error("error due to collect scheduler entries", err)
+					a.logger.Error("error due to collect scheduler entries", "err", err)
 					return true
 				}
 			}

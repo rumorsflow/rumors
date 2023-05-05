@@ -44,14 +44,14 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 
 	var payload entity.FeedPayload
 	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
-		h.logger.Error("error due to unmarshal feed payload", err, "payload", task.Payload())
+		h.logger.Error("error due to unmarshal feed payload", "err", err, "payload", task.Payload())
 		return nil
 	}
 
 	site, err := h.siteRepo.FindByID(ctx, payload.SiteID)
 	if err != nil {
 		if errors.Is(err, repository.ErrEntityNotFound) {
-			h.logger.Error("error due to find site", err, "id", payload.SiteID)
+			h.logger.Error("error due to find site", "err", err, "id", payload.SiteID)
 			return nil
 		}
 		return fmt.Errorf("%s find site %v error: %w", OpServerProcessTask, payload.SiteID, err)
@@ -60,7 +60,7 @@ func (h *HandlerJobFeed) ProcessTask(ctx context.Context, task *asynq.Task) erro
 	parsed, err := h.parseFeed(ctx, payload.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
-			h.logger.Error("error due to parse feed", err, "site_id", payload.SiteID, "feed_link", payload.Link)
+			h.logger.Error("error due to parse feed", "err", err, "site_id", payload.SiteID, "feed_link", payload.Link)
 		}
 		return nil
 	}
@@ -100,7 +100,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 	og, err := h.parseOpengraphMeta(ctx, item.Link)
 	if err != nil {
 		if !errs.IsCanceledOrDeadline(err) {
-			h.logger.Error("error due to parse feed item's link", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "item", item)
+			h.logger.Error("error due to parse feed item's link", "err", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "item", item)
 		}
 		return
 	}
@@ -254,7 +254,7 @@ func (h *HandlerJobFeed) saveArticle(ctx context.Context, article *entity.Articl
 		if errors.Is(err, repository.ErrDuplicateKey) {
 			h.logger.Debug("error due to save article, duplicate key", "article", article)
 		} else {
-			h.logger.Error("error due to save article", err, "article", article)
+			h.logger.Error("error due to save article", "err", err, "article", article)
 		}
 		return
 	}

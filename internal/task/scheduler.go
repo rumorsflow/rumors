@@ -108,7 +108,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			return nil
 		case <-ticker.C:
 			if err := s.sync(context.Background()); err != nil {
-				s.log.Error("failed to sync", err)
+				s.log.Error("failed to sync", "err", err)
 			}
 		}
 	}

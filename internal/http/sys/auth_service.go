@@ -3,10 +3,10 @@ package sys
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"github.com/goccy/go-json"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/repository"
 	"github.com/rumorsflow/rumors/v2/internal/repository/db"

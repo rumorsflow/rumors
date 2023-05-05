@@ -78,7 +78,7 @@ func (s *Subscriber) Run(ctx context.Context) error {
 			var message Message
 			if err := json.Unmarshal(conv.StringToBytes(data.Payload), &message); err != nil {
 				err = fmt.Errorf("%s error: %w", OpUnmarshalMessage, err)
-				s.logger.Error("error due to unmarshal message", err, "channel", data.Channel, "payload", data.Payload)
+				s.logger.Error("error due to unmarshal message", "err", err, "channel", data.Channel, "payload", data.Payload)
 				continue
 			}
 
@@ -94,7 +94,7 @@ func (s *Subscriber) Run(ctx context.Context) error {
 			var articles []pubsub.Article
 			if err := json.Unmarshal(conv.StringToBytes(data.Payload), &articles); err != nil {
 				err = fmt.Errorf("%s error: %w", OpUnmarshalArticles, err)
-				s.logger.Error("error due to unmarshal articles", err, "channel", data.Channel, "payload", data.Payload)
+				s.logger.Error("error due to unmarshal articles", "err", err, "channel", data.Channel, "payload", data.Payload)
 				continue
 			}
 
@@ -106,7 +106,7 @@ func (s *Subscriber) Run(ctx context.Context) error {
 				site, err := s.siteRepo.FindByID(ctx, article.SiteID)
 				if err != nil {
 					err = fmt.Errorf("%s error: %w", OpFindSite, err)
-					s.logger.Error("error due to find site", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
+					s.logger.Error("error due to find site", "err", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
 					continue
 				}
 
@@ -119,7 +119,7 @@ func (s *Subscriber) Run(ctx context.Context) error {
 				chats, err := s.chatRepo.Find(ctx, db.BuildCriteria(fmt.Sprintf(chatQuery, article.SiteID)))
 				if err != nil {
 					err = fmt.Errorf("%s error: %w", OpFindChats, err)
-					s.logger.Error("error due to find chats", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
+					s.logger.Error("error due to find chats", "err", err, "channel", data.Channel, "article", article.ID, "site", article.SiteID)
 					continue
 				}
 
@@ -147,7 +147,7 @@ func (s *Subscriber) send(message Message, channel string) {
 	chunks, err := message.chattable(s.bot)
 	if err != nil {
 		err = fmt.Errorf("%s error: %w", OpPrepareMessage, err)
-		s.logger.Error("error due prepare message before send", err, "channel", channel, "message", message)
+		s.logger.Error("error due prepare message before send", "err", err, "channel", channel, "message", message)
 		return
 	}
 
@@ -160,7 +160,7 @@ func (s *Subscriber) processor(message tgbotapi.Chattable) error {
 		if e, ok := err.(*tgbotapi.Error); ok {
 			res, _ = json.Marshal(e)
 		}
-		s.logger.Error("bot request error", fmt.Errorf("%s error: %w", OpProcessor, err), "message", message, "response", res)
+		s.logger.Error("bot request error", "err", fmt.Errorf("%s error: %w", OpProcessor, err), "message", message, "response", res)
 
 		return err
 	}

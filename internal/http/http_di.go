@@ -178,11 +178,11 @@ func WoolActivator(version string) *di.Activator {
 				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
-			wool.SetLogger(logger.WithGroup("http"))
-
+			log := logger.WithGroup("http")
 			w := wool.New(
+				log,
 				wool.WithErrorTransform(ErrorTransform),
-				wool.WithAfterServe(AfterServe(afterServeConfig)),
+				wool.WithAfterServe(AfterServe(afterServeConfig, log)),
 			)
 
 			if metricsConfig, err := config.UnmarshalKeyE[*prometheus.Config](c.Configurer(), ConfigMetricsKey); err == nil {
@@ -220,7 +220,7 @@ func ServerActivator(certFS fs.FS, tls func(*tls.Config)) *di.Activator {
 				return nil, nil, fmt.Errorf("%s error: %w", di.OpFactory, err)
 			}
 
-			s := wool.NewServer(cfg)
+			s := wool.NewServer(cfg, logger.WithGroup("http").WithGroup("server"))
 			s.CertFilesystem = certFS
 			s.TLSConfig = tls
 

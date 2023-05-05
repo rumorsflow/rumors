@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"github.com/fatih/color"
 	"github.com/goccy/go-json"
 	"golang.org/x/exp/slices"
@@ -12,32 +13,58 @@ import (
 	"strings"
 )
 
+var (
+	_ slog.Handler  = (*ConsoleHandler)(nil)
+	_ HandlerSyncer = (*handlerSyncer)(nil)
+)
+
 const timeLayout = "2006-01-02T15:04:05.000Z0700"
 
+type HandlerOptions struct {
+	slog.HandlerOptions
+}
+
+func (opts HandlerOptions) NewConsoleHandler(w io.Writer) *ConsoleHandler {
+	return NewConsoleHandler(opts.HandlerOptions, w)
+}
+
+func (opts HandlerOptions) NewHandler(w io.Writer, encoding string) slog.Handler {
+	switch strings.ToLower(encoding) {
+	case "console":
+		return opts.NewConsoleHandler(w)
+	case "text":
+		return opts.NewTextHandler(w)
+	default:
+		return opts.NewJSONHandler(w)
+	}
+}
+
 type ConsoleHandler struct {
-	level  slog.Level
+	opts   slog.HandlerOptions
 	global []slog.Attr
 	groups []string
-	source bool
 	w      io.Writer
 }
 
-func NewConsoleHandler(w io.Writer, level slog.Level, source bool, attrs ...slog.Attr) *ConsoleHandler {
-	return &ConsoleHandler{w: w, level: level, source: source, global: attrs}
+func NewConsoleHandler(opts slog.HandlerOptions, w io.Writer, attrs ...slog.Attr) *ConsoleHandler {
+	return &ConsoleHandler{opts: opts, w: w, global: attrs}
 }
 
 func (h *ConsoleHandler) clone() *ConsoleHandler {
 	return &ConsoleHandler{
-		level:  h.level,
 		global: slices.Clip(h.global),
 		groups: slices.Clip(h.groups),
-		source: h.source,
+		opts:   h.opts,
 		w:      h.w,
 	}
 }
 
-func (h *ConsoleHandler) Enabled(level slog.Level) bool {
-	return level >= h.level
+func (h *ConsoleHandler) Enabled(_ context.Context, l slog.Level) bool {
+	minLevel := slog.LevelInfo
+	if h.opts.Level != nil {
+		minLevel = h.opts.Level.Level()
+	}
+	return l >= minLevel
 }
 
 func (h *ConsoleHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
@@ -52,7 +79,7 @@ func (h *ConsoleHandler) WithGroup(name string) slog.Handler {
 	return c
 }
 
-func (h *ConsoleHandler) Handle(r slog.Record) error {
+func (h *ConsoleHandler) Handle(_ context.Context, r slog.Record) error {
 	var buf bytes.Buffer
 
 	if !r.Time.IsZero() {
@@ -96,9 +123,9 @@ func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
 	sep := ""
 
 	var buf bytes.Buffer
-	var fn func(a slog.Attr)
+	var fn func(a slog.Attr) bool
 
-	fn = func(a slog.Attr) {
+	fn = func(a slog.Attr) bool {
 		total--
 
 		v := a.Value.Resolve()
@@ -118,13 +145,14 @@ func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
 			_ = buf.WriteByte('}')
 		} else {
 			sep = ", "
-			if a.Key == slog.ErrorKey {
-				_, _ = buf.WriteString(v.Any().(error).Error())
+			if err, ok := v.Any().(error); ok {
+				_, _ = buf.WriteString(err.Error())
 			} else {
 				b, _ := json.MarshalWithOption(v.Any())
 				_, _ = buf.Write(b)
 			}
 		}
+		return true
 	}
 
 	for _, attr := range h.global {
@@ -133,7 +161,7 @@ func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
 
 	r.Attrs(fn)
 
-	if h.source {
+	if h.opts.AddSource {
 		f := frame(r)
 		if f.File != "" {
 			_, _ = buf.WriteString(sep)
@@ -152,7 +180,7 @@ func (h *ConsoleHandler) attrs(r slog.Record) (string, string) {
 }
 
 func (h *ConsoleHandler) addSource(r slog.Record, sep string) string {
-	if !h.source {
+	if !h.opts.AddSource {
 		return ""
 	}
 
@@ -207,4 +235,17 @@ func coloredLevel(level slog.Level) string {
 
 func coloredGroup(group string) string {
 	return color.HiGreenString(spaces(group, 16))
+}
+
+type HandlerSyncer interface {
+	Sync() error
+}
+
+type handlerSyncer struct {
+	slog.Handler
+	syncer WriteSyncer
+}
+
+func (h *handlerSyncer) Sync() error {
+	return h.syncer.Sync()
 }

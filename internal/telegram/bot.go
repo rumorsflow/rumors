@@ -87,7 +87,7 @@ func (b *Bot) chattable(c tgbotapi.Chattable, retry uint) error {
 			res, _ = json.Marshal(e)
 		}
 
-		b.logger.Error("bot request error", err, "message", c, "res_err", string(res))
+		b.logger.Error("bot request error", "err", err, "message", c, "res_err", string(res))
 
 		return fmt.Errorf("%s error: %w", OpBotSend, err)
 	}
