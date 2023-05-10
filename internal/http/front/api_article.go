@@ -3,11 +3,11 @@ package front
 import (
 	"github.com/google/uuid"
 	"github.com/gowool/wool"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"github.com/spf13/cast"
 	"go.mongodb.org/mongo-driver/bson"
 	"net/http"
@@ -93,9 +93,9 @@ func (a *ArticleActions) List(c wool.Ctx) error {
 			return err
 		}
 
-		mapped := make([]pubsub.Article, len(data))
+		mapped := make([]model.Article, len(data))
 		for i, item := range data {
-			mapped[i] = pubsub.FromEntity(item)
+			mapped[i] = model.ArticleFromEntity(item)
 		}
 		response.Data = mapped
 	}

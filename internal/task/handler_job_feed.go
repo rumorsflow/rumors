@@ -10,12 +10,13 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/mmcdole/gofeed"
 	"github.com/otiai10/opengraph/v2"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
+	"github.com/rumorsflow/rumors/v2/internal/model"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
-	"github.com/rumorsflow/rumors/v2/pkg/strutil"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"golang.org/x/exp/slog"
 	"net/url"
 	"sort"
@@ -31,7 +32,7 @@ const (
 
 type HandlerJobFeed struct {
 	logger      *slog.Logger
-	publisher   *pubsub.Publisher
+	publisher   common.Pub
 	siteRepo    repository.ReadRepository[*entity.Site]
 	articleRepo repository.ReadWriteRepository[*entity.Article]
 }
@@ -113,15 +114,15 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 
 	var shortDesc string
 
-	if shortDesc = strutil.StripHTMLTags(og.Description); utf8.RuneCountInString(shortDesc) < minShortDesc {
-		if shortDesc = strutil.StripHTMLTags(item.Description); utf8.RuneCountInString(shortDesc) > maxShortDesc {
+	if shortDesc = util.StripHTMLTags(og.Description); utf8.RuneCountInString(shortDesc) < minShortDesc {
+		if shortDesc = util.StripHTMLTags(item.Description); utf8.RuneCountInString(shortDesc) > maxShortDesc {
 			shortDesc = string([]rune(shortDesc)[:maxShortDesc-3])
 			shortDesc = strings.TrimSuffix(shortDesc, ".") + "..."
 		}
 	}
 
-	if item.Title = strutil.StripHTMLTags(item.Title); item.Title == "" {
-		if item.Title = strutil.StripHTMLTags(og.Title); item.Title == "" {
+	if item.Title = util.StripHTMLTags(item.Title); item.Title == "" {
+		if item.Title = util.StripHTMLTags(og.Title); item.Title == "" {
 			if item.Title = shortDesc; utf8.RuneCountInString(item.Title) > 100 {
 				item.Title = strings.TrimSuffix(string([]rune(item.Title)[:97]), ".") + "..."
 			}
@@ -163,7 +164,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 
 	categories := make([]string, 0, len(item.Categories))
 	for _, category := range item.Categories {
-		if category = strutil.StripHTMLTags(category); category != "" {
+		if category = util.StripHTMLTags(category); category != "" {
 			categories = append(categories, category)
 		}
 	}
@@ -261,7 +262,7 @@ func (h *HandlerJobFeed) saveArticle(ctx context.Context, article *entity.Articl
 
 	h.logger.Debug("article saved", "article", article)
 
-	h.publisher.Articles(ctx, []pubsub.Article{pubsub.FromEntity(article)})
+	h.publisher.Articles(ctx, []model.Article{model.ArticleFromEntity(article)})
 }
 
 func (h *HandlerJobFeed) findLastIndex(ctx context.Context, items []*gofeed.Item) (int, error) {

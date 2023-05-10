@@ -14,6 +14,8 @@ type (
 const (
 	JobFeed    JobName = "job:feed"
 	JobSitemap JobName = "job:sitemap"
+
+	JobCollection = "jobs"
 )
 
 const (
@@ -99,6 +101,10 @@ type Job struct {
 	Enabled   *bool        `json:"enabled,omitempty" bson:"enabled,omitempty"`
 	CreatedAt time.Time    `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time    `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (e *Job) Tags() []string {
+	return []string{JobCollection, e.ID.String()}
 }
 
 func (e *Job) UnmarshalBSON(data []byte) error {

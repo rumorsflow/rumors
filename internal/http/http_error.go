@@ -3,7 +3,7 @@ package http
 import (
 	"errors"
 	"github.com/gowool/wool"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 )

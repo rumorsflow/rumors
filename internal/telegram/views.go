@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"embed"
 	"github.com/goccy/go-json"
-	"github.com/rumorsflow/rumors/v2/pkg/conv"
-	"github.com/rumorsflow/rumors/v2/pkg/urlutil"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"html/template"
 	"reflect"
 	"strings"
@@ -40,7 +40,7 @@ var (
 				return ""
 			}
 			if bytes, err := json.MarshalIndent(data, "", "\t"); err == nil {
-				return template.HTML(conv.BytesToString(bytes))
+				return template.HTML(util.BytesToString(bytes))
 			}
 			return ""
 		},
@@ -58,7 +58,7 @@ var (
 				return ""
 			}
 		},
-		"domain": urlutil.SafeDomain,
+		"domain": util.SafeDomain,
 	}
 
 	templates *template.Template
@@ -72,7 +72,7 @@ func init() {
 		ParseFS(viewsFS, "views/*"))
 }
 
-func view(view View, data any) (string, error) {
+func view(view model.View, data any) (string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 

@@ -1,32 +1,37 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/goccy/go-json"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
+	"github.com/rumorsflow/rumors/v2/internal/model"
 	"golang.org/x/exp/slog"
 	"html/template"
 	"net/http"
 	"time"
 )
 
+const (
+	OpBotNew  = "bot: new ->"
+	OpBotSend = "bot: send ->"
+)
+
 type Bot struct {
 	cfg       *Config
-	logger    *slog.Logger
+	log       *slog.Logger
 	api       *tgbotapi.BotAPI
 	templates *template.Template
 }
 
-func NewBot(cfg *Config) *Bot {
+func NewBot(cfg *Config, log *slog.Logger) *Bot {
 	cfg.Init()
 
-	log := logger.WithGroup("telegram").WithGroup("bot")
-	_ = tgbotapi.SetLogger(&telegramLogger{logger: log})
+	_ = tgbotapi.SetLogger(&telegramLogger{logger: log.WithGroup("bot")})
 
 	api := &tgbotapi.BotAPI{
 		Token:  cfg.Token,
-		Debug:  logger.IsDebug(),
+		Debug:  log.Enabled(context.Background(), slog.LevelDebug),
 		Client: &http.Client{},
 		Buffer: 100,
 	}
@@ -39,9 +44,9 @@ func NewBot(cfg *Config) *Bot {
 	api.Self = self
 
 	return &Bot{
-		cfg:    cfg,
-		logger: log,
-		api:    api,
+		cfg: cfg,
+		log: log,
+		api: api,
 	}
 }
 
@@ -57,8 +62,8 @@ func (b *Bot) Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error) {
 	return b.api.Request(c)
 }
 
-func (b *Bot) Send(message Message) error {
-	messages, err := message.chattable(b)
+func (b *Bot) Send(message model.Message) error {
+	messages, err := message.ToChattableList(view, b.OwnerID())
 	if err != nil {
 		return err
 	}
@@ -71,7 +76,7 @@ func (b *Bot) Send(message Message) error {
 }
 
 func (b *Bot) Chattable(c tgbotapi.Chattable) error {
-	b.logger.Debug("bot send message", "message", c)
+	b.log.Debug("bot send message", "message", c)
 	return b.chattable(c, 0)
 }
 
@@ -87,7 +92,7 @@ func (b *Bot) chattable(c tgbotapi.Chattable, retry uint) error {
 			res, _ = json.Marshal(e)
 		}
 
-		b.logger.Error("bot request error", "err", err, "message", c, "res_err", string(res))
+		b.log.Error("bot request error", "err", err, "message", c, "res_err", string(res))
 
 		return fmt.Errorf("%s error: %w", OpBotSend, err)
 	}

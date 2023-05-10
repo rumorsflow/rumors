@@ -8,7 +8,6 @@ import (
 	"github.com/gowool/wool"
 	"github.com/gowool/wool/render"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
 	"strings"
 	"sync"
@@ -102,10 +101,10 @@ type (
 	}
 )
 
-func NewSSE(rdbMaker *rdb.UniversalClientMaker, logger *slog.Logger) *SSE {
+func NewSSE(redisConnOpt asynq.RedisConnOpt, logger *slog.Logger) *SSE {
 	return &SSE{
 		Event:     sse.New(&sse.Config{ClientIdle: 5 * time.Minute}, logger),
-		inspector: asynq.NewInspector(rdbMaker),
+		inspector: asynq.NewInspector(redisConnOpt),
 		logger:    logger,
 	}
 }
@@ -159,11 +158,12 @@ func (a *SSE) Middleware(next wool.Handler) wool.Handler {
 	})
 }
 
-func (a *SSE) Listen(ctx context.Context) error {
+func (a *SSE) Listen(done <-chan struct{}) {
 	ticker := time.NewTicker(time.Second)
 
 	defer func() {
 		ticker.Stop()
+		_ = a.Close()
 		a.logger.Debug("sse listener stop")
 	}()
 
@@ -171,8 +171,8 @@ func (a *SSE) Listen(ctx context.Context) error {
 
 	for {
 		select {
-		case <-ctx.Done():
-			return a.Close()
+		case <-done:
+			return
 		case <-ticker.C:
 			ticker.Stop()
 			a.broadcast()

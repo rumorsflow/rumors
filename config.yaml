@@ -1,65 +1,60 @@
-logger:
-  add_source: ${RUMORS_LOGGER_ADD_SOURCE}
-  level: ${RUMORS_LOGGER_LEVEL}
-  encoding: ${RUMORS_LOGGER_ENCODING}
+endure:
+  log_level: ${RUMORS_ENDURE_LOG_LEVEL:-info}
+  grace_period: ${RUMORS_ENDURE_GRACE_PERIOD:-5s}
+  print_graph: ${RUMORS_ENDURE_PRINT_GRAPH:-false}
+
+log:
+  add_source: ${RUMORS_LOG_ADD_SOURCE:-false}
+  level: ${RUMORS_LOG_LEVEL:-info}
+  encoding: ${RUMORS_LOG_ENCODING:-json}
   output_paths:
-    - ${RUMORS_LOGGER_OUTPUT_PATH}
+    - ${RUMORS_LOG_OUTPUT_PATHS:-stderr}
+#  channels:
+#    http:
+#      add_source: false
+#      level: "debug"
+#      encoding: "console"
+#      output_paths:
+#        - stderr
+#    telegram:
+#      add_source: false
+#      level: "debug"
+#      encoding: "console"
+#      output_paths:
+#        - stderr
+#    task:
+#      add_source: false
+#      level: "debug"
+#      encoding: "console"
+#      output_paths:
+#        - stderr
+#    pubsub:
+#      add_source: false
+#      level: "debug"
+#      encoding: "console"
+#      output_paths:
+#        - stderr
 
 mongo:
-  ping: ${RUMORS_MONGO_PING}
+  ping: ${RUMORS_MONGO_PING:-false}
   uri: ${RUMORS_MONGO_URI}
 
 redis:
-  ping: ${RUMORS_REDIS_PING}
+  ping: ${RUMORS_REDIS_PING:-false}
   username: ${RUMORS_REDIS_USERNAME}
   password: ${RUMORS_REDIS_PASSWORD}
   addrs:
-    - ${RUMORS_REDIS_ADDRESS}
-
-http:
-  address: ${RUMORS_HTTP_ADDRESS}
-  cert_path: ${RUMORS_HTTP_CERT_PATH}
-  cert_file: ${RUMORS_HTTP_CERT_FILE}
-  key_file: ${RUMORS_HTTP_KEY_FILE}
-  graceful_timeout: 5s
-  jwt:
-    private_key: ${RUMORS_JWT_PRIVATE_KEY}
-    access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL}
-    refresh_token_ttl: ${RUMORS_JWT_REFRESH_TOKEN_TTL}
-  after:
-    serve:
-      exclude_endpoint: "^/(metrics|favicon.ico)"
-  middleware:
-    metrics:
-      exclude_endpoint: "^/(metrics|favicon.ico)"
-    compress: { }
-    cors:
-      allowed_origin: ${RUMORS_CORS_ALLOWED_ORIGIN}
-      allowed_headers: ${RUMORS_CORS_ALLOWED_HEADERS}
-      allowed_methods: ${RUMORS_CORS_ALLOWED_METHODS}
-      allow_credentials: ${RUMORS_CORS_ALLOW_CREDENTIALS}
-      exposed_headers: ${RUMORS_CORS_EXPOSED_HEADERS}
-      max_age: ${RUMORS_CORS_MAX_AGE}
-
-task:
-  scheduler:
-    sync_interval: ${RUMORS_SCHEDULER_SYNC_INTERVAL}
-  server:
-    queues:
-      tgmember: 9
-      tgcmd: 5
-      jobfeed: 8
-      jobsitemap: 7
-      broadcast: 6
+    - ${RUMORS_REDIS_ADDRESS:-127.0.0.1:6379}
 
 telegram:
   token: ${RUMORS_TELEGRAM_TOKEN}
   owner: ${RUMORS_TELEGRAM_OWNER}
-  retry: ${RUMORS_TELEGRAM_RETRY}
+  retry: ${RUMORS_TELEGRAM_RETRY:-3}
   poller:
-    only_owner: true
-    buffer: 50
-    limit: 50
+    only_owner: ${RUMORS_TELEGRAM_POLLER_ONLY_OWNER:-true}
+    buffer: ${RUMORS_TELEGRAM_POLLER_BUFFER:-50}
+    limit: ${RUMORS_TELEGRAM_POLLER_LIMIT:-50}
+    timeout: ${RUMORS_TELEGRAM_POLLER_TIMEOUT:-0s}
     allowed_updates:
       - "message"
       - "edited_message"
@@ -67,3 +62,55 @@ telegram:
       - "edited_channel_post"
       - "my_chat_member"
       - "chat_member"
+
+task:
+  scheduler:
+    sync_interval: ${RUMORS_TASK_SCHEDULER_SYNC_INTERVAL:-5m}
+  server:
+    strict_priority: ${RUMORS_TASK_SERVER_STRICT_PRIORITY:-false}
+    health_check_interval: ${RUMORS_TASK_SERVER_HEALTH_CHECK_INTERVAL:-15s}
+    delayed_task_check_interval: ${RUMORS_TASK_SERVER_DELAYED_TASK_CHECK_INTERVAL:-5s}
+    queues:
+      tgmember: 9
+      tgcmd: 5
+      jobfeed: 8
+      jobsitemap: 7
+      broadcast: 6
+
+http:
+  address: ${RUMORS_HTTP_ADDRESS:-0.0.0.0:1234}
+  cert_path: ${RUMORS_HTTP_CERT_PATH}
+  cert_file: ${RUMORS_HTTP_CERT_FILE}
+  key_file: ${RUMORS_HTTP_KEY_FILE}
+  disable_http2: ${RUMORS_HTTP_DISABLE_HTTP2:-false}
+  hide_port: ${RUMORS_HTTP_HIDE_PORT:-false}
+  read_timeout: ${RUMORS_HTTP_READ_TIMEOUT:-0} # zero or negative value means there will be no timeout
+  write_timeout: ${RUMORS_HTTP_WRITE_TIMEOUT:-0} # zero, the value of read_timeout is used
+  idle_timeout: ${RUMORS_HTTP_IDLE_TIMEOUT:-0} # zero, the value of read_timeout is used
+#  ui:
+#    front: "/app/ui/front"
+#    sys: "/app/ui/sys"
+  jwt:
+    private_key: ${RUMORS_JWT_PRIVATE_KEY}
+    access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL:-5m}
+    refresh_token_ttl: ${RUMORS_JWT_REFRESH_TOKEN_TTL:-120h}
+  log_request:
+    exclude_status: ${RUMORS_HTTP_LOG_REQ_EXCL_STATUS}
+    exclude_method: ${RUMORS_HTTP_LOG_REQ_EXCL_METHOD}
+    exclude_endpoint: ${RUMORS_HTTP_LOG_REQ_EXCL_ENDPOINT:-^/(metrics|favicon.ico)}
+  middleware:
+    metrics:
+      namespace: ${RUMORS_HTTP_MDWR_METRICS_NMS:-rumors}
+      exclude_status: ${RUMORS_HTTP_MDWR_METRICS_EXCL_STATUS}
+      exclude_method: ${RUMORS_HTTP_MDWR_METRICS_EXCL_METHOD}
+      exclude_endpoint: ${RUMORS_HTTP_MDWR_METRICS_EXCL_ENDPOINT:-^/(metrics|favicon.ico)}
+    compress:
+      level: ${RUMORS_HTTP_MDWR_GZIP_LEVEL:-1}
+      min_size: ${RUMORS_HTTP_MDWR_GZIP_MIN_SIZE:-1400} # minimum size until we enable gzip compression
+    cors:
+      allowed_origin: ${RUMORS_CORS_ALLOWED_ORIGIN}
+      allowed_headers: ${RUMORS_CORS_ALLOWED_HEADERS:-Content-Type,Accept,Authorization,Last-Event-ID}
+      allowed_methods: ${RUMORS_CORS_ALLOWED_METHODS:-GET,HEAD,POST,PATCH,DELETE,OPTIONS}
+      allow_credentials: ${RUMORS_CORS_ALLOW_CREDENTIALS:-true}
+      exposed_headers: ${RUMORS_CORS_EXPOSED_HEADERS:-Content-Type,Content-Language,Cache-Control,Connection,Location,Last-Modified,Expires,HeaderPragma,Vary}
+      max_age: ${RUMORS_CORS_MAX_AGE:-0}

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/gowool/wool"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 )
 
 const QNameParam = "qname"
@@ -13,8 +12,8 @@ type QueueActions struct {
 	inspector *asynq.Inspector
 }
 
-func NewQueueActions(rdbMaker *rdb.UniversalClientMaker) *QueueActions {
-	return &QueueActions{inspector: asynq.NewInspector(rdbMaker)}
+func NewQueueActions(redisConnOpt asynq.RedisConnOpt) *QueueActions {
+	return &QueueActions{inspector: asynq.NewInspector(redisConnOpt)}
 }
 
 func (a *QueueActions) Close() error {

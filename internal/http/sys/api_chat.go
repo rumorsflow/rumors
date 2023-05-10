@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 )
 
 type CreateChatDTO struct {
@@ -59,10 +59,7 @@ func (dto UpdateChatDTO) toEntity(id uuid.UUID) *entity.Chat {
 	return m
 }
 
-func NewChatCRUD(
-	read repository.ReadRepository[*entity.Chat],
-	write repository.WriteRepository[*entity.Chat],
-) action.CRUD {
+func NewChatCRUD(read repository.ReadRepository[*entity.Chat], write repository.WriteRepository[*entity.Chat]) action.CRUD {
 	return action.NewCRUD[*CreateChatDTO, *UpdateChatDTO, *entity.Chat, any](
 		read,
 		write,

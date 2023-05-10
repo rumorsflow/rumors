@@ -3,19 +3,19 @@ package task
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/common"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/telegram"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"golang.org/x/exp/slog"
 )
 
 type HandlerTgCmdOff struct {
 	logger    *slog.Logger
-	publisher *pubsub.Publisher
+	publisher common.Pub
 	chatRepo  repository.ReadWriteRepository[*entity.Chat]
 }
 
@@ -25,9 +25,9 @@ func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error 
 	chat := ctx.Value(ctxChatKey{}).(*entity.Chat)
 
 	if message.CommandArguments() == "" {
-		h.publisher.Telegram(ctx, telegram.Message{
+		h.publisher.Telegram(ctx, model.Message{
 			ChatID: message.Chat.ID,
-			View:   telegram.ViewError,
+			View:   model.ViewError,
 			Data:   TgErrMsgRequiredSite,
 		})
 		return nil
@@ -36,18 +36,18 @@ func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error 
 	sites = filterSitesByDomain(sites, message.CommandArguments())
 
 	if len(sites) == 0 {
-		h.publisher.Telegram(ctx, telegram.Message{
+		h.publisher.Telegram(ctx, model.Message{
 			ChatID: message.Chat.ID,
-			View:   telegram.ViewError,
+			View:   model.ViewError,
 			Data:   fmt.Sprintf(TgErrMsgNotFoundSite, message.CommandArguments()),
 		})
 		return nil
 	}
 
 	if chat.Broadcast == nil || len(*chat.Broadcast) == 0 {
-		h.publisher.Telegram(ctx, telegram.Message{
+		h.publisher.Telegram(ctx, model.Message{
 			ChatID: chat.TelegramID,
-			View:   telegram.ViewError,
+			View:   model.ViewError,
 		})
 		return nil
 	}
@@ -71,17 +71,17 @@ func (h *HandlerTgCmdOff) ProcessTask(ctx context.Context, _ *asynq.Task) error 
 		if err := h.chatRepo.Save(ctx, chat); err != nil {
 			h.logger.Error("error due to save chat", "err", err, "id", chat.ID, "telegram_id", chat.TelegramID)
 
-			h.publisher.Telegram(ctx, telegram.Message{
+			h.publisher.Telegram(ctx, model.Message{
 				ChatID: chat.TelegramID,
-				View:   telegram.ViewError,
+				View:   model.ViewError,
 			})
 			return nil
 		}
 	}
 
-	h.publisher.Telegram(ctx, telegram.Message{
+	h.publisher.Telegram(ctx, model.Message{
 		ChatID: chat.TelegramID,
-		View:   telegram.ViewSuccess,
+		View:   model.ViewSuccess,
 		Data:   TgSuccessMsgUnsubscribed,
 	})
 

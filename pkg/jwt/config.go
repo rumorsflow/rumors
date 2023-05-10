@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/rsa"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"time"
 )
 
@@ -25,11 +26,7 @@ func (cfg *Config) Init() {
 
 func (cfg *Config) GetPrivateKey() *rsa.PrivateKey {
 	if cfg.privateKey == nil {
-		privateKey, err := GetRSAPrivateKey(cfg.PrivateKey)
-		if err != nil {
-			panic(err)
-		}
-		cfg.privateKey = privateKey
+		cfg.privateKey = util.Must(GetRSAPrivateKey(cfg.PrivateKey))
 	}
 
 	return cfg.privateKey

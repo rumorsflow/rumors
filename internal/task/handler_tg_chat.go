@@ -3,20 +3,20 @@ package task
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/internal/telegram"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"golang.org/x/exp/slog"
 )
 
 type HandlerTgChat struct {
 	logger    *slog.Logger
-	publisher *pubsub.Publisher
+	publisher common.Pub
 	chatRepo  repository.ReadWriteRepository[*entity.Chat]
 }
 
@@ -52,7 +52,7 @@ func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *
 	chat, err := h.toEntityChat(ctx, tgChat)
 	if err != nil {
 		h.logger.Error("error due to find chat", "err", err, "chat", tgChat, "telegram_id", tgChat.ID)
-		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+		return fmt.Errorf("%s %w", OpServerProcessTask, err)
 	}
 
 	if member != nil {
@@ -82,10 +82,10 @@ func (h *HandlerTgChat) save(ctx context.Context, tgChat tgbotapi.Chat, member *
 
 	if err = h.chatRepo.Save(ctx, chat); err != nil {
 		h.logger.Error("error due to save chat", "err", err, "chat", tgChat, "telegram_id", tgChat.ID)
-		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+		return fmt.Errorf("%s %w", OpServerProcessTask, err)
 	}
 
-	h.publisher.Telegram(ctx, telegram.Message{View: telegram.ViewChat, Data: chat})
+	h.publisher.Telegram(ctx, model.Message{View: model.ViewChat, Data: chat})
 
 	return nil
 }

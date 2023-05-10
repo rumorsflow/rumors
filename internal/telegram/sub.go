@@ -3,14 +3,14 @@ package telegram
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/goccy/go-json"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/pkg/conv"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"golang.org/x/exp/slog"
 	"sync"
 	"sync/atomic"
@@ -31,7 +31,7 @@ const (
 type Subscriber struct {
 	pool     *pool
 	bot      *Bot
-	sub      *pubsub.Subscriber
+	sub      common.Sub
 	logger   *slog.Logger
 	siteRepo repository.ReadRepository[*entity.Site]
 	chatRepo repository.ReadRepository[*entity.Chat]
@@ -39,25 +39,31 @@ type Subscriber struct {
 
 func NewSubscriber(
 	bot *Bot,
-	sub *pubsub.Subscriber,
+	sub common.Sub,
 	siteRepo repository.ReadRepository[*entity.Site],
 	chatRepo repository.ReadRepository[*entity.Chat],
+	logger *slog.Logger,
 ) *Subscriber {
-	log := logger.WithGroup("telegram").WithGroup("subscriber")
-
 	s := &Subscriber{
 		bot:      bot,
 		sub:      sub,
-		logger:   log,
+		logger:   logger,
 		siteRepo: siteRepo,
 		chatRepo: chatRepo,
 	}
-	s.pool = newPool(s.processor, log.WithGroup("pool"))
+	s.pool = newPool(s.processor, logger.WithGroup("pool"))
 
 	return s
 }
 
-func (s *Subscriber) Run(ctx context.Context) error {
+func (s *Subscriber) Run(done <-chan struct{}) {
+	go s.run(done)
+}
+
+func (s *Subscriber) run(done <-chan struct{}) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	s.pool.Run(ctx)
 
 	telegramSub := s.sub.Telegram(ctx)
@@ -66,17 +72,27 @@ func (s *Subscriber) Run(ctx context.Context) error {
 	telegramCh := telegramSub.Channel()
 	articlesCh := articlesSub.Channel()
 
+	defer func() {
+		if err := s.bot.Send(model.Message{View: model.ViewAppStop}); err != nil {
+			s.logger.Error("error due to send stop message", "err", err)
+		}
+	}()
+
+	if err := s.bot.Send(model.Message{View: model.ViewAppStart}); err != nil {
+		s.logger.Error("error due to send start message", "err", err)
+	}
+
 	for {
 		select {
-		case <-ctx.Done():
-			return nil
+		case <-done:
+			return
 		case data := <-telegramCh:
 			if data == nil {
 				continue
 			}
 
-			var message Message
-			if err := json.Unmarshal(conv.StringToBytes(data.Payload), &message); err != nil {
+			var message model.Message
+			if err := json.Unmarshal(util.StringToBytes(data.Payload), &message); err != nil {
 				err = fmt.Errorf("%s error: %w", OpUnmarshalMessage, err)
 				s.logger.Error("error due to unmarshal message", "err", err, "channel", data.Channel, "payload", data.Payload)
 				continue
@@ -91,8 +107,8 @@ func (s *Subscriber) Run(ctx context.Context) error {
 				continue
 			}
 
-			var articles []pubsub.Article
-			if err := json.Unmarshal(conv.StringToBytes(data.Payload), &articles); err != nil {
+			var articles []model.Article
+			if err := json.Unmarshal(util.StringToBytes(data.Payload), &articles); err != nil {
 				err = fmt.Errorf("%s error: %w", OpUnmarshalArticles, err)
 				s.logger.Error("error due to unmarshal articles", "err", err, "channel", data.Channel, "payload", data.Payload)
 				continue
@@ -130,10 +146,10 @@ func (s *Subscriber) Run(ctx context.Context) error {
 				}
 
 				for _, chat := range chats {
-					s.send(Message{
+					s.send(model.Message{
 						ChatID:   chat.TelegramID,
 						ImageURL: article.Image,
-						View:     ViewArticle,
+						View:     model.ViewArticle,
 						Data:     article,
 						Delay:    true,
 					}, data.Channel)
@@ -143,8 +159,8 @@ func (s *Subscriber) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Subscriber) send(message Message, channel string) {
-	chunks, err := message.chattable(s.bot)
+func (s *Subscriber) send(message model.Message, channel string) {
+	chunks, err := message.ToChattableList(view, s.bot.OwnerID())
 	if err != nil {
 		err = fmt.Errorf("%s error: %w", OpPrepareMessage, err)
 		s.logger.Error("error due prepare message before send", "err", err, "channel", channel, "message", message)
@@ -171,8 +187,8 @@ type pool struct {
 	t         *time.Ticker
 	max       int
 	logger    *slog.Logger
-	waiting   *Dict[[]*entry]
-	workers   *Dict[*worker]
+	waiting   *util.Dict[[]*entry]
+	workers   *util.Dict[*worker]
 	processor func(tgbotapi.Chattable) error
 }
 
@@ -180,8 +196,8 @@ func newPool(processor func(tgbotapi.Chattable) error, logger *slog.Logger) *poo
 	return &pool{
 		max:       25,
 		logger:    logger,
-		waiting:   NewDict[[]*entry](),
-		workers:   NewDict[*worker](),
+		waiting:   util.NewDict[[]*entry](),
+		workers:   util.NewDict[*worker](),
 		processor: processor,
 	}
 }
@@ -273,7 +289,7 @@ func (p *pool) process(ctx context.Context) {
 
 type entry struct {
 	delay bool
-	data  *List[*chattable]
+	data  *util.List[*chattable]
 }
 
 type chattable struct {
@@ -287,7 +303,7 @@ func newEntry(data []tgbotapi.Chattable, delay bool) *entry {
 		panic("newEntry empty data")
 	}
 
-	e := &entry{delay: delay, data: NewList[*chattable](len(data))}
+	e := &entry{delay: delay, data: util.NewList[*chattable](len(data))}
 	for _, item := range data {
 		e.data.Add(&chattable{Chattable: item, max: 3, retry: 1})
 	}
@@ -320,7 +336,7 @@ type worker struct {
 	d         time.Duration
 	mu        sync.Mutex
 	name      string
-	entries   *List[*entry]
+	entries   *util.List[*entry]
 	running   atomic.Bool
 	processor func(tgbotapi.Chattable) error
 }
@@ -329,7 +345,7 @@ func newWorker(name string, processor func(tgbotapi.Chattable) error) *worker {
 	w := &worker{
 		d:         3 * time.Second,
 		name:      name,
-		entries:   NewList[*entry](0),
+		entries:   util.NewList[*entry](0),
 		processor: processor,
 	}
 	w.t = time.NewTicker(w.d)

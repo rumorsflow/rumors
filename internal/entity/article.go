@@ -2,7 +2,7 @@ package entity
 
 import (
 	"github.com/google/uuid"
-	"github.com/rumorsflow/rumors/v2/pkg/urlutil"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"time"
 )
 
@@ -20,6 +20,8 @@ const (
 const (
 	FeedSource    Source = "feed"
 	SitemapSource Source = "sitemap"
+
+	ArticleCollection = "articles"
 )
 
 type Media struct {
@@ -44,12 +46,16 @@ type Article struct {
 	Categories *[]string `json:"categories,omitempty" bson:"categories,omitempty"`
 }
 
+func (e *Article) Tags() []string {
+	return []string{ArticleCollection, e.ID.String()}
+}
+
 func (e *Article) EntityID() uuid.UUID {
 	return e.ID
 }
 
 func (e *Article) Domain() string {
-	return urlutil.SafeDomain(e.Link)
+	return util.SafeDomain(e.Link)
 }
 
 func (e *Article) SetShortDesc(shortDesc string) *Article {

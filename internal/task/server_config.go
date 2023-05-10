@@ -24,8 +24,4 @@ func (cfg *ServerConfig) Init() {
 	if _, ok := cfg.Queues[DefaultQueue]; !ok {
 		cfg.Queues[DefaultQueue] = 1
 	}
-
-	if cfg.GracefulTimeout == 0 {
-		cfg.GracefulTimeout = 10 * time.Second
-	}
 }

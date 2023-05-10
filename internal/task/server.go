@@ -4,86 +4,64 @@ import (
 	"context"
 	"fmt"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
 )
 
 type Server struct {
-	cfg             *ServerConfig
-	logger          *slog.Logger
-	rdbMaker        *rdb.UniversalClientMaker
-	groupAggregator asynq.GroupAggregator
-	errorHandler    asynq.ErrorHandler
+	cfg *asynq.Config
+	srv *asynq.Server
 }
 
 type ServerOption func(s *Server)
 
 func WithGroupAggregator(groupAggregator asynq.GroupAggregator) ServerOption {
 	return func(s *Server) {
-		s.groupAggregator = groupAggregator
+		s.cfg.GroupAggregator = groupAggregator
 	}
 }
 
 func WithErrorHandler(errorHandler asynq.ErrorHandler) ServerOption {
 	return func(s *Server) {
-		s.errorHandler = errorHandler
+		s.cfg.ErrorHandler = errorHandler
 	}
 }
 
-func NewServer(cfg *ServerConfig, rdbMaker *rdb.UniversalClientMaker, options ...ServerOption) *Server {
-	cfg.Init()
-
-	srv := &Server{cfg: cfg, rdbMaker: rdbMaker, logger: logger.WithGroup("task").WithGroup("server")}
+func NewServer(cfg *ServerConfig, redisConnOpt asynq.RedisConnOpt, logger *slog.Logger, options ...ServerOption) *Server {
+	srv := &Server{
+		cfg: &asynq.Config{
+			Concurrency:              cfg.Concurrency,
+			Queues:                   cfg.Queues,
+			StrictPriority:           cfg.StrictPriority,
+			HealthCheckInterval:      cfg.HealthCheckInterval,
+			DelayedTaskCheckInterval: cfg.DelayedTaskCheckInterval,
+			GroupGracePeriod:         cfg.GroupGracePeriod,
+			GroupMaxDelay:            cfg.GroupMaxDelay,
+			GroupMaxSize:             cfg.GroupMaxSize,
+			ShutdownTimeout:          cfg.GracefulTimeout,
+			Logger:                   &asynqLogger{logger: logger},
+			LogLevel:                 level(context.Background(), logger),
+			ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+				logger.Error("handle task error", "err", err, "task", task.Type(), "payload", task.Payload())
+			}),
+		},
+	}
 
 	for _, option := range options {
 		option(srv)
 	}
 
+	srv.srv = asynq.NewServer(redisConnOpt, *srv.cfg)
+
 	return srv
 }
 
-func (s *Server) Run(ctx context.Context, handler asynq.Handler) error {
-	cfg := asynq.Config{
-		Concurrency:              s.cfg.Concurrency,
-		Queues:                   s.cfg.Queues,
-		StrictPriority:           s.cfg.StrictPriority,
-		HealthCheckInterval:      s.cfg.HealthCheckInterval,
-		DelayedTaskCheckInterval: s.cfg.DelayedTaskCheckInterval,
-		GroupGracePeriod:         s.cfg.GroupGracePeriod,
-		GroupMaxDelay:            s.cfg.GroupMaxDelay,
-		GroupMaxSize:             s.cfg.GroupMaxSize,
-		ShutdownTimeout:          s.cfg.GracefulTimeout,
-		GroupAggregator:          s.groupAggregator,
-		ErrorHandler:             s.errorHandler,
-		BaseContext: func() context.Context {
-			return ctx
-		},
+func (s *Server) Start(handler asynq.Handler, errCh chan<- error) {
+	if err := s.srv.Start(handler); err != nil {
+		errCh <- fmt.Errorf("%s %w", OpServerStart, err)
 	}
+}
 
-	if s.logger != nil {
-		cfg.Logger = &asynqLogger{logger: s.logger}
-		cfg.LogLevel = level(s.logger)
-
-		if s.errorHandler == nil {
-			s.errorHandler = asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-				s.logger.Error("handle task error", "err", err, "task", task.Type(), "payload", task.Payload())
-			})
-		}
-	}
-
-	srv := asynq.NewServer(s.rdbMaker, cfg)
-
-	if err := srv.Start(handler); err != nil {
-		return fmt.Errorf("%s error: %w", OpServerStart, err)
-	}
-
-	defer func() {
-		srv.Stop()
-		srv.Shutdown()
-	}()
-
-	<-ctx.Done()
-
-	return nil
+func (s *Server) Stop() {
+	s.srv.Stop()
+	s.srv.Shutdown()
 }

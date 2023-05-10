@@ -6,12 +6,9 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/pkg/errs"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"github.com/spf13/cast"
 	"golang.org/x/exp/slog"
 	"sync"
@@ -28,7 +25,9 @@ type (
 		sync.RWMutex
 
 		interval time.Duration
+		ticker   *time.Ticker
 		repo     repository.ReadRepository[*entity.Job]
+		done     chan struct{}
 		log      *slog.Logger
 		so       *asynq.SchedulerOpts
 		s        *asynq.Scheduler
@@ -59,16 +58,14 @@ func WithPostEnqueueFunc(fn PostEnqueueFunc) SchedulerOption {
 	}
 }
 
-func NewScheduler(repo repository.ReadRepository[*entity.Job], rdbMaker *rdb.UniversalClientMaker, options ...SchedulerOption) *Scheduler {
-	log := logger.WithGroup("task").WithGroup("scheduler")
-
+func NewScheduler(repo repository.ReadRepository[*entity.Job], redisConnOpt asynq.RedisConnOpt, logger *slog.Logger, options ...SchedulerOption) *Scheduler {
 	s := &Scheduler{
 		interval: 5 * time.Minute,
 		repo:     repo,
-		log:      log,
+		log:      logger,
 		so: &asynq.SchedulerOpts{
-			Logger:   &asynqLogger{logger: log},
-			LogLevel: level(log),
+			Logger:   &asynqLogger{logger: logger},
+			LogLevel: level(context.Background(), logger),
 		},
 		m: map[uuid.UUID]running{},
 	}
@@ -77,41 +74,48 @@ func NewScheduler(repo repository.ReadRepository[*entity.Job], rdbMaker *rdb.Uni
 		option(s)
 	}
 
-	s.s = asynq.NewScheduler(rdbMaker, s.so)
+	s.s = asynq.NewScheduler(redisConnOpt, s.so)
 
 	return s
 }
 
-func (s *Scheduler) Run(ctx context.Context) error {
+func (s *Scheduler) Start(ctx context.Context, errCh chan<- error) {
+	s.done = make(chan struct{}, 1)
+	s.ticker = time.NewTicker(s.interval)
+
+	go s.start(ctx, errCh)
+}
+
+func (s *Scheduler) start(ctx context.Context, errCh chan<- error) {
 	if err := s.sync(ctx); err != nil {
-		if errs.IsCanceledOrDeadline(err) {
-			return nil
-		}
-		return fmt.Errorf("%s error: %w", OpSchedulerStart, err)
+		errCh <- fmt.Errorf("%s error: %w", OpSchedulerStart, err)
+		return
 	}
 
 	if err := s.s.Start(); err != nil {
-		return fmt.Errorf("%s error: %w", OpSchedulerStart, err)
+		errCh <- fmt.Errorf("%s error: %w", OpSchedulerStart, err)
+		return
 	}
-
-	ticker := time.NewTicker(s.interval)
-
-	defer func() {
-		ticker.Stop()
-		s.log.Debug("stopping syncer goroutine")
-		s.s.Shutdown()
-	}()
 
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
-		case <-ticker.C:
+			return
+		case <-s.done:
+			return
+		case <-s.ticker.C:
 			if err := s.sync(context.Background()); err != nil {
 				s.log.Error("failed to sync", "err", err)
 			}
 		}
 	}
+}
+
+func (s *Scheduler) Stop() {
+	s.done <- struct{}{}
+	s.ticker.Stop()
+	s.s.Shutdown()
+	s.log.Debug("stop scheduler")
 }
 
 func (s *Scheduler) Add(job *entity.Job) error {

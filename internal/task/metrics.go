@@ -5,8 +5,6 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/hibiken/asynq/x/metrics"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
 )
 
@@ -16,16 +14,16 @@ type Metrics struct {
 	collector *metrics.QueueMetricsCollector
 }
 
-func NewMetrics(rdbMaker *rdb.UniversalClientMaker) *Metrics {
+func NewMetrics(redisConnOpt asynq.RedisConnOpt, logger *slog.Logger) *Metrics {
 	return &Metrics{
-		logger:    logger.WithGroup("task").WithGroup("metrics"),
-		inspector: asynq.NewInspector(rdbMaker),
+		logger:    logger,
+		inspector: asynq.NewInspector(redisConnOpt),
 	}
 }
 
 func (m *Metrics) Close() error {
 	if err := m.inspector.Close(); err != nil {
-		return fmt.Errorf("%s error: %w", OpMetricsClose, err)
+		return fmt.Errorf("%s %w", OpMetricsClose, err)
 	}
 	return nil
 }
@@ -34,7 +32,7 @@ func (m *Metrics) Register() error {
 	m.collector = metrics.NewQueueMetricsCollector(m.inspector)
 
 	if err := prometheus.Register(m.collector); err != nil {
-		return fmt.Errorf("%s error: %w", OpMetricsRegister, err)
+		return fmt.Errorf("%s %w", OpMetricsRegister, err)
 	}
 
 	m.logger.Info("metrics registered")

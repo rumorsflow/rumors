@@ -7,12 +7,12 @@ import (
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/pkg/conv"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 )
 
 var _ jwtv4.Claims = (*UserClaims)(nil)
@@ -124,7 +124,7 @@ func (s *authService) SignInByRefreshToken(ctx context.Context, refreshToken str
 	defer s.client.Del(ctx, refreshToken)
 
 	var data redisData
-	if err = json.Unmarshal(conv.StringToBytes(raw), &data); err != nil {
+	if err = json.Unmarshal(util.StringToBytes(raw), &data); err != nil {
 		return Session{}, fmt.Errorf("invalid refresh token: %w", err)
 	}
 
@@ -164,7 +164,7 @@ func (s *authService) sessionByUser(ctx context.Context, user *entity.SysUser, o
 
 	if otp {
 		refreshToken = uuid.NewString()
-		if err = s.client.Set(ctx, refreshToken, conv.BytesToString(data), s.cfgJWT.RefreshTokenTTL).Err(); err != nil {
+		if err = s.client.Set(ctx, refreshToken, util.BytesToString(data), s.cfgJWT.RefreshTokenTTL).Err(); err != nil {
 			return Session{}, fmt.Errorf("save refresh token error: %w", err)
 		}
 	}

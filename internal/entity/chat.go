@@ -12,6 +12,8 @@ const (
 	Group      ChatType = "group"
 	SuperGroup ChatType = "supergroup"
 	Channel    ChatType = "channel"
+
+	ChatCollection = "chats"
 )
 
 type ChatRights struct {
@@ -58,6 +60,10 @@ type Chat struct {
 	Deleted    *bool        `json:"deleted,omitempty" bson:"deleted,omitempty"`
 	CreatedAt  time.Time    `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt  time.Time    `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (e *Chat) Tags() []string {
+	return []string{ChatCollection, e.ID.String()}
 }
 
 func (e *Chat) EntityID() uuid.UUID {

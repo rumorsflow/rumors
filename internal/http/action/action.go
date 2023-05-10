@@ -3,7 +3,7 @@ package action
 import (
 	"github.com/google/uuid"
 	"github.com/gowool/wool"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"reflect"
 )
 

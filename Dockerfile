@@ -19,6 +19,5 @@ LABEL org.opencontainers.image.vendor="Rumors"
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /app/release /
 COPY --from=build /app/config.yaml /config.yaml
-COPY --from=build /app/.env.example /.env
 
-CMD ["/rumors", "--dotenv=.env"]
+CMD ["/rumors"]

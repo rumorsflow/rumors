@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gowool/wool"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 )
 
 var _ wool.Create = (*CreateAction[any, repository.Entity])(nil)

@@ -3,14 +3,13 @@ package task
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/internal/telegram"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"golang.org/x/exp/slog"
 )
 
@@ -31,7 +30,7 @@ type (
 func LoggingMiddleware(log *slog.Logger) asynq.MiddlewareFunc {
 	return func(handler asynq.Handler) asynq.Handler {
 		return asynq.HandlerFunc(func(ctx context.Context, task *asynq.Task) error {
-			if logger.IsDebug() {
+			if log.Enabled(ctx, slog.LevelDebug) {
 				log.Debug("handle task", "task", task.Type(), "payload", task.Payload())
 			}
 
@@ -43,7 +42,7 @@ func LoggingMiddleware(log *slog.Logger) asynq.MiddlewareFunc {
 func TgCmdMiddleware(
 	siteRepo repository.ReadRepository[*entity.Site],
 	chatRepo repository.ReadWriteRepository[*entity.Chat],
-	publisher *pubsub.Publisher,
+	publisher common.Pub,
 	logger *slog.Logger,
 ) asynq.MiddlewareFunc {
 	return func(handler asynq.Handler) asynq.Handler {
@@ -73,14 +72,14 @@ func TgCmdMiddleware(
 
 			sites, err := siteRepo.Find(ctx, db.BuildCriteria("sort=domain&field.0.0=enabled&value.0.0=true"))
 			if err != nil {
-				err = fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+				err = fmt.Errorf("%s %w", OpServerProcessTask, err)
 				logger.Error("error due to find sites", "err", err, "command", message.Command())
 				return err
 			}
 
 			if len(sites) == 0 {
 				logger.Warn("task processing was stopped, because no sites found", "command", message.Command(), "args", message.CommandArguments())
-				publisher.Telegram(ctx, telegram.Message{ChatID: message.Chat.ID, View: telegram.ViewError})
+				publisher.Telegram(ctx, model.Message{ChatID: message.Chat.ID, View: model.ViewError})
 				return nil
 			}
 

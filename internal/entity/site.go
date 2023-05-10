@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const SiteCollection = "sites"
+
 type Site struct {
 	ID        uuid.UUID `json:"id,omitempty" bson:"_id,omitempty"`
 	Domain    string    `json:"domain,omitempty" bson:"domain,omitempty"`
@@ -14,6 +16,10 @@ type Site struct {
 	Enabled   *bool     `json:"enabled,omitempty" bson:"enabled,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (e *Site) Tags() []string {
+	return []string{SiteCollection, e.ID.String()}
 }
 
 func (e *Site) EntityID() uuid.UUID {

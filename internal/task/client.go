@@ -3,10 +3,8 @@ package task
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"golang.org/x/exp/slog"
 )
 
@@ -15,10 +13,10 @@ type Client struct {
 	logger *slog.Logger
 }
 
-func NewClient(rdbMaker *rdb.UniversalClientMaker) *Client {
+func NewClient(redisConnOpt asynq.RedisConnOpt, logger *slog.Logger) *Client {
 	return &Client{
-		inner:  asynq.NewClient(rdbMaker),
-		logger: logger.WithGroup("task").WithGroup("client"),
+		inner:  asynq.NewClient(redisConnOpt),
+		logger: logger,
 	}
 }
 
@@ -66,7 +64,7 @@ func (c *Client) enqueue(ctx context.Context, name string, data any, opts ...asy
 		return err
 	}
 
-	if logger.IsDebug() {
+	if c.logger.Enabled(ctx, slog.LevelDebug) {
 		c.logger.Debug("task enqueue", "task", name, "payload", data)
 	} else {
 		c.logger.Info("task enqueue", "task", name)

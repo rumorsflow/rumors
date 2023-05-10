@@ -3,13 +3,13 @@ package task
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
-	"github.com/rumorsflow/rumors/v2/internal/telegram"
+	"github.com/rumorsflow/rumors/v2/internal/model"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"golang.org/x/exp/slog"
 	"strings"
 	"unicode/utf8"
@@ -17,7 +17,7 @@ import (
 
 type HandlerTgCmdRumors struct {
 	logger      *slog.Logger
-	publisher   *pubsub.Publisher
+	publisher   common.Pub
 	articleRepo repository.ReadRepository[*entity.Article]
 }
 
@@ -36,16 +36,16 @@ func (h *HandlerTgCmdRumors) ProcessTask(ctx context.Context, _ *asynq.Task) err
 		return err
 	}
 
-	h.publisher.Telegram(ctx, telegram.Message{
+	h.publisher.Telegram(ctx, model.Message{
 		ChatID: message.Chat.ID,
-		View:   telegram.ViewArticles,
+		View:   model.ViewArticles,
 		Data:   grouped,
 	})
 
 	return nil
 }
 
-func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs []string) (map[string][]pubsub.Article, error) {
+func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs []string) (map[string][]model.Article, error) {
 	index, size, search := pagination(args)
 	query := fmt.Sprintf("sort=-pub_date&field.0.0=site_id&cond.0.0=in&value.0.0=%s", strings.Join(siteIDs, ","))
 
@@ -59,13 +59,13 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs 
 		query += fmt.Sprintf(strings.Join(filters, "&"), search)
 	}
 
-	grouped := make(map[string][]pubsub.Article, len(siteIDs))
+	grouped := make(map[string][]model.Article, len(siteIDs))
 
 	criteria := db.BuildCriteria(query).SetIndex(int64(index)).SetSize(int64(size))
 
 	iter, err := h.articleRepo.FindIter(ctx, criteria)
 	if err != nil {
-		return nil, fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+		return nil, fmt.Errorf("%s %w", OpServerProcessTask, err)
 	}
 
 	for iter.Next(ctx) {
@@ -74,14 +74,14 @@ func (h *HandlerTgCmdRumors) articles(ctx context.Context, args string, siteIDs 
 		d := article.Domain()
 
 		if _, ok := grouped[d]; ok {
-			grouped[d] = append(grouped[d], pubsub.FromEntity(article))
+			grouped[d] = append(grouped[d], model.ArticleFromEntity(article))
 		} else {
-			grouped[d] = []pubsub.Article{pubsub.FromEntity(article)}
+			grouped[d] = []model.Article{model.ArticleFromEntity(article)}
 		}
 	}
 
 	if err = iter.Close(context.Background()); err != nil {
-		return nil, fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+		return nil, fmt.Errorf("%s %w", OpServerProcessTask, err)
 	}
 
 	return grouped, nil

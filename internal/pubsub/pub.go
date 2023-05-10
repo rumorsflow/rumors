@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/redis/go-redis/v9"
-	"github.com/rumorsflow/rumors/v2/pkg/logger"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/model"
 	"golang.org/x/exp/slog"
 )
 
@@ -25,11 +25,13 @@ type Publisher struct {
 	logger *slog.Logger
 }
 
-func NewPublisher(rdbMaker *rdb.UniversalClientMaker) *Publisher {
-	return &Publisher{
-		client: rdbMaker.Make(),
-		logger: logger.WithGroup("pubsub").WithGroup("publisher"),
+func NewPublisher(rdbMaker common.RedisMaker, logger *slog.Logger) (*Publisher, error) {
+	client, err := rdbMaker.Make()
+	if err != nil {
+		return nil, err
 	}
+
+	return &Publisher{client: client, logger: logger}, nil
 }
 
 func (p *Publisher) Telegram(ctx context.Context, message any) {
@@ -38,7 +40,7 @@ func (p *Publisher) Telegram(ctx context.Context, message any) {
 	}
 }
 
-func (p *Publisher) Articles(ctx context.Context, articles []Article) {
+func (p *Publisher) Articles(ctx context.Context, articles []model.Article) {
 	if err := p.publish(ctx, ChannelArticles, articles); err != nil {
 		p.error("error due to publish articles", ChannelArticles, err)
 	}
@@ -51,12 +53,12 @@ func (p *Publisher) publish(ctx context.Context, channel string, message any) (e
 	default:
 		message, err = json.Marshal(message)
 		if err != nil {
-			return fmt.Errorf("%s error: %w", OpMarshal, err)
+			return fmt.Errorf("%s %w", OpMarshal, err)
 		}
 	}
 
 	if err = p.client.Publish(ctx, channel, message).Err(); err != nil {
-		return fmt.Errorf("%s error: %w", OpPublish, err)
+		return fmt.Errorf("%s %w", OpPublish, err)
 	}
 
 	p.logger.Debug("pubsub published a message", "channel", channel, "message", message)
@@ -66,7 +68,7 @@ func (p *Publisher) publish(ctx context.Context, channel string, message any) (e
 
 func (p *Publisher) Close() error {
 	if err := p.client.Close(); err != nil {
-		return fmt.Errorf("%s error: %w", OpClose, err)
+		return fmt.Errorf("%s %w", OpClose, err)
 	}
 	return nil
 }

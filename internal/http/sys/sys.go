@@ -1,11 +1,11 @@
 package sys
 
 import (
-	"context"
 	"github.com/gowool/wool"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
 	"github.com/rumorsflow/rumors/v2/pkg/jwt"
 	"golang.org/x/exp/slog"
+	"net/http"
 	"strings"
 )
 
@@ -21,6 +21,7 @@ type Sys struct {
 	SiteCRUD       action.CRUD
 	ChatCRUD       action.CRUD
 	JobCRUD        action.CRUD
+	DirUI          *string
 }
 
 func (s *Sys) Register(mux *wool.Wool) {
@@ -62,7 +63,7 @@ func (s *Sys) Register(mux *wool.Wool) {
 
 		s.Logger.WithGroup("api").Info("system APIs registered")
 
-		if uiBuiltIn {
+		if uiBuiltIn || s.DirUI != nil {
 			sys.Use(func(next wool.Handler) wool.Handler {
 				return func(c wool.Ctx) error {
 					path := c.Req().URL.Path
@@ -72,13 +73,18 @@ func (s *Sys) Register(mux *wool.Wool) {
 					return err
 				}
 			})
-			sys.UI("", sysAssetFS())
 
-			s.Logger.WithGroup("ui").Info("system UI registered")
+			if s.DirUI != nil {
+				sys.UI("", http.Dir(*s.DirUI))
+				s.Logger.WithGroup("ui").Info("system UI registered")
+			} else {
+				sys.UI("", sysAssetFS())
+				s.Logger.WithGroup("ui").Info("system UI registered")
+			}
 		}
 	})
 }
 
-func (s *Sys) Listen(ctx context.Context) error {
-	return s.SSE.Listen(ctx)
+func (s *Sys) Listen(done <-chan struct{}) {
+	go s.SSE.Listen(done)
 }

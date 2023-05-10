@@ -5,18 +5,20 @@ import (
 	"github.com/gowool/middleware/sse"
 	"github.com/gowool/wool"
 	"github.com/gowool/wool/render"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
+	"github.com/rumorsflow/rumors/v2/internal/common"
 	"golang.org/x/exp/slog"
+	"net/http"
 )
 
 var uiBuiltIn = true
 
 type Front struct {
 	Logger         *slog.Logger
-	Sub            *pubsub.Subscriber
+	Sub            common.Sub
 	SSE            *sse.Event
 	SiteActions    *SiteActions
 	ArticleActions *ArticleActions
+	DirUI          *string
 }
 
 func (front *Front) Register(mux *wool.Wool) {
@@ -32,20 +34,33 @@ func (front *Front) Register(mux *wool.Wool) {
 
 	front.Logger.WithGroup("api").WithGroup("v1").Info("frontend V1 APIs registered")
 
-	if uiBuiltIn {
+	if front.DirUI != nil {
+		mux.UI("", http.Dir(*front.DirUI))
+		front.Logger.WithGroup("ui").Info("frontend UI registered")
+	} else if uiBuiltIn {
 		mux.UI("", assetFS())
-
 		front.Logger.WithGroup("ui").Info("frontend UI registered")
 	}
 }
 
-func (front *Front) Listen(ctx context.Context) error {
+func (front *Front) Listen(done <-chan struct{}) {
+	go front.listen(done)
+}
+
+func (front *Front) listen(done <-chan struct{}) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	defer func() {
+		cancel()
+		_ = front.SSE.Close()
+	}()
+
 	articlesCh := front.Sub.Articles(ctx).Channel()
 
 	for {
 		select {
-		case <-ctx.Done():
-			return front.SSE.Close()
+		case <-done:
+			return
 		case data := <-articlesCh:
 			if data == nil {
 				continue

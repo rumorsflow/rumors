@@ -133,19 +133,19 @@ func (ws multiWriteSyncer) Sync() error {
 // os.Stdout and os.Stderr. When specified without a scheme, relative file
 // paths also work.
 func Open(paths ...string) (WriteSyncer, func(), error) {
-	writers, close, err := open(paths)
+	writers, cl, err := open(paths)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	writer := CombineWriteSyncers(writers...)
-	return writer, close, nil
+	return writer, cl, nil
 }
 
 func open(paths []string) ([]WriteSyncer, func(), error) {
 	writers := make([]WriteSyncer, 0, len(paths))
 	closers := make([]io.Closer, 0, len(paths))
-	close := func() {
+	cl := func() {
 		for _, c := range closers {
 			c.Close()
 		}
@@ -162,11 +162,11 @@ func open(paths []string) ([]WriteSyncer, func(), error) {
 		closers = append(closers, sink)
 	}
 	if openErr != nil {
-		close()
+		cl()
 		return nil, nil, openErr
 	}
 
-	return writers, close, nil
+	return writers, cl, nil
 }
 
 // CombineWriteSyncers is a utility that combines multiple WriteSyncers into a

@@ -2,17 +2,17 @@ package task
 
 import (
 	"context"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hibiken/asynq"
+	"github.com/rumorsflow/rumors/v2/internal/common"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/telegram"
+	"github.com/rumorsflow/rumors/v2/internal/model"
 	"golang.org/x/exp/slog"
 )
 
 type HandlerTgCmdSites struct {
 	logger    *slog.Logger
-	publisher *pubsub.Publisher
+	publisher common.Pub
 }
 
 func (h *HandlerTgCmdSites) ProcessTask(ctx context.Context, _ *asynq.Task) error {
@@ -24,9 +24,9 @@ func (h *HandlerTgCmdSites) ProcessTask(ctx context.Context, _ *asynq.Task) erro
 		domains[i] = site.Domain
 	}
 
-	h.publisher.Telegram(ctx, telegram.Message{
+	h.publisher.Telegram(ctx, model.Message{
 		ChatID: message.Chat.ID,
-		View:   telegram.ViewSites,
+		View:   model.ViewSites,
 		Data:   domains,
 	})
 	return nil

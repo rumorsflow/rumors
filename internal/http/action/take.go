@@ -2,7 +2,7 @@ package action
 
 import (
 	"github.com/gowool/wool"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 	"net/http"
 )
 

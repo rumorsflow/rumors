@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/rumorsflow/rumors/v2/internal/common"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
-	"github.com/rumorsflow/rumors/v2/pkg/rdb"
 	"sync"
 )
 
 type Subscriber struct {
 	mu     sync.Mutex
-	client redis.UniversalClient
 	subs   []*redis.PubSub
+	client redis.UniversalClient
 }
 
-func NewSubscriber(rdbMaker *rdb.UniversalClientMaker) *Subscriber {
-	return &Subscriber{client: rdbMaker.Make()}
+func NewSubscriber(rdbMaker common.RedisMaker) (*Subscriber, error) {
+	client, err := rdbMaker.Make()
+	if err != nil {
+		return nil, err
+	}
+	return &Subscriber{client: client}, nil
 }
 
 func (s *Subscriber) All(ctx context.Context) *redis.PubSub {
@@ -62,7 +66,7 @@ func (s *Subscriber) Close() (err error) {
 	}
 
 	if err = errs.Append(err, s.client.Close()); err != nil {
-		return fmt.Errorf("%s error: %w", OpClose, err)
+		return fmt.Errorf("%s %w", OpClose, err)
 	}
 
 	return nil

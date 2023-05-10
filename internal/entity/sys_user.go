@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const SysUserCollection = "sys_users"
+
 var b32NoPadding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 type SysUser struct {
@@ -21,6 +23,10 @@ type SysUser struct {
 	OTPSecret []byte    `json:"-" bson:"otp_secret,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (e *SysUser) Tags() []string {
+	return []string{SysUserCollection, e.ID.String()}
 }
 
 func (e *SysUser) EntityID() uuid.UUID {

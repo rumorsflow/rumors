@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/rumorsflow/rumors/v2/internal/http/action"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
 )
 
 type JobOptionDTO struct {
@@ -196,10 +196,7 @@ func (dto *UpdateJobDTO) toEntity(id uuid.UUID) *entity.Job {
 	return job
 }
 
-func NewJobCRUD(
-	read repository.ReadRepository[*entity.Job],
-	write repository.WriteRepository[*entity.Job],
-) action.CRUD {
+func NewJobCRUD(read repository.ReadRepository[*entity.Job], write repository.WriteRepository[*entity.Job]) action.CRUD {
 	return action.NewCRUD[*CreateJobDTO, *UpdateJobDTO, *entity.Job, any](
 		read,
 		write,

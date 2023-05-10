@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dlclark/regexp2"
+	"github.com/goccy/go-json"
 	"github.com/otiai10/opengraph/v2"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
 	"github.com/spf13/cast"
@@ -15,9 +16,67 @@ import (
 	"sync"
 )
 
+const (
+	OpClientEnqueue = "task.client: enqueue ->"
+
+	OpMetricsRegister = "task.metrics: register ->"
+	OpMetricsClose    = "task.metrics: close ->"
+
+	OpServerStart        = "task.server: start ->"
+	OpServerProcessTask  = "task.server: process task ->"
+	OpServerParseFeed    = "task.server: parse feed link ->"
+	OpServerParseSitemap = "task.server: parse sitemap link ->"
+	OpServerParseArticle = "task.server: parse article link ->"
+
+	OpSchedulerStart  = "task.scheduler: start ->"
+	OpSchedulerSync   = "task.scheduler: sync ->"
+	OpSchedulerAdd    = "task.scheduler: add ->"
+	OpSchedulerRemove = "task.scheduler: remove ->"
+
+	OpMarshal   = "task: marshal payload ->"
+	OpUnmarshal = "task: unmarshal payload ->"
+)
+
+const (
+	TgCmdStart  = "start"
+	TgCmdRumors = "rumors"
+	TgCmdSites  = "sites"
+	TgCmdSub    = "sub"
+	TgCmdOn     = "on"
+	TgCmdOff    = "off"
+)
+
+const (
+	TelegramPrefix    = "telegram:"
+	TelegramCmd       = TelegramPrefix + "cmd:"
+	TelegramCmdRumors = TelegramCmd + TgCmdRumors
+	TelegramCmdSites  = TelegramCmd + TgCmdSites
+	TelegramCmdSub    = TelegramCmd + TgCmdSub
+	TelegramCmdOn     = TelegramCmd + TgCmdOn
+	TelegramCmdOff    = TelegramCmd + TgCmdOff
+	TelegramChat      = TelegramPrefix + "chat:"
+	TelegramChatNew   = TelegramChat + "new"
+	TelegramChatEdit  = TelegramChat + "edit"
+)
+
 const userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/111.0"
 
 var regexMap sync.Map
+
+func marshal(v any) ([]byte, error) {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("%s error: %w", OpMarshal, err)
+	}
+	return data, nil
+}
+
+func unmarshal(data []byte, v any) error {
+	if err := json.Unmarshal(data, v); err != nil {
+		return fmt.Errorf("%s error: %w", OpUnmarshal, err)
+	}
+	return nil
+}
 
 func addRegex(r *string) error {
 	if r != nil && *r != "" {

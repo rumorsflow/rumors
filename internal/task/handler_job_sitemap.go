@@ -9,13 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"github.com/otiai10/opengraph/v2"
-	sitemap "github.com/oxffaa/gopher-parse-sitemap"
+	"github.com/oxffaa/gopher-parse-sitemap"
+	"github.com/rumorsflow/rumors/v2/internal/common"
+	"github.com/rumorsflow/rumors/v2/internal/db"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/internal/pubsub"
-	"github.com/rumorsflow/rumors/v2/internal/repository"
-	"github.com/rumorsflow/rumors/v2/internal/repository/db"
+	"github.com/rumorsflow/rumors/v2/internal/model"
 	"github.com/rumorsflow/rumors/v2/pkg/errs"
-	"github.com/rumorsflow/rumors/v2/pkg/strutil"
+	"github.com/rumorsflow/rumors/v2/pkg/repository"
+	"github.com/rumorsflow/rumors/v2/pkg/util"
 	"golang.org/x/exp/slog"
 	"io"
 	"strings"
@@ -25,7 +26,7 @@ import (
 
 type HandlerJobSitemap struct {
 	logger      *slog.Logger
-	publisher   *pubsub.Publisher
+	publisher   common.Pub
 	siteRepo    repository.ReadRepository[*entity.Site]
 	articleRepo repository.ReadWriteRepository[*entity.Article]
 }
@@ -77,13 +78,13 @@ func (h *HandlerJobSitemap) ProcessTask(ctx context.Context, task *asynq.Task) e
 			payload.Link = e.GetLocation()
 			return h.process(ctx, payload, site)
 		}); !errs.IsCanceledOrDeadline(err) && !errors.Is(err, io.EOF) {
-			return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+			return fmt.Errorf("%s %w", OpServerProcessTask, err)
 		}
 		return nil
 	}
 
 	if err = h.process(ctx, payload, site); !errs.IsCanceledOrDeadline(err) && !errors.Is(err, io.EOF) {
-		return fmt.Errorf("%s error: %w", OpServerProcessTask, err)
+		return fmt.Errorf("%s %w", OpServerProcessTask, err)
 	}
 	return nil
 }
@@ -125,7 +126,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 			return err
 		}
 
-		h.logger.Error("error due to parse sitemap location", "err", fmt.Errorf("%s error: %w", OpServerProcessTask, err), "entry", entry)
+		h.logger.Error("error due to parse sitemap location", "err", fmt.Errorf("%s %w", OpServerProcessTask, err), "entry", entry)
 
 		return nil
 	}
@@ -135,7 +136,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 		SiteID: site.ID,
 		Source: entity.SitemapSource,
 		Link:   entry.GetLocation(),
-		Title:  strutil.StripHTMLTags(og.Title),
+		Title:  util.StripHTMLTags(og.Title),
 	}
 
 	if date := entry.GetLastModified(); date != nil {
@@ -151,7 +152,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 		keywords := strings.Split(entry.GetNews().Keywords, ",")
 		categories := make([]string, 0, len(keywords))
 		for _, category := range keywords {
-			if category = strutil.StripHTMLTags(category); category != "" {
+			if category = util.StripHTMLTags(category); category != "" {
 				categories = append(categories, category)
 			}
 		}
@@ -169,7 +170,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 		article.PubDate = time.Now()
 	}
 
-	if desc := strutil.StripHTMLTags(og.Description); utf8.RuneCountInString(desc) >= minShortDesc && !strings.EqualFold(article.Title, desc) {
+	if desc := util.StripHTMLTags(og.Description); utf8.RuneCountInString(desc) >= minShortDesc && !strings.EqualFold(article.Title, desc) {
 		article.SetShortDesc(desc)
 	}
 
@@ -224,7 +225,7 @@ func (h *HandlerJobSitemap) saveArticle(ctx context.Context, article *entity.Art
 
 	h.logger.Debug("article saved", "article", article)
 
-	h.publisher.Articles(ctx, []pubsub.Article{pubsub.FromEntity(article)})
+	h.publisher.Articles(ctx, []model.Article{model.ArticleFromEntity(article)})
 
 	return nil
 }

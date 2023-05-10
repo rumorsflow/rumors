@@ -10,10 +10,6 @@
     <a href="https://github.com/rumorsflow/rumors/blob/main/LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/dub/l/vibe-d.svg" alt="LICENSE" /></a>
 </p>
 
-```shell
-go run .
-```
-
 ### Bot commands
 
 ```shell
