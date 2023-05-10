@@ -8,32 +8,32 @@ log:
   level: ${RUMORS_LOG_LEVEL:-info}
   encoding: ${RUMORS_LOG_ENCODING:-json}
   output_paths:
-    - ${RUMORS_LOG_OUTPUT_PATHS:-stderr}
-#  channels:
-#    http:
-#      add_source: false
-#      level: "debug"
-#      encoding: "console"
-#      output_paths:
-#        - stderr
-#    telegram:
-#      add_source: false
-#      level: "debug"
-#      encoding: "console"
-#      output_paths:
-#        - stderr
-#    task:
-#      add_source: false
-#      level: "debug"
-#      encoding: "console"
-#      output_paths:
-#        - stderr
-#    pubsub:
-#      add_source: false
-#      level: "debug"
-#      encoding: "console"
-#      output_paths:
-#        - stderr
+    - ${RUMORS_LOG_OUTPUT_PATH:-stderr}
+  channels:
+    http:
+      add_source: ${RUMORS_HTTP_LOG_ADD_SOURCE:-false}
+      level: ${RUMORS_HTTP_LOG_LEVEL:-info}
+      encoding: ${RUMORS_HTTP_LOG_ENCODING:-json}
+      output_paths:
+        - ${RUMORS_HTTP_LOG_OUTPUT_PATH:-stderr}
+    telegram:
+      add_source: ${RUMORS_TELEGRAM_LOG_ADD_SOURCE:-false}
+      level: ${RUMORS_TELEGRAM_LOG_LEVEL:-info}
+      encoding: ${RUMORS_TELEGRAM_LOG_ENCODING:-json}
+      output_paths:
+        - ${RUMORS_TELEGRAM_LOG_OUTPUT_PATH:-stderr}
+    task:
+      add_source: ${RUMORS_TASK_LOG_ADD_SOURCE:-false}
+      level: ${RUMORS_TASK_LOG_LEVEL:-info}
+      encoding: ${RUMORS_TASK_LOG_ENCODING:-json}
+      output_paths:
+        - ${RUMORS_TASK_LOG_OUTPUT_PATH:-stderr}
+    pubsub:
+      add_source: ${RUMORS_PUBSUB_LOG_ADD_SOURCE:-false}
+      level: ${RUMORS_PUBSUB_LOG_LEVEL:-info}
+      encoding: ${RUMORS_PUBSUB_LOG_ENCODING:-json}
+      output_paths:
+        - ${RUMORS_PUBSUB_LOG_OUTPUT_PATH:-stderr}
 
 mongo:
   ping: ${RUMORS_MONGO_PING:-false}
