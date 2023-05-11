@@ -24,20 +24,9 @@ import (
 	"golang.org/x/exp/slog"
 	"net/http"
 	"net/http/pprof"
-	"time"
 )
 
-const (
-	PluginName = "http"
-
-	sectionUISysKey        = "http.ui.sys"
-	sectionUIFrontKey      = "http.ui.front"
-	sectionJWTKey          = "http.jwt"
-	sectionMdwrCompressKey = "http.middleware.compress"
-	sectionMdwrCORSKey     = "http.middleware.cors"
-	sectionMdwrMetricsKey  = "http.middleware.metrics"
-	sectionAfterServeKey   = "http.log_request"
-)
+const PluginName = "http"
 
 type Plugin struct {
 	client       redis.UniversalClient
@@ -56,60 +45,18 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 		return errors.E(op, errors.Disabled)
 	}
 
-	var httpCfg wool.ServerConfig
+	var httpCfg Config
 	if err := cfg.UnmarshalKey(PluginName, &httpCfg); err != nil {
 		return errors.E(op, err)
 	}
 
-	var jwtCfg jwt.Config
-	if cfg.Has(sectionJWTKey) {
-		if err := cfg.UnmarshalKey(sectionJWTKey, &jwtCfg); err != nil {
-			return errors.E(op, err)
-		}
+	var srvCfg wool.ServerConfig
+	if err := cfg.UnmarshalKey(PluginName, &srvCfg); err != nil {
+		return errors.E(op, err)
 	}
 
-	var compressCfg gzip.Config
-	if cfg.Has(sectionMdwrCompressKey) {
-		if err := cfg.UnmarshalKey(sectionMdwrCompressKey, &compressCfg); err != nil {
-			return errors.E(op, err)
-		}
-	}
-
-	var corsCfg cors.Config
-	if cfg.Has(sectionMdwrCORSKey) {
-		if err := cfg.UnmarshalKey(sectionMdwrCORSKey, &corsCfg); err != nil {
-			return errors.E(op, err)
-		}
-	}
-
-	sseCfg := &sse.Config{
-		Metrics: &sse.MetricsConfig{
-			Enabled: false,
-			Version: cfg.Version(),
-		},
-		ClientIdle: time.Hour,
-	}
-
-	var afterServeCfg AfterServeConfig
-	if cfg.Has(sectionAfterServeKey) {
-		if err := cfg.UnmarshalKey(sectionAfterServeKey, &afterServeCfg); err != nil {
-			return errors.E(op, err)
-		}
-	}
-
-	var uiSys string
-	if cfg.Has(sectionUISysKey) {
-		if err := cfg.UnmarshalKey(sectionUISysKey, &uiSys); err != nil {
-			return errors.E(op, err)
-		}
-	}
-
-	var uiFront string
-	if cfg.Has(sectionUIFrontKey) {
-		if err := cfg.UnmarshalKey(sectionUIFrontKey, &uiFront); err != nil {
-			return errors.E(op, err)
-		}
-	}
+	httpCfg.init(cfg.Version())
+	srvCfg.Init()
 
 	siteAny, err := uow.Repository((*entity.Site)(nil))
 	if err != nil {
@@ -146,14 +93,8 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 		return errors.E(op, err)
 	}
 
-	httpCfg.Init()
-	jwtCfg.Init()
-	compressCfg.Init()
-	afterServeCfg.Init()
-	sseCfg.Init()
-
-	signer := jwt.NewSigner(jwtCfg.GetPrivateKey())
-	authService := sys.NewAuthService(sysUserRepo, client, signer, &jwtCfg)
+	signer := jwt.NewSigner(httpCfg.JWT.GetPrivateKey())
+	authService := sys.NewAuthService(sysUserRepo, client, signer, httpCfg.JWT)
 	p.queueActions = sys.NewQueueActions(rdbMaker)
 	p.client = client
 
@@ -161,26 +102,21 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 	frontLog := l.WithGroup("front")
 	sysLog := l.WithGroup("sys")
 
-	p.srv = wool.NewServer(&httpCfg, l.WithGroup("server"))
+	p.srv = wool.NewServer(&srvCfg, l.WithGroup("server"))
 	p.w = wool.New(
 		l,
 		wool.WithErrorTransform(ErrorTransform),
-		wool.WithAfterServe(AfterServe(&afterServeCfg, l)),
+		wool.WithAfterServe(AfterServe(httpCfg.LogReq, l)),
 	)
 
-	if cfg.Has(sectionMdwrMetricsKey) {
-		var metricsCfg prometheus.Config
-		if err := cfg.UnmarshalKey(sectionMdwrMetricsKey, &metricsCfg); err == nil {
-			sseCfg.Metrics.Enabled = true
-			metricsCfg.Version = cfg.Version()
-			p.w.Use(prometheus.Middleware(&metricsCfg))
-		}
+	if httpCfg.Middleware.Metrics != nil {
+		p.w.Use(prometheus.Middleware(httpCfg.Middleware.Metrics))
 	}
 
 	p.w.Use(
 		proxy.Middleware(),
-		gzip.Middleware(&compressCfg),
-		cors.Middleware(&corsCfg),
+		gzip.Middleware(httpCfg.Middleware.Compress),
+		cors.Middleware(httpCfg.Middleware.CORS),
 	)
 
 	p.w.MountHealth()
@@ -195,17 +131,19 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 			pp.Add("/trace", wool.ToHandler(http.HandlerFunc(pprof.Trace)))
 			pp.Add("/...", wool.ToHandler(http.HandlerFunc(pprof.Index)))
 		})
+	}
 
+	if httpCfg.Swagger.Enabled {
 		p.w.Group("/swagger", func(sw *wool.Wool) {
-			sw.GET("/sys/...", swagger.New(&swagger.Config{InstanceName: "sys"}).Handler)
-			sw.GET("/front/...", swagger.New(&swagger.Config{InstanceName: "front"}).Handler)
+			sw.GET("/sys/...", swagger.New(httpCfg.Swagger.Sys).Handler)
+			sw.GET("/front/...", swagger.New(httpCfg.Swagger.Front).Handler)
 		})
 	}
 
 	p.sys = &sys.Sys{
 		Logger:         sysLog,
-		CfgJWT:         &jwtCfg,
-		DirUI:          uiSys,
+		CfgJWT:         httpCfg.JWT,
+		DirUI:          httpCfg.UI.SysPath,
 		QueueActions:   p.queueActions,
 		SSE:            sys.NewSSE(rdbMaker, sysLog.WithGroup("sse")),
 		AuthActions:    sys.NewAuthActions(authService, sysLog.WithGroup("auth")),
@@ -218,8 +156,8 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 	p.front = &front.Front{
 		Logger:         frontLog,
 		Sub:            sub,
-		DirUI:          uiFront,
-		SSE:            sse.New(sseCfg, frontLog.WithGroup("sse")),
+		DirUI:          httpCfg.UI.FrontPath,
+		SSE:            sse.New(httpCfg.SSE, frontLog.WithGroup("sse")),
 		SiteActions:    &front.SiteActions{SiteRepo: siteRepo},
 		ArticleActions: &front.ArticleActions{ArticleRepo: articleRepo, SiteRepo: siteRepo},
 	}

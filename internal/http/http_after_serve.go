@@ -4,48 +4,10 @@ import (
 	"fmt"
 	"github.com/gowool/wool"
 	"golang.org/x/exp/slog"
-	"regexp"
 	"time"
 )
 
-type AfterServeConfig struct {
-	ExcludeRegexStatus   string `mapstructure:"exclude_status"`
-	ExcludeRegexMethod   string `mapstructure:"exclude_method"`
-	ExcludeRegexEndpoint string `mapstructure:"exclude_endpoint"`
-
-	rxStatus   *regexp.Regexp
-	rxMethod   *regexp.Regexp
-	rxEndpoint *regexp.Regexp
-}
-
-func (cfg *AfterServeConfig) Init() {
-	if cfg.ExcludeRegexEndpoint == "" {
-		cfg.ExcludeRegexEndpoint = "^/(metrics|favicon.ico)"
-	}
-
-	if cfg.ExcludeRegexStatus != "" {
-		cfg.rxStatus, _ = regexp.Compile(cfg.ExcludeRegexStatus)
-	}
-	if cfg.ExcludeRegexMethod != "" {
-		cfg.rxMethod, _ = regexp.Compile(cfg.ExcludeRegexMethod)
-	}
-	if cfg.ExcludeRegexEndpoint != "" {
-		cfg.rxEndpoint, _ = regexp.Compile(cfg.ExcludeRegexEndpoint)
-	}
-}
-
-func (cfg *AfterServeConfig) isOK(status, method, endpoint string) bool {
-	return (cfg.rxStatus == nil || !cfg.rxStatus.MatchString(status)) &&
-		(cfg.rxMethod == nil || !cfg.rxMethod.MatchString(method)) &&
-		(cfg.rxEndpoint == nil || !cfg.rxEndpoint.MatchString(endpoint))
-}
-
-func AfterServe(cfg *AfterServeConfig, log *slog.Logger) wool.AfterServe {
-	if cfg == nil {
-		cfg = &AfterServeConfig{}
-	}
-	cfg.Init()
-
+func AfterServe(cfg *LogReqConfig, log *slog.Logger) wool.AfterServe {
 	return func(c wool.Ctx, start, end time.Time, err error) {
 		method := c.Req().Method
 		endpoint := c.Req().URL.Path
@@ -70,6 +32,7 @@ func AfterServe(cfg *AfterServeConfig, log *slog.Logger) wool.AfterServe {
 			"user-agent", c.Req().UserAgent(),
 			"duration", end.Sub(start),
 			"latency", fmt.Sprintf("%s", end.Sub(start)),
+			"referer", c.Req().Referer(),
 		}
 
 		if err != nil {

@@ -90,14 +90,16 @@ http:
   ui:
     front: ${RUMORS_HTTP_UI_FRONT}
     sys: ${RUMORS_HTTP_UI_SYS}
-  jwt:
-    private_key: ${RUMORS_JWT_PRIVATE_KEY}
-    access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL:-5m}
-    refresh_token_ttl: ${RUMORS_JWT_REFRESH_TOKEN_TTL:-120h}
   log_request:
     exclude_status: ${RUMORS_HTTP_LOG_REQ_EXCL_STATUS}
     exclude_method: ${RUMORS_HTTP_LOG_REQ_EXCL_METHOD}
     exclude_endpoint: ${RUMORS_HTTP_LOG_REQ_EXCL_ENDPOINT:-^/(metrics|favicon.ico)}
+  jwt:
+    private_key: ${RUMORS_HTTP_JWT_PRIVATE_KEY}
+    access_token_ttl: ${RUMORS_HTTP_JWT_ACCESS_TOKEN_TTL:-5m}
+    refresh_token_ttl: ${RUMORS_HTTP_JWT_REFRESH_TOKEN_TTL:-120h}
+  swagger:
+    enabled: ${RUMORS_HTTP_SWAGGER_ENABLED:-false}
   middleware:
     metrics:
       namespace: ${RUMORS_HTTP_MDWR_METRICS_NMS:-rumors}
@@ -108,9 +110,9 @@ http:
       level: ${RUMORS_HTTP_MDWR_GZIP_LEVEL:-1}
       min_size: ${RUMORS_HTTP_MDWR_GZIP_MIN_SIZE:-1400} # minimum size until we enable gzip compression
     cors:
-      allowed_origin: ${RUMORS_CORS_ALLOWED_ORIGIN}
-      allowed_headers: ${RUMORS_CORS_ALLOWED_HEADERS:-Content-Type,Accept,Authorization,Last-Event-ID}
-      allowed_methods: ${RUMORS_CORS_ALLOWED_METHODS:-GET,HEAD,POST,PATCH,DELETE,OPTIONS}
-      allow_credentials: ${RUMORS_CORS_ALLOW_CREDENTIALS:-true}
-      exposed_headers: ${RUMORS_CORS_EXPOSED_HEADERS:-Content-Type,Content-Language,Cache-Control,Connection,Location,Last-Modified,Expires,HeaderPragma,Vary}
-      max_age: ${RUMORS_CORS_MAX_AGE:-0}
+      allowed_origin: ${RUMORS_HTTP_MDWR_CORS_ALLOWED_ORIGIN}
+      allowed_headers: ${RUMORS_HTTP_MDWR_CORS_ALLOWED_HEADERS:-Content-Type,Accept,Authorization,Last-Event-ID}
+      allowed_methods: ${RUMORS_HTTP_MDWR_CORS_ALLOWED_METHODS:-GET,HEAD,POST,PATCH,DELETE,OPTIONS}
+      allow_credentials: ${RUMORS_HTTP_MDWR_CORS_ALLOW_CREDENTIALS:-true}
+      exposed_headers: ${RUMORS_HTTP_MDWR_CORS_EXPOSED_HEADERS:-Content-Type,Content-Language,Cache-Control,Connection,Location,Last-Modified,Expires,HeaderPragma,Vary}
+      max_age: ${RUMORS_HTTP_MDWR_CORS_MAX_AGE:-0}
