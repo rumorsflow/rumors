@@ -30,3 +30,5 @@ rsa_prv.pem
 
 /internal/http/front/ui
 !/internal/http/front/ui/.gitkeep
+
+/ui

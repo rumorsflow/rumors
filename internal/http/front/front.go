@@ -18,7 +18,7 @@ type Front struct {
 	SSE            *sse.Event
 	SiteActions    *SiteActions
 	ArticleActions *ArticleActions
-	DirUI          *string
+	DirUI          string
 }
 
 func (front *Front) Register(mux *wool.Wool) {
@@ -34,8 +34,8 @@ func (front *Front) Register(mux *wool.Wool) {
 
 	front.Logger.WithGroup("api").WithGroup("v1").Info("frontend V1 APIs registered")
 
-	if front.DirUI != nil {
-		mux.UI("", http.Dir(*front.DirUI))
+	if front.DirUI != "" {
+		mux.UI("", http.Dir(front.DirUI))
 		front.Logger.WithGroup("ui").Info("frontend UI registered")
 	} else if uiBuiltIn {
 		mux.UI("", assetFS())

@@ -87,9 +87,9 @@ http:
   read_timeout: ${RUMORS_HTTP_READ_TIMEOUT:-0} # zero or negative value means there will be no timeout
   write_timeout: ${RUMORS_HTTP_WRITE_TIMEOUT:-0} # zero, the value of read_timeout is used
   idle_timeout: ${RUMORS_HTTP_IDLE_TIMEOUT:-0} # zero, the value of read_timeout is used
-#  ui:
-#    front: "/app/ui/front"
-#    sys: "/app/ui/sys"
+  ui:
+    front: ${RUMORS_HTTP_UI_FRONT}
+    sys: ${RUMORS_HTTP_UI_SYS}
   jwt:
     private_key: ${RUMORS_JWT_PRIVATE_KEY}
     access_token_ttl: ${RUMORS_JWT_ACCESS_TOKEN_TTL:-5m}

@@ -21,7 +21,7 @@ type Sys struct {
 	SiteCRUD       action.CRUD
 	ChatCRUD       action.CRUD
 	JobCRUD        action.CRUD
-	DirUI          *string
+	DirUI          string
 }
 
 func (s *Sys) Register(mux *wool.Wool) {
@@ -63,7 +63,7 @@ func (s *Sys) Register(mux *wool.Wool) {
 
 		s.Logger.WithGroup("api").Info("system APIs registered")
 
-		if uiBuiltIn || s.DirUI != nil {
+		if uiBuiltIn || s.DirUI != "" {
 			sys.Use(func(next wool.Handler) wool.Handler {
 				return func(c wool.Ctx) error {
 					path := c.Req().URL.Path
@@ -74,8 +74,8 @@ func (s *Sys) Register(mux *wool.Wool) {
 				}
 			})
 
-			if s.DirUI != nil {
-				sys.UI("", http.Dir(*s.DirUI))
+			if s.DirUI != "" {
+				sys.UI("", http.Dir(s.DirUI))
 				s.Logger.WithGroup("ui").Info("system UI registered")
 			} else {
 				sys.UI("", sysAssetFS())

@@ -97,14 +97,14 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 		}
 	}
 
-	var uiSys *string
+	var uiSys string
 	if cfg.Has(sectionUISysKey) {
 		if err := cfg.UnmarshalKey(sectionUISysKey, &uiSys); err != nil {
 			return errors.E(op, err)
 		}
 	}
 
-	var uiFront *string
+	var uiFront string
 	if cfg.Has(sectionUIFrontKey) {
 		if err := cfg.UnmarshalKey(sectionUIFrontKey, &uiFront); err != nil {
 			return errors.E(op, err)
