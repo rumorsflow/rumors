@@ -24,7 +24,6 @@ jobs:
       with:
         repository: rumorsflow/sys-ui
         ref: main
-        token: ${{ secrets.GH_PAT }}
         path: sys-ui
 
     - name: Checkout front UI
