@@ -13,12 +13,14 @@ type Logger interface {
 }
 
 type Log struct {
+	attrs    map[string]any
 	base     *slog.Logger
 	channels ChannelConfig
 }
 
-func NewLogger(channels ChannelConfig, base *slog.Logger) *Log {
+func NewLogger(attrs map[string]any, channels ChannelConfig, base *slog.Logger) *Log {
 	return &Log{
+		attrs:    attrs,
 		channels: channels,
 		base:     base,
 	}
@@ -26,7 +28,7 @@ func NewLogger(channels ChannelConfig, base *slog.Logger) *Log {
 
 func (l *Log) NamedLogger(name string) *slog.Logger {
 	if cfg, ok := l.channels.Channels[name]; ok {
-		return util.Must(cfg.Logger()).WithGroup(name)
+		return util.Must(cfg.Logger(l.attrs)).WithGroup(name)
 	}
 
 	return l.base.WithGroup(name)
@@ -46,25 +48,21 @@ func ToLeveler(level string) slog.Leveler {
 }
 
 func ToAttrs(data map[string]any) []slog.Attr {
-	var attrs []slog.Attr
+	attrs := make([]slog.Attr, 0, len(data))
 	for key, value := range data {
 		attrs = append(attrs, slog.Any(key, value))
 	}
 	return attrs
 }
 
-func (cfg *Config) Logger() (*slog.Logger, error) {
+func (cfg *Config) Logger(attrs map[string]any) (*slog.Logger, error) {
 	syncer, err := cfg.OpenSinks()
 	if err != nil {
 		return nil, err
 	}
 
 	handler := cfg.Opts().NewHandler(syncer, cfg.Encoding)
-
-	attrs := ToAttrs(cfg.Attrs)
-	if len(attrs) > 0 {
-		handler = handler.WithAttrs(attrs)
-	}
+	handler = handler.WithAttrs(append(ToAttrs(cfg.Attrs), ToAttrs(attrs)...))
 
 	return slog.New(&handlerSyncer{
 		Handler: handler,

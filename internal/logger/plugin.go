@@ -12,19 +12,25 @@ import (
 const PluginName = "log"
 
 type Plugin struct {
+	attrs    map[string]any
 	base     *slog.Logger
-	cfg      *logger.Config
 	channels logger.ChannelConfig
 }
 
 func (p *Plugin) Init(cfg config.Configurer) error {
+	p.attrs = map[string]any{"version": cfg.Version()}
+
 	const op = errors.Op("logger_plugin_init")
-	var err error
+
+	var (
+		c   *logger.Config
+		err error
+	)
 
 	if !cfg.Has(PluginName) {
-		p.cfg = &logger.Config{}
+		c = &logger.Config{}
 
-		p.base, err = p.cfg.Logger()
+		p.base, err = c.Logger(p.attrs)
 		if err != nil {
 			return errors.E(op, err)
 		}
@@ -34,7 +40,7 @@ func (p *Plugin) Init(cfg config.Configurer) error {
 		return nil
 	}
 
-	if err = cfg.UnmarshalKey(PluginName, &p.cfg); err != nil {
+	if err = cfg.UnmarshalKey(PluginName, &c); err != nil {
 		return errors.E(op, err)
 	}
 
@@ -42,7 +48,7 @@ func (p *Plugin) Init(cfg config.Configurer) error {
 		return errors.E(op, err)
 	}
 
-	p.base, err = p.cfg.Logger()
+	p.base, err = c.Logger(p.attrs)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -70,7 +76,7 @@ func (p *Plugin) Provides() []*dep.Out {
 }
 
 func (p *Plugin) ServiceLogger() logger.Logger {
-	return logger.NewLogger(p.channels, p.base)
+	return logger.NewLogger(p.attrs, p.channels, p.base)
 }
 
 func (p *Plugin) Name() string {
