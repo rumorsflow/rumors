@@ -10,6 +10,10 @@
     <a href="https://github.com/rumorsflow/rumors/blob/main/LICENSE" target="_blank" rel="noopener"><img src="https://img.shields.io/dub/l/vibe-d.svg" alt="LICENSE" /></a>
 </p>
 
+Welcome to [Rumors](https://www.rumorsflow.com/), a news aggregation application that brings together the latest news and updates from various sources.
+
+Rumors parses RSS and sitemap XML files to gather and organize news and information, making it easier for you to stay informed and up-to-date on the latest developments in your field of interest.
+
 ### Bot commands
 
 ```shell
