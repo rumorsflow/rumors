@@ -21,33 +21,29 @@ var (
 const timeLayout = "2006-01-02T15:04:05.000Z0700"
 
 type HandlerOptions struct {
-	slog.HandlerOptions
-}
-
-func (opts HandlerOptions) NewConsoleHandler(w io.Writer) *ConsoleHandler {
-	return NewConsoleHandler(opts.HandlerOptions, w)
+	*slog.HandlerOptions
 }
 
 func (opts HandlerOptions) NewHandler(w io.Writer, encoding string) slog.Handler {
 	switch strings.ToLower(encoding) {
 	case "console":
-		return opts.NewConsoleHandler(w)
+		return NewConsoleHandler(w, opts.HandlerOptions)
 	case "text":
-		return opts.NewTextHandler(w)
+		return slog.NewTextHandler(w, opts.HandlerOptions)
 	default:
-		return opts.NewJSONHandler(w)
+		return slog.NewJSONHandler(w, opts.HandlerOptions)
 	}
 }
 
 type ConsoleHandler struct {
+	w      io.Writer
 	opts   slog.HandlerOptions
 	global []slog.Attr
 	groups []string
-	w      io.Writer
 }
 
-func NewConsoleHandler(opts slog.HandlerOptions, w io.Writer, attrs ...slog.Attr) *ConsoleHandler {
-	return &ConsoleHandler{opts: opts, w: w, global: attrs}
+func NewConsoleHandler(w io.Writer, opts *slog.HandlerOptions, attrs ...slog.Attr) *ConsoleHandler {
+	return &ConsoleHandler{opts: *opts, w: w, global: attrs}
 }
 
 func (h *ConsoleHandler) clone() *ConsoleHandler {

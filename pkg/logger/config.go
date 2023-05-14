@@ -37,8 +37,8 @@ func (cfg *Config) OpenSinks() (WriteSyncer, error) {
 	return sink, err
 }
 
-func (cfg *Config) Opts() HandlerOptions {
-	return HandlerOptions{HandlerOptions: slog.HandlerOptions{
+func (cfg *Config) Opts() *HandlerOptions {
+	return &HandlerOptions{HandlerOptions: &slog.HandlerOptions{
 		Level:     ToLeveler(cfg.Level),
 		AddSource: cfg.AddSource,
 	}}

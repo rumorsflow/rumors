@@ -55,7 +55,26 @@ go run $GOROOT/src/crypto/tls/generate_cert.go --host localhost
 Run the following command to generate RSA private key
 
 ```shell
-openssl genrsa -out rsa_prv.pem 4096
+openssl genrsa -out rsa_key.pem 4096
+```
+
+### Docker Compose
+
+```shell
+# generate .env
+cat > .env << "EOF"
+RUMORS_TELEGRAM_TOKEN=<telegram bot token>
+RUMORS_TELEGRAM_OWNER=<telegram owner ID>
+RUMORS_HTTP_CERT_FILE=/absolute/path/cert.pem
+RUMORS_HTTP_KEY_FILE=/absolute/path/key.pem
+RUMORS_HTTP_JWT_PRIVATE_KEY=/absolute/path/rsa_key.pem
+EOF
+
+# start docker compose
+docker compose up -d
+
+# create new user and 2FA
+docker compose exec rumors /rumors sys user create -u username -p password -e username@mail.com
 ```
 
 ## License
