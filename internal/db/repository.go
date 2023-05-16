@@ -155,7 +155,7 @@ func (r *Repository[T]) FindByID(ctx context.Context, id uuid.UUID) (value T, er
 	entity := r.entityFactory.NewEntity()
 
 	if err = mongodb.DecodeOne(result, entity); err != nil {
-		return value, toRepoErr(repository.OpFindByID, err, id)
+		return value, repoErr(repository.OpFindByID, err, id)
 	}
 
 	if r.afterFind != nil {
@@ -178,16 +178,16 @@ func (r *Repository[T]) Save(ctx context.Context, entity T) (err error) {
 	if r.beforeSave == nil {
 		update = bson.M{"$set": entity}
 	} else if update, err = r.beforeSave(entity); err != nil {
-		return toRepoErr(repository.OpSave, fmt.Errorf("failed before save due to error: %w", err), id)
+		return repoErr(repository.OpSave, fmt.Errorf("failed before save due to error: %w", err), id)
 	}
 
 	var result *mongo.UpdateResult
 
 	if result, err = mongodb.Save(ctx, r.collection, bson.M{"_id": id.String()}, update); err != nil {
-		return toRepoErr(repository.OpSave, err, id)
+		return repoErr(repository.OpSave, err, id)
 	} else if r.afterSave != nil {
 		if err = r.afterSave(entity, result); err != nil {
-			return toRepoErr(repository.OpSave, fmt.Errorf("failed after save due to error: %w", err), id)
+			return repoErr(repository.OpSave, fmt.Errorf("failed after save due to error: %w", err), id)
 		}
 	}
 
@@ -196,12 +196,12 @@ func (r *Repository[T]) Save(ctx context.Context, entity T) (err error) {
 
 func (r *Repository[T]) Remove(ctx context.Context, id uuid.UUID) error {
 	if err := mongodb.Remove(ctx, r.collection, bson.M{"_id": id.String()}); err != nil {
-		return toRepoErr(repository.OpRemove, err, id)
+		return repoErr(repository.OpRemove, err, id)
 	}
 	return nil
 }
 
-func toRepoErr(op string, err error, id uuid.UUID) error {
+func repoErr(op string, err error, id uuid.UUID) error {
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return fmt.Errorf("%s %v -> "+mongodb.ErrMsgQuery, op, id, repository.ErrEntityNotFound)
 	}

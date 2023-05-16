@@ -1,11 +1,8 @@
 package model
 
 import (
-	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/goccy/go-json"
 	"github.com/rumorsflow/rumors/v2/internal/entity"
-	"github.com/rumorsflow/rumors/v2/pkg/util"
 )
 
 type View string
@@ -21,8 +18,6 @@ const (
 	ViewSuccess  View = "success.html"
 	ViewError    View = "error.html"
 	ViewNotFound View = "notfound.html"
-
-	OpMessageToChattableList = "message: to chattable list ->"
 )
 
 type Render func(view View, data any) (string, error)
@@ -75,43 +70,4 @@ func (m *Message) unmarshalData(data json.RawMessage, i any) error {
 	}
 	m.Data = i
 	return nil
-}
-
-func (m *Message) ToChattableList(render Render, ownerID int64) ([]tgbotapi.Chattable, error) {
-	if m.ChatID == 0 {
-		m.ChatID = ownerID
-	}
-
-	if m.View == "" {
-		return nil, fmt.Errorf("%s error: message view is required", OpMessageToChattableList)
-	}
-
-	text, err := render(m.View, m.Data)
-	if err != nil {
-		return nil, fmt.Errorf("%s execute template error: %w", OpMessageToChattableList, err)
-	}
-
-	chunks := util.SplitMax(text, "\n", 4096)
-	if len(chunks) == 0 {
-		return nil, fmt.Errorf("%s error: split text in chunks", OpMessageToChattableList)
-	}
-
-	messages := make([]tgbotapi.Chattable, len(chunks))
-
-	for i := 0; i < len(chunks); i++ {
-		if i == 0 && m.ImageURL != "" {
-			photo := tgbotapi.NewPhoto(m.ChatID, tgbotapi.FileURL(m.ImageURL))
-			photo.ParseMode = "HTML"
-			photo.Caption = chunks[i]
-			messages[i] = photo
-			continue
-		}
-
-		msg := tgbotapi.NewMessage(m.ChatID, chunks[i])
-		msg.DisableWebPagePreview = true
-		msg.ParseMode = "HTML"
-		messages[i] = msg
-	}
-
-	return messages, nil
 }

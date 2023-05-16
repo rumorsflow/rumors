@@ -160,7 +160,7 @@ func (s *Subscriber) run(done <-chan struct{}) {
 }
 
 func (s *Subscriber) send(message model.Message, channel string) {
-	chunks, err := message.ToChattableList(view, s.bot.OwnerID())
+	chunks, err := chattableList(message, view, s.bot.OwnerID())
 	if err != nil {
 		err = fmt.Errorf("%s error: %w", OpPrepareMessage, err)
 		s.logger.Error("error due prepare message before send", "err", err, "channel", channel, "message", message)

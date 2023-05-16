@@ -63,7 +63,7 @@ func (b *Bot) Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error) {
 }
 
 func (b *Bot) Send(message model.Message) error {
-	messages, err := message.ToChattableList(view, b.OwnerID())
+	messages, err := chattableList(message, view, b.OwnerID())
 	if err != nil {
 		return err
 	}
