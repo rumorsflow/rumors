@@ -1,8 +1,12 @@
-<p align="center">
-    <a href="https://www.rumorsflow.com/" target="_blank" rel="noopener">
-        <img src="https://i.imgur.com/4BAQDhD.png" alt="RumorsFlow" />
-    </a>
-</p>
+[//]: # (<p align="center">)
+
+[//]: # (    <a href="https://www.rumorsflow.com/" target="_blank" rel="noopener">)
+
+[//]: # (        <img src="https://i.imgur.com/4BAQDhD.png" alt="RumorsFlow" />)
+
+[//]: # (    </a>)
+
+[//]: # (</p>)
 
 <p align="center">
     <a href="https://github.com/rumorsflow/rumors/actions/workflows/release.yaml" target="_blank" rel="noopener"><img src="https://github.com/rumorsflow/rumors/actions/workflows/release.yaml/badge.svg" alt="build" /></a>

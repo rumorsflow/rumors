@@ -5,7 +5,7 @@ RUN git clone https://github.com/rumorsflow/ui.git /app
 
 WORKDIR /app
 
-RUN npm ci && VITE_APP_NAME_CAPTION=ALPHA npm run build
+RUN npm ci && VITE_APP_NAME_CAPTION=BETA npm run build
 
 # ----------------------------------------------------------
 

@@ -54,7 +54,7 @@ jobs:
       working-directory: ./ui
       run: |
         npm ci
-        VITE_APP_NAME_CAPTION=ALPHA npm run build -- --outDir ../app/internal/http/front/ui
+        VITE_APP_NAME_CAPTION=BETA npm run build -- --outDir ../app/internal/http/front/ui
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v4
