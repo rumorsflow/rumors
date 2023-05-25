@@ -29,7 +29,7 @@ func nopSiteList() {}
 //	@Param			sites	query		string			false	"Sites"
 //	@Param			langs	query		string			false	"Languages"
 //	@Param			dt		query		string			false	"From DateTime"	Format(date-time)
-//	@Success		200		{array}		pubsub.Article	"OK"
+//	@Success		200		{array}		model.Article	"OK"
 //	@Failure		400		{object}	wool.Error
 //	@Failure		500		{object}	wool.Error
 //	@Router			/articles [get]

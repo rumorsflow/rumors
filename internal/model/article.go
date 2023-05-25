@@ -8,16 +8,15 @@ import (
 )
 
 type Article struct {
-	ID         uuid.UUID `json:"id,omitempty"`
-	SiteID     uuid.UUID `json:"site_id,omitempty"`
-	Lang       string    `json:"lang,omitempty"`
-	Title      string    `json:"title,omitempty"`
-	ShortDesc  string    `json:"short_desc,omitempty"`
-	Link       string    `json:"link,omitempty"`
-	Image      string    `json:"image,omitempty"`
-	PubDate    time.Time `json:"pub_date,omitempty"`
-	PubDiff    string    `json:"pub_diff,omitempty"`
-	Categories []string  `json:"categories,omitempty"`
+	ID      uuid.UUID `json:"id,omitempty"`
+	SiteID  uuid.UUID `json:"site_id,omitempty"`
+	Lang    string    `json:"lang,omitempty"`
+	Title   string    `json:"title,omitempty"`
+	Desc    string    `json:"desc,omitempty"`
+	Link    string    `json:"link,omitempty"`
+	Image   string    `json:"image,omitempty"`
+	PubDate time.Time `json:"pub_date,omitempty"`
+	PubDiff string    `json:"pub_diff,omitempty"`
 }
 
 func ArticleFromEntity(e *entity.Article) Article {
@@ -32,12 +31,8 @@ func ArticleFromEntity(e *entity.Article) Article {
 		PubDiff: timediff.TimeDiff(e.CreatedAt, timediff.WithStartTime(time.Now().UTC())),
 	}
 
-	if e.ShortDesc != nil {
-		a.ShortDesc = *e.ShortDesc
-	}
-
-	if e.Categories != nil {
-		a.Categories = *e.Categories
+	if e.Desc != nil {
+		a.Desc = *e.Desc
 	}
 
 	return a

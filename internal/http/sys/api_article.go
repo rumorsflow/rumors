@@ -22,22 +22,18 @@ func (dto MediaDTO) toEntity() entity.Media {
 }
 
 type UpdateArticleDTO struct {
-	Lang       string      `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag"`
-	Title      string      `json:"title,omitempty" validate:"omitempty,max=254"`
-	ShortDesc  *string     `json:"short_desc,omitempty" validate:"omitempty,max=500"`
-	LongDesc   *string     `json:"long_desc,omitempty"`
-	Media      *[]MediaDTO `json:"media,omitempty" validate:"omitempty,dive"`
-	Categories *[]string   `json:"categories,omitempty" validate:"omitempty,dive,min=1,max=254"`
+	Lang  string      `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag"`
+	Title string      `json:"title,omitempty" validate:"omitempty,max=254"`
+	Desc  *string     `json:"desc,omitempty" validate:"omitempty,max=500"`
+	Media *[]MediaDTO `json:"media,omitempty" validate:"omitempty,dive"`
 }
 
 func (dto UpdateArticleDTO) toEntity(id uuid.UUID) *entity.Article {
 	a := &entity.Article{
-		ID:         id,
-		Lang:       dto.Lang,
-		Title:      dto.Title,
-		ShortDesc:  dto.ShortDesc,
-		LongDesc:   dto.LongDesc,
-		Categories: dto.Categories,
+		ID:    id,
+		Lang:  dto.Lang,
+		Title: dto.Title,
+		Desc:  dto.Desc,
 	}
 
 	if dto.Media != nil {

@@ -155,22 +155,7 @@ func (h *HandlerJobFeed) processItem(ctx context.Context, site *entity.Site, ite
 	}
 
 	if utf8.RuneCountInString(shortDesc) >= 50 {
-		article.SetShortDesc(shortDesc)
-	}
-
-	if utf8.RuneCountInString(item.Description) >= 50 {
-		article.SetLongDesc(item.Description)
-	}
-
-	categories := make([]string, 0, len(item.Categories))
-	for _, category := range item.Categories {
-		if category = util.StripHTMLTags(category); category != "" {
-			categories = append(categories, category)
-		}
-	}
-
-	if len(categories) > 0 {
-		article.SetCategories(categories)
+		article.SetDesc(shortDesc)
 	}
 
 	media := toMedia(og)

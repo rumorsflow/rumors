@@ -72,7 +72,7 @@ const docTemplatefront = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/pubsub.Article"
+                                "$ref": "#/definitions/model.Article"
                             }
                         }
                     },
@@ -199,14 +199,11 @@ const docTemplatefront = `{
                 }
             }
         },
-        "pubsub.Article": {
+        "model.Article": {
             "type": "object",
             "properties": {
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "desc": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -224,9 +221,6 @@ const docTemplatefront = `{
                     "type": "string"
                 },
                 "pub_diff": {
-                    "type": "string"
-                },
-                "short_desc": {
                     "type": "string"
                 },
                 "site_id": {

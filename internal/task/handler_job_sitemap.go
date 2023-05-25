@@ -149,16 +149,6 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 		if date := entry.GetNews().GetPublicationDate(); date != nil {
 			article.PubDate = *date
 		}
-		keywords := strings.Split(entry.GetNews().Keywords, ",")
-		categories := make([]string, 0, len(keywords))
-		for _, category := range keywords {
-			if category = util.StripHTMLTags(category); category != "" {
-				categories = append(categories, category)
-			}
-		}
-		if len(categories) > 0 {
-			article.SetCategories(categories)
-		}
 	}
 
 	if article.Title == "" {
@@ -171,7 +161,7 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 	}
 
 	if desc := util.StripHTMLTags(og.Description); utf8.RuneCountInString(desc) >= minShortDesc && !strings.EqualFold(article.Title, desc) {
-		article.SetShortDesc(desc)
+		article.SetDesc(desc)
 	}
 
 	media := toMedia(og)
@@ -186,8 +176,8 @@ func (h *HandlerJobSitemap) processEntry(ctx context.Context, entry sitemap.Entr
 		article.SetMedia(media)
 	}
 
-	if article.Lang == "" && article.ShortDesc != nil {
-		article.Lang = whatlanggo.DetectLang(article.Title + " " + *article.ShortDesc).Iso6391()
+	if article.Lang == "" && article.Desc != nil {
+		article.Lang = whatlanggo.DetectLang(article.Title + " " + *article.Desc).Iso6391()
 	}
 
 	if !contains(site.Languages, article.Lang) {

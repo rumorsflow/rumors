@@ -30,11 +30,7 @@ func ArticleIndexes(indexView mongo.IndexView) error {
 		{Keys: bson.D{{"created_at", 1}}},
 		{Keys: bson.D{{"updated_at", 1}}},
 		{Keys: bson.D{{"site_id", 1}, {"lang", 1}}},
-		{Keys: bson.D{
-			{"source", 1},
-			{"lang", 1},
-			{"categories", 1},
-		}},
+		{Keys: bson.D{{"source", 1}, {"lang", 1}}},
 	}); err != nil {
 		return fmt.Errorf("%s %w", repository.OpIndexes, err)
 	}

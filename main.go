@@ -7,6 +7,9 @@ import (
 	"os"
 )
 
+//go:generate swag f --dir internal/http/front
+//go:generate swag f --dir internal/http/sys
+
 var version = "(untracked)"
 
 func init() {

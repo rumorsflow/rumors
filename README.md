@@ -39,13 +39,13 @@ go install github.com/swaggo/swag/cmd/swag@aa3e8d5fa2f6ee3a56f54c7ae3bd18145783e
 Run the following command to generate Front API Documentation
 
 ```shell
-swag i -g swagger.go -dir internal/http/front,internal/entity,internal/pubsub,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230212000935-245e67db993b --instanceName front
+swag i -g swagger.go -dir internal/http/front,internal/entity,internal/model,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230509175958-16e9f1d12396 --instanceName front
 ```
 
 Run the following command to generate System API Documentation
 
 ```shell
-swag i -g swagger.go -dir internal/http/sys,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230212000935-245e67db993b --instanceName sys
+swag i -g swagger.go -dir internal/http/sys,internal/entity,${HOME}/go/pkg/mod/github.com/gowool/wool@v0.0.0-20230509175958-16e9f1d12396 --instanceName sys
 ```
 
 ### Generate a self-signed X.509 TLS certificate

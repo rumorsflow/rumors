@@ -2,11 +2,9 @@ basePath: /sys/api
 definitions:
   entity.Article:
     properties:
-      categories:
-        items:
-          type: string
-        type: array
       created_at:
+        type: string
+      desc:
         type: string
       id:
         type: string
@@ -14,15 +12,11 @@ definitions:
         type: string
       link:
         type: string
-      long_desc:
-        type: string
       media:
         items:
           $ref: '#/definitions/entity.Media'
         type: array
       pub_date:
-        type: string
-      short_desc:
         type: string
       site_id:
         type: string
@@ -369,21 +363,15 @@ definitions:
     type: object
   sys.UpdateArticleDTO:
     properties:
-      categories:
-        items:
-          type: string
-        type: array
-      lang:
+      desc:
+        maxLength: 500
         type: string
-      long_desc:
+      lang:
         type: string
       media:
         items:
           $ref: '#/definitions/sys.MediaDTO'
         type: array
-      short_desc:
-        maxLength: 500
-        type: string
       title:
         maxLength: 254
         type: string

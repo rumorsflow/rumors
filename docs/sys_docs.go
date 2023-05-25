@@ -1673,13 +1673,10 @@ const docTemplatesys = `{
         "entity.Article": {
             "type": "object",
             "properties": {
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "created_at": {
+                    "type": "string"
+                },
+                "desc": {
                     "type": "string"
                 },
                 "id": {
@@ -1691,9 +1688,6 @@ const docTemplatesys = `{
                 "link": {
                     "type": "string"
                 },
-                "long_desc": {
-                    "type": "string"
-                },
                 "media": {
                     "type": "array",
                     "items": {
@@ -1701,9 +1695,6 @@ const docTemplatesys = `{
                     }
                 },
                 "pub_date": {
-                    "type": "string"
-                },
-                "short_desc": {
                     "type": "string"
                 },
                 "site_id": {
@@ -2210,16 +2201,11 @@ const docTemplatesys = `{
         "sys.UpdateArticleDTO": {
             "type": "object",
             "properties": {
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "desc": {
+                    "type": "string",
+                    "maxLength": 500
                 },
                 "lang": {
-                    "type": "string"
-                },
-                "long_desc": {
                     "type": "string"
                 },
                 "media": {
@@ -2227,10 +2213,6 @@ const docTemplatesys = `{
                     "items": {
                         "$ref": "#/definitions/sys.MediaDTO"
                     }
-                },
-                "short_desc": {
-                    "type": "string",
-                    "maxLength": 500
                 },
                 "title": {
                     "type": "string",
