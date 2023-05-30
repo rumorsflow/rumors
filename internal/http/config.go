@@ -1,7 +1,6 @@
 package http
 
 import (
-	"github.com/gowool/middleware/cfipcountry"
 	"github.com/gowool/middleware/cors"
 	"github.com/gowool/middleware/gzip"
 	"github.com/gowool/middleware/prometheus"
@@ -50,10 +49,9 @@ func (cfg *LogReqConfig) isOK(status, method, endpoint string) bool {
 }
 
 type MiddlewareConfig struct {
-	Compress    *gzip.Config        `mapstructure:"compress"`
-	CORS        *cors.Config        `mapstructure:"cors"`
-	Metrics     *prometheus.Config  `mapstructure:"metrics"`
-	CfIPCountry *cfipcountry.Config `mapstructure:"cfipcountry"`
+	Compress *gzip.Config       `mapstructure:"compress"`
+	CORS     *cors.Config       `mapstructure:"cors"`
+	Metrics  *prometheus.Config `mapstructure:"metrics"`
 }
 
 type SwaggerConfig struct {

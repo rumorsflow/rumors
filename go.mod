@@ -15,7 +15,6 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
-	github.com/gowool/middleware/cfipcountry v0.0.0-20230530002522-dba2c4805138
 	github.com/gowool/middleware/cors v0.0.0-20230505180556-11a90e2fe221
 	github.com/gowool/middleware/gzip v0.0.0-20230505180556-11a90e2fe221
 	github.com/gowool/middleware/keyauth v0.0.0-20230505180556-11a90e2fe221

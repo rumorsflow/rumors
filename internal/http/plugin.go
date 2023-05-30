@@ -160,7 +160,6 @@ func (p *Plugin) Init(cfg config.Configurer, rdbMaker common.RedisMaker, sub com
 		SSE:            sse.New(httpCfg.SSE, frontLog.WithGroup("sse")),
 		SiteActions:    &front.SiteActions{SiteRepo: siteRepo},
 		ArticleActions: &front.ArticleActions{ArticleRepo: articleRepo, SiteRepo: siteRepo},
-		CfConfig:       httpCfg.Middleware.CfIPCountry,
 	}
 
 	p.w.Group("", func(sw *wool.Wool) {

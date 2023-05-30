@@ -208,8 +208,6 @@ github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5m
 github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8/go.mod h1:dvDLG8qkwmyD9a/MJJN3XJcT3xFxOKAvTZGvuZmac9g=
 github.com/gorilla/css v1.0.0 h1:BQqNyPTi50JCFMTw/b67hByjMVXZRwGha6wxVGkeihY=
 github.com/gorilla/css v1.0.0/go.mod h1:Dn721qIggHpt4+EFCcTLTU/vk5ySda2ReITrtgBl60c=
-github.com/gowool/middleware/cfipcountry v0.0.0-20230530002522-dba2c4805138 h1:xaqWnLPt/ahbc2Ns+5GSHN7Jnx2MoiVTiFw1Z55vDIo=
-github.com/gowool/middleware/cfipcountry v0.0.0-20230530002522-dba2c4805138/go.mod h1:1t5gR9H4dVIWQMQL1X5wW73WNv5dhrBtVkrZo4qONHA=
 github.com/gowool/middleware/cors v0.0.0-20230505180556-11a90e2fe221 h1:0xRxesR1DB7entlpvrtKj/cc//1qmJAbnbXaPaN8N08=
 github.com/gowool/middleware/cors v0.0.0-20230505180556-11a90e2fe221/go.mod h1:ybk0B9mi230hMv4eDunBbJhLm/mtR9KTGLFwMQ7q60I=
 github.com/gowool/middleware/gzip v0.0.0-20230505180556-11a90e2fe221 h1:obfAowI9K+Bt0y7oUMoU8tnPmYdOfj0SoKw1RM9kmy0=
