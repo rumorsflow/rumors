@@ -9,12 +9,13 @@ replace (
 
 require (
 	github.com/abadojack/whatlanggo v1.0.1
-	github.com/dlclark/regexp2 v1.9.0
+	github.com/dlclark/regexp2 v1.10.0
 	github.com/fatih/color v1.15.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/goccy/go-json v0.10.2
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
+	github.com/gowool/middleware/cfipcountry v0.0.0-20230530002522-dba2c4805138
 	github.com/gowool/middleware/cors v0.0.0-20230505180556-11a90e2fe221
 	github.com/gowool/middleware/gzip v0.0.0-20230505180556-11a90e2fe221
 	github.com/gowool/middleware/keyauth v0.0.0-20230505180556-11a90e2fe221

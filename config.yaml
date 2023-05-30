@@ -116,3 +116,16 @@ http:
       allow_credentials: ${RUMORS_HTTP_MDWR_CORS_ALLOW_CREDENTIALS:-true}
       exposed_headers: ${RUMORS_HTTP_MDWR_CORS_EXPOSED_HEADERS:-Content-Type,Content-Language,Cache-Control,Connection,Location,Last-Modified,Expires,HeaderPragma,Vary}
       max_age: ${RUMORS_HTTP_MDWR_CORS_MAX_AGE:-0}
+    cfipcountry:
+      IT:
+        pattern: "lang=*"
+        redirect_url: "/?lang=it"
+      RO:
+        pattern: "lang=*"
+        redirect_url: "/?lang=ro"
+      MD:
+        pattern: "lang=*"
+        redirect_url: "/?lang=ro"
+      "*":
+        pattern: "lang=*"
+        redirect_url: "/?lang=en"

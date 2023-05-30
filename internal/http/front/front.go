@@ -2,6 +2,7 @@ package front
 
 import (
 	"context"
+	"github.com/gowool/middleware/cfipcountry"
 	"github.com/gowool/middleware/sse"
 	"github.com/gowool/wool"
 	"github.com/gowool/wool/render"
@@ -18,6 +19,7 @@ type Front struct {
 	SSE            *sse.Event
 	SiteActions    *SiteActions
 	ArticleActions *ArticleActions
+	CfConfig       *cfipcountry.Config
 	DirUI          string
 }
 
@@ -33,6 +35,10 @@ func (front *Front) Register(mux *wool.Wool) {
 	})
 
 	front.Logger.WithGroup("api").WithGroup("v1").Info("frontend V1 APIs registered")
+
+	if front.CfConfig != nil {
+		mux.Use(cfipcountry.Middleware(front.CfConfig))
+	}
 
 	if front.DirUI != "" {
 		mux.UI("", http.Dir(front.DirUI))
