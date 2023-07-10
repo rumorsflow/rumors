@@ -1,3 +1,5 @@
+ARG VERSION=(untracked)
+
 FROM node:18-alpine as front-ui
 
 RUN apk add --no-cache git
@@ -5,7 +7,7 @@ RUN git clone https://github.com/rumorsflow/ui.git /app
 
 WORKDIR /app
 
-RUN npm ci && VITE_APP_NAME_CAPTION=BETA npm run build
+RUN npm ci && VITE_APP_NAME_CAPTION="${VERSION}" npm run build
 
 # ----------------------------------------------------------
 
@@ -26,8 +28,6 @@ FROM golang:1.20-alpine as build
 RUN apk update \
 	&& apk add --no-cache build-base ca-certificates \
 	&& update-ca-certificates
-
-ARG VERSION=(untracked)
 
 WORKDIR /app
 

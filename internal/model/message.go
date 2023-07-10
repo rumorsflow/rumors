@@ -54,13 +54,14 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 
 	switch msg.View {
 	case ViewArticles:
-		return m.unmarshalData(msg.Data, map[string][]Article{})
+		return m.unmarshalData(msg.Data, &map[string][]Article{})
 	case ViewChat:
-		return m.unmarshalData(msg.Data, entity.Chat{})
+		return m.unmarshalData(msg.Data, &entity.Chat{})
 	case ViewSites, ViewSub:
-		return m.unmarshalData(msg.Data, []string{})
+		return m.unmarshalData(msg.Data, &[]string{})
 	default:
-		return m.unmarshalData(msg.Data, "")
+		var i string
+		return m.unmarshalData(msg.Data, &i)
 	}
 }
 
